@@ -1,0 +1,147 @@
+/* =========================================================
+   BASE LAYOUT (Header, Sidebar, Main Area)
+   ========================================================= */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Top Header (Light Green) */
+.top-nav-green {
+    background-color: #8CC63F; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    height: 60px;
+}
+
+.logo-section-top { display: flex; align-items: center; gap: 15px; }
+.logo-section-top i { font-size: 35px; color: #4A4A4A; }
+.logo-section-top h1 { margin: 0; font-size: 22px; color: #000; }
+
+.user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+.profile-circle-gray {
+    background-color: #666; color: white; width: 40px; height: 40px;
+    border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
+}
+
+/* Main Layout Setup */
+.layout-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left Sidebar */
+.sidebar-left {
+    width: 250px;
+    background-color: #DDE2E2;
+    padding-top: 20px;
+    border-right: 1px solid #ccc;
+}
+
+.sidebar-menu { list-style: none; padding: 0; margin: 0; }
+.sidebar-menu li a {
+    display: flex; align-items: center; gap: 15px; padding: 15px 30px;
+    color: #333; text-decoration: none; font-size: 16px;
+}
+
+/* Highlight the active page in the sidebar */
+.sidebar-menu li a.active {
+    background-color: #C4C4C4;
+    font-weight: bold;
+    border-left: 5px solid #00B050;
+}
+
+.sidebar-menu li a i { font-size: 20px; width: 25px; text-align: center; }
+
+/* Main Content Area */
+.main-content {
+    flex: 1;
+    background-color: #C4C4C4;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* =========================================================
+   HISTORY PAGE SPECIFIC STYLES
+   ========================================================= */
+
+/* White Card Container */
+.history-card {
+    background-color: white;
+    width: 100%;
+    max-width: 900px;
+    padding: 40px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin: 0 auto; /* Centers the card */
+}
+
+/* Headings */
+.serif-heading-large {
+    font-family: 'Georgia', serif;
+    font-size: 28px;
+    font-weight: bold;
+    color: #000;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.gray-header-bar {
+    background-color: #D9D9D9;
+    padding: 15px 20px;
+    font-family: 'Georgia', serif;
+    font-size: 18px;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+/* Table Container and Table styling */
+.table-container {
+    background-color: #D9D9D9;
+    padding: 25px;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Georgia', serif;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 15px 10px;
+    font-weight: normal;
+    font-size: 16px;
+    color: #000;
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+
+.history-table td {
+    padding: 15px 10px;
+    font-size: 15px;
+    color: #000;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* View-Only Status Badges */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    font-size: 13px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+}
+
+.badge-pending { background-color: #f59e0b; } /* Orange */
+.badge-accepted { background-color: #00B050; } /* Green */
+.badge-rejected { background-color: #C00000; } /* Red */

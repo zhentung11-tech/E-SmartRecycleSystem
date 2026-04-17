@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Base Styles */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Top Header (Light Green) */
+        .top-nav-green {
+            background-color: #8CC63F; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            height: 60px;
+        }
+        
+        .logo-section-top { display: flex; align-items: center; gap: 15px; }
+        .logo-section-top i { font-size: 35px; color: #4A4A4A; }
+        .logo-section-top h1 { margin: 0; font-size: 22px; color: #000; }
+        
+        .user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+        .profile-circle-gray {
+            background-color: #666; color: white; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
+        }
+
+        /* Main Layout Setup */
+        .layout-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Left Sidebar */
+        .sidebar-left {
+            width: 250px;
+            background-color: #DDE2E2;
+            padding-top: 20px;
+            border-right: 1px solid #ccc;
+        }
+
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+        .sidebar-menu li a {
+            display: flex; align-items: center; gap: 15px; padding: 15px 30px;
+            color: #333; text-decoration: none; font-size: 16px;
+        }
+        .sidebar-menu li a i { font-size: 20px; width: 25px; text-align: center; }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            background-color: #C4C4C4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* White Sign Up Card */
+        .signup-card {
+            background-color: white;
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Inline Header (Logo + Text) */
+        .form-header-inline {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .form-header-inline i { font-size: 45px; color: #4A4A4A; }
+        .form-header-inline h2 { margin: 0; font-size: 28px; color: #000; font-family: Arial, sans-serif; font-weight: bold; }
+
+        /* Form Elements */
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block; 
+            font-family: 'Georgia', serif; 
+            font-weight: bold;
+            margin-bottom: 5px; 
+            color: #000; 
+            font-size: 14px;
+        }
+
+        /* Icons inside inputs */
+        .input-with-icon {
+            position: relative;
+        }
+        .input-with-icon i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #333;
+            font-size: 14px;
+        }
+        .input-with-icon input {
+            width: 100%; 
+            padding: 10px 10px 10px 35px; /* Extra padding on left for icon */
+            background-color: #D9D9D9; 
+            border: none;
+            box-sizing: border-box; 
+            font-family: Arial, sans-serif; 
+            font-size: 14px;
+        }
+
+        /* Helper Text (At least 8 character) */
+        .helper-text {
+            font-size: 10px;
+            color: #000;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            font-family: 'Georgia', serif;
+        }
+
+        /* Role Selection Area */
+        .role-section {
+            margin-top: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .role-options {
+            display: flex; justify-content: center; gap: 20px; font-family: Arial, sans-serif; font-size: 14px;
+        }
+
+        /* Centered Green Button */
+        .btn-signup-green {
+            background-color: #008040; /* Dark green matching image */
+            color: white; 
+            border: none;
+            padding: 10px 30px; 
+            font-size: 16px; 
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            cursor: pointer; 
+            display: block;
+            margin: 0 auto; /* Centers the button */
+        }
+        .btn-signup-green:hover { background-color: #005a2e; }
+
+    </style>
+</head>
+<body>
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+        <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile-top">
+            <span>Name</span>
+            <div class="profile-circle-gray">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <aside class="sidebar-left">
+            <ul class="sidebar-menu">
+                <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-box"></i> Submit Item</a></li>
+                <li><a href="#"><i class="fas fa-history"></i> Request History</a></li>
+                <li><a href="#"><i class="fas fa-bell"></i> Notification</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="signup-card">
+                
+                <div class="form-header-inline">
+                <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+                    <h2>Sign Up</h2>
+                </div>
+
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <div class="input-with-icon">
+                            <i class="far fa-user"></i>
+                            <input type="text" placeholder="Full Name" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Email</label>
+                        <div class="input-with-icon">
+                            <i class="far fa-envelope"></i>
+                            <input type="email" placeholder="Email" required>
+                        </div>
+                    </div>
+
+                    <div class="helper-text">At least 8 character</div>
+
+                    <div class="input-group">
+                        <label>Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" placeholder="Password" minlength="8" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Confirm Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" placeholder="Password" minlength="8" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Phone Number</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-phone-alt"></i>
+                            <input type="tel" placeholder="Phone Number" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Address</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" placeholder="Address" required>
+                        </div>
+                    </div>
+
+                    <div class="role-section">
+                        <div class="role-options">
+                            <label style="cursor: pointer;"><input type="radio" name="registerRole" value="user" required checked> Register as User</label>
+                            <label style="cursor: pointer;"><input type="radio" name="registerRole" value="collector"> Register as Collector</label>
+                        </div>
+                    </div>
+
+                    <button href="Login Page.html" type="submit" class="btn-signup-green">Sign Up</button>
+                    
+                </form>
+            </div>
+        </main>
+    </div>
+
+<script>
+        function handleSignup(event) {
+            // 1. Stop the page from just refreshing
+            event.preventDefault();
+
+            // 2. Check if both password boxes match exactly
+            const passwords = document.querySelectorAll('input[type="password"]');
+            if (passwords[0].value !== passwords[1].value) {
+                alert("Passwords do not match. Please try again.");
+                return; // Stops the script so they don't get sent to the login page yet
+            }
+
+            // 3. Find out if they registered as a User or Collector
+            const selectedRole = document.querySelector('input[name="registerRole"]:checked').value;
+
+            // 4. Show a success message
+            if (selectedRole === "user") {
+                alert("Registration successful! Redirecting to User Login...");
+            } else if (selectedRole === "collector") {
+                alert("Registration successful! Redirecting to Collector Login...");
+            }
+
+            // 5. THIS IS THE DIRECT LINK TO THE LOGIN PAGE
+            window.location.href = "login Page.html";
+        }
+    </script>
+</body>
+</html>

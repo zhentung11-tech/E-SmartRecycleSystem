@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* =========================================================
+           BASE LAYOUT & HORIZONTAL NAV
+           ========================================================= */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #C4C4C4; /* Main Grey Background */
+        }
+
+        /* Top Header (Light Green) */
+        .top-nav-green {
+            background-color: #8CC63F; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            height: 60px;
+        }
+
+        .logo-section-top { display: flex; align-items: center; gap: 15px; }
+        .logo-icon-black {
+            background-color: #111;
+            color: white;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 20px;
+        }
+        .logo-section-top h1 { margin: 0; font-size: 22px; color: #000; }
+
+        .user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 16px; color: #000;}
+        .profile-circle-gray {
+            background-color: #555; color: white; width: 35px; height: 35px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background-color: #0f7a45; /* Dark green */
+            display: flex;
+            padding: 0 10px;
+        }  
+
+         .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link:last-child {
+            border-right: none;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #149c57;
+        }
+
+
+        /* =========================================================
+           DASHBOARD CONTENT STYLES
+           ========================================================= */
+        .main-content {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .dashboard-card {
+            background-color: white;
+            width: 100%;
+            max-width: 950px;
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #000;
+        }
+
+        /* The 3 Stat Boxes */
+        .stats-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background-color: #f9f9f9;
+            border-left: 5px solid #1a8a4c; /* Green side border */
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-radius: 2px;
+        }
+
+        .stat-box i {
+            font-size: 30px;
+            color: #1a8a4c;
+            width: 40px;
+            text-align: center;
+        }
+
+        .stat-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-text .label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .stat-text .value {
+            font-size: 20px;
+            color: #333;
+        }
+
+        /* Subtle dividing line */
+        .divider {
+            border: 0;
+            border-top: 1px solid #eee;
+            margin: 40px 0 30px 0;
+        }
+
+        /* Quick Actions Section */
+        .quick-actions-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #000;
+        }
+
+        .actions-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-green { background-color: #1a8a4c; }
+        .btn-green:hover { background-color: #156d3c; }
+        
+        .btn-grey { background-color: #555; }
+        .btn-grey:hover { background-color: #333; }
+
+        /* Responsive stack for smaller screens */
+        @media (max-width: 768px) {
+            .stats-container, .actions-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+<img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile-top">
+            <span>Admin Name</span>
+            <div class="profile-circle-gray">
+                <i class="fas fa-user-shield"></i>
+            </div>
+        </div>
+    </header>
+
+   <nav class="navbar">
+            <a href="admin_dashboard.html" class="nav-link active"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+            <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
+            <a href="admin_report.html" class="nav-link "><i class="fa-solid fa-chart-bar"></i> Reports</a>
+            <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
+        </nav>
+
+    <main class="main-content">
+        <div class="dashboard-card">
+            
+            <h2 class="dashboard-title">Admin Dashboard</h2>
+
+            <div class="stats-container">
+                <div class="stat-box">
+                    <i class="fas fa-user-clock"></i>
+                    <div class="stat-text">
+                        <span class="label">Pending Approvals</span>
+                        <span class="value">12 Pending</span>
+                    </div>
+                </div>
+                
+                <div class="stat-box">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-text">
+                        <span class="label">Active Users</span>
+                        <span class="value">1,240 Total</span>
+                    </div>
+                </div>
+                
+                <div class="stat-box">
+                    <i class="fas fa-weight"></i>
+                    <div class="stat-text">
+                        <span class="label">Items Recycled</span>
+                        <span class="value">3,500 Total</span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <h3 class="quick-actions-title">Quick Actions</h3>
+            <div class="actions-container">
+                <button href="Admin User Management.html"class="btn-action btn-green" onclick="location.href='admin_user_management.html'">
+                    <i class="fas fa-users-cog"></i> Manage Users
+                </button>
+                <button class="btn-action btn-grey" onclick="location.href='admin_reports.html'">
+                    <i class="fas fa-file-alt"></i> View Report
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

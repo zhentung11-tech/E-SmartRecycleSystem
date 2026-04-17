@@ -1,0 +1,57 @@
+/* --- Horizontal Dark Green Sub-Menu --- */
+.sub-menu {
+    background-color: #0d7a46; /* Matches the dark green in the image */
+    padding: 0;
+    width: 100%;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0 20px;
+}
+
+.nav-links li {
+    margin-right: 5px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 20px;
+    border-bottom: 3px solid transparent;
+}
+
+.nav-links a.active {
+    background-color: rgba(0, 0, 0, 0.15); /* Slight shadow for the active tab */
+    border-bottom: 3px solid white; /* White line under the active tab */
+}
+
+/* --- Perfectly Centered Main Container --- */
+.submit-container {
+    background-color: #C4C4C4; /* Gray background behind the card */
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center; /* Centers the card horizontally */
+    align-items: flex-start; /* Keeps the card near the top */
+    min-height: calc(100vh - 115px); /* Ensures the gray background fills the rest of the screen */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- The White Card --- */
+.submit-card {
+    background-color: #FFFFFF;
+    padding: 40px;
+    width: 100%;
+    max-width: 700px; /* Adjust this width to match the image proportions */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    text-align: left;
+    margin: 0 auto; /* Fallback for absolute centering */
+}

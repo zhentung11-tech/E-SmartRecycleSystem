@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Collect Records</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="collect_record.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-box">
+                    <i class="fa-solid fa-recycle"></i>
+                </div>
+                <div class="logo-text">
+                    <span>E-Smart</span>
+                    <span>Recycle</span>
+                </div>
+            </div>
+            <div class="user-section">
+                <span class="user-name">Admin Name</span>
+                <div class="avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <nav class="navbar">
+            <a href="admin_dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+            <a href="collect_record.html" class="nav-link active"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
+            <a href="admin_report.html" class="nav-link"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+            <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="content-card">
+                <h1>Collector Records</h1>
+
+                <div class="controls">
+                    <input type="text" class="search-box" placeholder="Search by Collector Name...">
+                    
+                    <select class="dropdown">
+                        <option value="" disabled selected hidden>Filter by Status</option>
+                        <option value="all">All</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                    </select>
+
+                    <button class="btn-search">Search</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Collector Name</th>
+                                <th>Location</th>
+                                <th>Items Collected</th>
+                                <th>Total Weight (kg)</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-04-17</td>
+                                <td>Ali bin Ahmad</td>
+                                <td>Block A, Apartment</td>
+                                <td>Paper, Plastic</td>
+                                <td>15.5</td>
+                                <td><span class="badge completed">Completed</span></td>
+                                <td><button class="btn-view">View</button></td>
+                            </tr>
+                            <tr>
+                                <td>2026-04-16</td>
+                                <td>John Doe</td>
+                                <td>Taman Mutiara</td>
+                                <td>Electronics, Glass</td>
+                                <td>8.0</td>
+                                <td><span class="badge pending">Pending</span></td>
+                                <td><button class="btn-view">View</button></td>
+                            </tr>
+                            <tr>
+                                <td>2026-04-15</td>
+                                <td>Siti Nurhaliza</td>
+                                <td>Jalan Merdeka</td>
+                                <td>Aluminium Cans</td>
+                                <td>4.2</td>
+                                <td><span class="badge completed">Completed</span></td>
+                                <td><button class="btn-view">View</button></td>
+                            </tr>
+                            <tr>
+                                <td>2026-04-14</td>
+                                <td>Muthu Kumar</td>
+                                <td>Block C, Condominium</td>
+                                <td>Paper</td>
+                                <td>22.0</td>
+                                <td><span class="badge completed">Completed</span></td>
+                                <td><button class="btn-view">View</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

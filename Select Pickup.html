@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Select Pickup Address</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="SelectPickupStyle.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <header class="top-nav">
+        <div class="logo-section">
+            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
+            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile">
+            <span>Name</span>
+            <div class="profile-circle">
+                <i class="fas fa-user" aria-hidden="true"></i>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sub-menu">
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="Select Pickup.html" class="nav-item active"><i class="fas fa-box"></i> Submit item</a></li>
+            <li><a href="user_history.html" class="nav-item"><i class="fas fa-history"></i> Request History</a></li>
+            <li><a href="user_notification.html" class="nav-item"><i class="fas fa-bell"></i> Notification</a></li>
+        </ul>
+    </nav>
+
+    <main class="submit-container">
+        <div class="submit-card">
+            <h2 class="serif-heading-large">Select Pickup Address</h2>
+
+            <form id="pickupForm" class="clean-form" onsubmit="submitRequest(event)">
+                
+                <div class="form-group">
+                    <label>Item Type</label>
+                    <div class="custom-select">
+                        <select class="gray-input" required>
+                            <option value="paper">Paper</option>
+                            <option value="plastic">Plastic</option>
+                            <option value="metal">Metal</option>
+                        </select>
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <div class="quantity-group">
+                        <input type="number" class="gray-input quantity-input" value="5" min="1" required>
+                        <span class="unit">Kg</span>
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pickup Address</label>
+                    <input type="text" id="pickupAddress" class="gray-input" placeholder="e.g., No 12, Jalan Song" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Preferred Date and Time</label>
+                    <input type="datetime-local" id="pickupDateTime" class="gray-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Notes (optional)</label>
+                    <div class="custom-select">
+                        <input type="text" class="gray-input" placeholder="Add any additional information or instructions ....">
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                </div>
+
+                <div class="map-search">
+                    <i class="fas fa-search search-icon" style="color: black; cursor: pointer;" onclick="searchLocation()" title="Search Map"></i>
+                    <input type="text" id="mapAddressInput" class="gray-input" style="padding-left: 45px; background-color: #E2EAEA;" placeholder="Search for a place (e.g., Kenyalang Park)..." onkeypress="handleEnterSearch(event)">
+                </div>
+
+                <div class="map-box" style="width: 100%; height: 350px; border-radius: 4px; overflow: hidden; margin-bottom: 20px;">
+                    <div id="map" style="width: 100%; height: 100%;"></div>
+                </div>
+                
+                <button type="submit" class="submit-action-btn">Confirm Request</button>
+
+            </form>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // 1. Setup the Free OpenStreetMap
+        var map = L.map('map').setView([1.5533, 110.3440], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        var marker = L.marker([1.5533, 110.3440]).addTo(map);
+
+        // 2. Click the map to auto-fill address
+        map.on('click', function(e) {
+            var lat = e.latlng.lat;
+            var lng = e.latlng.lng;
+            
+            marker.setLatLng(e.latlng);
+
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                if(data && data.display_name) {
+                    var clickedAddress = data.display_name;
+                    document.getElementById('mapAddressInput').value = clickedAddress;
+                    document.getElementById('pickupAddress').value = clickedAddress;
+                }
+            })
+            .catch(error => console.log("Address not found:", error));
+        });
+
+        // 3. Type in the search bar to move the map
+        function searchLocation() {
+            var query = document.getElementById('mapAddressInput').value;
+            
+            if (query.trim() === "") {
+                alert("Please enter a location to search.");
+                return;
+            }
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if(data && data.length > 0) {
+                    var lat = data[0].lat;
+                    var lon = data[0].lon;
+                    var fullAddress = data[0].display_name;
+
+                    map.setView([lat, lon], 16);
+                    marker.setLatLng([lat, lon]);
+
+                    document.getElementById('mapAddressInput').value = fullAddress;
+                    document.getElementById('pickupAddress').value = fullAddress;
+                } else {
+                    alert("Location not found. Please try a different name or add the city.");
+                }
+            })
+            .catch(error => console.log("Search error:", error));
+        }
+
+        // Allow user to press "Enter" inside the search bar
+        function handleEnterSearch(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); 
+                searchLocation();
+            }
+        }
+
+       // 4. Handle Form Submission (THE POPUP SCRIPT)
+        function submitRequest(event) {
+            // Stop the page from refreshing immediately
+            event.preventDefault(); 
+            
+            // Show the success popup message
+            alert("Your request is confirmed. Please wait for a collector to accept.");
+            
+            // Reset the form (optional, since we are leaving the page anyway)
+            document.getElementById("pickupForm").reset();
+
+            // DIRECT LINK BACK TO DASHBOARD
+            window.location.href = "dashboard.html";
+        }
+
+        // 5. Prevent selecting past dates & times
+        window.onload = function() {
+            var dateInput = document.getElementById('pickupDateTime');
+            if (dateInput) {
+                var now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                dateInput.min = now.toISOString().slice(0, 16);
+            }
+        };
+    </script>
+</body>
+</html>

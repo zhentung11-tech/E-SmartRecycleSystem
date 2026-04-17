@@ -1,0 +1,110 @@
+/* Update table spacing for the new columns */
+.collector-table th, 
+.collector-table td {
+    padding: 15px 10px; /* Added horizontal padding */
+    text-align: left;
+    font-family: 'Georgia', serif;
+}
+
+/* Ensure the table handles the new column order gracefully */
+.collector-table th, 
+.collector-table td {
+    padding: 12px 8px;
+    text-align: left;
+    font-family: 'Georgia', serif;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Specific styling for the User ID to make it stand out */
+.collector-table td:first-child {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Give the Pickup Address more room since it's now next to the button */
+.collector-table td:nth-last-child(2) {
+    max-width: 220px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+/* The Accept Button styling */
+.accept-job-btn {
+    background-color: #00B050; 
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 2px;
+    white-space: nowrap; /* Prevents text inside button from breaking */
+}
+
+/* Ensure the Pickup Address column doesn't squash other columns */
+.collector-table td:nth-child(4) {
+    max-width: 200px;
+    word-wrap: break-word;
+    font-size: 14px;
+}
+
+/* Matching the green button from your image */
+.accept-job-btn {
+    background-color: #00B050; 
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 2px;
+}
+
+/* Container to keep buttons side-by-side */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+/* Base button styling */
+.btn-accept, .btn-reject {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    color: white;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+/* Green for Accept */
+.btn-accept {
+    background-color: #00B050;
+}
+
+/* Red for Reject */
+.btn-reject {
+    background-color: #C00000;
+}
+
+.btn-accept:hover, .btn-reject:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+}
+
+/* Status label style after clicking */
+.status-confirmed {
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 4px;
+    color: white;
+}

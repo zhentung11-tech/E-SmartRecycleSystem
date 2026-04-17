@@ -1,0 +1,62 @@
+/* --- Notification List Styling --- */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    border-left: 4px solid #ccc;
+    transition: background-color 0.2s;
+}
+
+.notification-item.unread {
+    background-color: #eef7f2;
+    border-left-color: #0d7a46; /* Match dark green theme */
+}
+
+.notif-icon {
+    font-size: 20px;
+    color: #666;
+    margin-right: 15px;
+    width: 30px;
+    text-align: center;
+}
+
+.green-icon {
+    color: #00B050;
+}
+
+.notif-content {
+    flex-grow: 1;
+}
+
+.notif-text {
+    margin: 0;
+    font-size: 15px;
+    color: #333;
+    font-family: Arial, sans-serif;
+}
+
+.notif-time {
+    font-size: 12px;
+    color: #888;
+}
+
+.notif-link {
+    color: #0d7a46;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.notif-link:hover {
+    text-decoration: underline;
+}

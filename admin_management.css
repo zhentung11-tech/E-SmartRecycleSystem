@@ -1,0 +1,119 @@
+/* =========================================================
+   ADMIN USER MANAGEMENT PAGE STYLES
+   ========================================================= */
+
+/* Main White Card for Admin */
+.admin-card {
+    background-color: white;
+    width: 100%;
+    max-width: 900px;
+    padding: 40px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin: 0 auto;
+}
+
+/* Header Row (Title and Add Button) */
+.admin-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.admin-header-row h2 {
+    font-family: 'Georgia', serif;
+    font-size: 28px;
+    font-weight: bold;
+    color: #000;
+    margin: 0;
+}
+
+/* Dark Green Add User Button */
+.btn-add-user {
+    background-color: #008040; /* Dark green */
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.btn-add-user:hover {
+    background-color: #005a2e;
+}
+
+/* Search Bar */
+.admin-search-container {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.admin-search-container input {
+    width: 100%;
+    padding: 15px 20px;
+    background-color: #E0E0E0; /* Light grey */
+    border: none;
+    box-sizing: border-box;
+    font-family: 'Georgia', serif;
+    font-size: 15px;
+    color: #333;
+}
+
+.admin-search-container i {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 18px;
+    -webkit-text-stroke: 1px #a0a0a0; /* Makes the icon look like a light outline */
+}
+
+/* Grey Table Container */
+.admin-table-container {
+    background-color: #D9D9D9; /* Grey background matching image */
+    padding: 25px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Georgia', serif;
+}
+
+.admin-table th {
+    text-align: left;
+    padding-bottom: 20px;
+    font-weight: normal;
+    font-size: 16px;
+    color: #000;
+}
+
+.admin-table td {
+    padding: 15px 0;
+    font-size: 15px;
+    color: #000;
+    vertical-align: middle;
+}
+
+/* White Edit Dropdown Button */
+.btn-edit-dropdown {
+    background-color: white;
+    color: #000;
+    border: none;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.btn-edit-dropdown i {
+    font-size: 12px;
+}

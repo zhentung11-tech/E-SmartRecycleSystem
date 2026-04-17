@@ -1,0 +1,204 @@
+/* =========================================================
+   BASE LAYOUT (Header, Sidebar, Main Area)
+   ========================================================= */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Top Header (Light Green) */
+.top-nav-green {
+    background-color: #8CC63F; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    height: 60px;
+}
+
+.logo-section-top { display: flex; align-items: center; gap: 15px; }
+.logo-section-top i { font-size: 35px; color: #4A4A4A; }
+.logo-section-top h1 { margin: 0; font-size: 22px; color: #000; }
+
+.user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+.profile-circle-gray {
+    background-color: #666; color: white; width: 40px; height: 40px;
+    border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
+}
+
+/* Main Layout Setup */
+.layout-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left Sidebar */
+.sidebar-left {
+    width: 250px;
+    background-color: #DDE2E2;
+    padding-top: 20px;
+    border-right: 1px solid #ccc;
+}
+
+.sidebar-menu { list-style: none; padding: 0; margin: 0; }
+.sidebar-menu li a {
+    display: flex; align-items: center; gap: 15px; padding: 15px 30px;
+    color: #333; text-decoration: none; font-size: 16px;
+}
+
+.sidebar-menu li a.active {
+    background-color: #C4C4C4;
+    font-weight: bold;
+    border-left: 5px solid #00B050;
+}
+
+.sidebar-menu li a i { font-size: 20px; width: 25px; text-align: center; }
+
+/* Main Content Area */
+.main-content {
+    flex: 1;
+    background-color: #C4C4C4;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* White Card Container */
+.history-card {
+    background-color: white;
+    width: 100%;
+    max-width: 850px;
+    padding: 40px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin: 0 auto; 
+}
+
+.serif-heading-large {
+    font-family: 'Georgia', serif;
+    font-size: 28px;
+    font-weight: bold;
+    color: #000;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.gray-header-bar {
+    background-color: #D9D9D9;
+    padding: 15px 20px;
+    font-family: 'Georgia', serif;
+    font-size: 18px;
+    color: #000;
+    margin-bottom: 20px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+
+/* =========================================================
+   NOTIFICATION SPECIFIC STYLES
+   ========================================================= */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.user-notif-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 18px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border-left: 4px solid #ccc; 
+    transition: all 0.3s ease; 
+}
+
+.user-notif-item.unread {
+    background-color: #eef7f2; 
+    border-left-color: #00B050; 
+}
+
+.user-notif-item:hover {
+    background-color: #f1f1f1;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.user-notif-item.unread:hover {
+    background-color: #e4f2eb;
+}
+
+.notif-content-wrapper {
+    display: flex;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+
+.notif-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    margin-right: 15px;
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.bg-green { background-color: #00B050; }
+.bg-orange { background-color: #f59e0b; }
+.bg-gray { background-color: #888; }
+
+.notif-content-area {
+    flex-grow: 1;
+    padding-right: 15px;
+}
+
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    align-items: center;
+}
+
+.notif-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-family: 'Georgia', serif;
+    color: #000;
+}
+
+.notif-header span {
+    font-size: 12px;
+    color: #888;
+    font-family: Arial, sans-serif;
+}
+
+.notif-content-area p {
+    margin: 0;
+    font-size: 14px;
+    color: #444;
+    line-height: 1.4;
+    font-family: Arial, sans-serif;
+}
+
+.dismiss-btn {
+    background: none;
+    border: none;
+    color: #bbb;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin-left: 15px;
+    padding: 5px;
+}
+
+.dismiss-btn:hover {
+    color: #C00000;
+}

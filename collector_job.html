@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Collector Jobs</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="SelectPickupStyle.css">
+    <link rel="stylesheet" href="collector_job.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="logo-section">
+            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
+            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile">
+            <span>Name</span>
+            <div class="profile-circle">
+                <i class="fas fa-user" aria-hidden="true"></i>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sub-menu">
+        <ul class="nav-links">
+            <li><a href="collector_dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="collector_jobs.html" class="nav-item active"><i class="fas fa-box"></i> Available Request</a></li>
+            <li><a href="collector_history.html" class="nav-item"><i class="fas fa-history"></i> Request History</a></li>
+            <li><a href="collector_notification.html" class="nav-item"><i class="fas fa-bell"></i> Notification</a></li>
+        </ul>
+    </nav>
+
+   <main class="submit-container">
+    <div class="submit-card">
+        
+        <h2 class="serif-heading-large">Submit Recyclable Item</h2>
+
+        <div class="collector-section-header">
+            <span>Plastic Section Submission Form</span>
+            <i class="fas fa-caret-down white-icon"></i>
+        </div>
+
+        <div class="collector-table-container">
+            
+            <div class="collector-filter-row">
+                <span class="filter-label">Item Type</span>
+                <div class="custom-select filter-select">
+                    <select class="gray-input">
+                        <option>Select</option>
+                        <option>Paper</option>
+                        <option>Glass</option>
+                        <option>Metal</option>
+                    </select>
+                </div>
+            </div>
+
+            <table class="collector-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Request</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>xx.xx.xx</td>
+                        <td>Paper</td>
+                        <td>xx</td>
+                        <td>
+                            <button class="accept-job-btn">
+                                Accept Job <i class="fas fa-caret-down"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>xx.xx.xx</td>
+                        <td>Glass</td>
+                        <td>xx</td>
+                        <td>
+                            <button class="accept-job-btn">
+                                Accept Job <i class="fas fa-caret-down"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>xx.xx.xx</td>
+                        <td>Metal</td>
+                        <td>xx</td>
+                        <td>
+                            <button class="accept-job-btn">
+                                Accept Job <i class="fas fa-caret-down"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</main>
+
+   <script>
+    function filterCollectorJobs() {
+        // Get the value chosen in the "Item Type" dropdown
+        var selectedValue = document.getElementById("itemFilter").value;
+        var table = document.getElementById("collectorTable");
+        var rows = table.getElementsByTagName("tr");
+
+        // Loop through rows starting from index 1 (skipping the header)
+        for (var i = 1; i < rows.length; i++) {
+            var rowType = rows[i].getAttribute("data-type");
+
+            // Show all if "Select" is picked, otherwise show only the matching type
+            if (selectedValue === "all" || rowType === selectedValue) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+
+    function acceptJob(button) {
+        alert("Job confirmed! Please proceed to the collection point.");
+        button.innerHTML = "Accepted <i class='fas fa-check'></i>";
+        button.style.backgroundColor = "#545454";
+        button.disabled = true;
+    }
+</script>
+</body>
+</html>

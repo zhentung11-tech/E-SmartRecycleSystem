@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - User Notifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="user_notification.css">
+</head>
+<body>
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+            <i class="fas fa-recycle"></i>
+            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile-top">
+            <span>Name</span>
+            <div class="profile-circle-gray">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <aside class="sidebar-left">
+            <ul class="sidebar-menu">
+                <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="Select Pickup.html"><i class="fas fa-box"></i> Submit Item</a></li>
+                <li><a href="user_history.html"><i class="fas fa-history"></i> Request History</a></li>
+                <li><a href="user_notification.html" class="active"><i class="fas fa-bell"></i> Notification</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="history-card">
+                
+                <h2 class="serif-heading-large">My Notifications</h2>
+                
+                <div class="gray-header-bar">
+                    <span>Recent Updates</span>
+                    <button onclick="markAllAsRead()" id="markReadBtn" style="background: none; border: none; color: #00B050; font-weight: bold; cursor: pointer; font-size: 14px;">
+                        <i class="fas fa-check-double"></i> Mark all as read
+                    </button>
+                </div>
+
+                <div class="notification-list" id="notifList">
+                    
+                    <div class="user-notif-item unread">
+                        <div class="notif-content-wrapper">
+                            <div class="notif-icon-circle bg-green">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="notif-content-area">
+                                <div class="notif-header">
+                                    <h3>Pickup Request Accepted!</h3>
+                                    <span>Just now</span>
+                                </div>
+                                <p>Your request for 5 Kg of Paper (LU7-LU12 Printed Notes) has been accepted by a collector. They will arrive soon.</p>
+                            </div>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissNotif(this)" title="Dismiss"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="user-notif-item unread">
+                        <div class="notif-content-wrapper">
+                            <div class="notif-icon-circle bg-orange">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="notif-content-area">
+                                <div class="notif-header">
+                                    <h3>Collector is Arriving Today</h3>
+                                    <span>Today, 08:00 AM</span>
+                                </div>
+                                <p>Please ensure your recyclable items are packed and ready for pickup at your registered address.</p>
+                            </div>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissNotif(this)" title="Dismiss"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="user-notif-item">
+                        <div class="notif-content-wrapper">
+                            <div class="notif-icon-circle bg-gray">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="notif-content-area">
+                                <div class="notif-header">
+                                    <h3>Welcome to E-Smart Recycle</h3>
+                                    <span>14 April 2026</span>
+                                </div>
+                                <p>Thank you for joining us! Start submitting your recyclable items today to keep the environment clean.</p>
+                            </div>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissNotif(this)" title="Dismiss"><i class="fas fa-times"></i></button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function dismissNotif(buttonElement) {
+            const notifItem = buttonElement.closest('.user-notif-item');
+            notifItem.style.opacity = "0";
+            notifItem.style.transform = "translateX(20px)";
+            
+            setTimeout(() => {
+                notifItem.remove();
+                checkIfEmpty();
+            }, 300);
+        }
+
+        function markAllAsRead() {
+            const unreadItems = document.querySelectorAll('.user-notif-item.unread');
+            
+            if (unreadItems.length === 0) {
+                alert("All notifications are already read!");
+                return;
+            }
+
+            unreadItems.forEach(item => {
+                item.classList.remove('unread');
+            });
+
+            const btn = document.getElementById('markReadBtn');
+            btn.innerHTML = "<i class='fas fa-check'></i> All caught up!";
+            btn.style.color = "#888";
+            btn.style.cursor = "default";
+        }
+
+        function checkIfEmpty() {
+            const list = document.getElementById('notifList');
+            if (list.children.length === 0) {
+                list.innerHTML = "<p style='text-align: center; color: #888; font-family: Arial, sans-serif; padding: 30px;'>You have no new notifications.</p>";
+            }
+        }
+    </script>
+</body>
+</html>

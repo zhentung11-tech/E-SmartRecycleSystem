@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Admin Reports</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_report.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-box">
+            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
+                </div>
+                <div class="logo-text">
+                    <span>E-Smart</span>
+                    <span>Recycle</span>
+                </div>
+            </div>
+            <div class="user-section">
+                <span class="user-name">Admin Name</span>
+                <div class="avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <nav class="navbar">
+            <a href="admin_dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+            <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
+            <a href="admin_report.html" class="nav-link active"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+            <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="content-card">
+                <h1>System Reports</h1>
+
+                <div class="controls">
+                    <select class="dropdown" id="reportTypeSelect">
+                        <option value="" disabled selected hidden>Select Report Type</option>
+                        <option value="Collection Summary">Collection Summary</option>
+                        <option value="User Activity">User Activity</option>
+                        <option value="Financial Overview">Financial Overview</option>
+                    </select>
+
+                    <select class="dropdown" id="dateRangeSelect">
+                        <option value="" disabled selected hidden>Date Range</option>
+                        <option value="Today">Today</option>
+                        <option value="This Week">This Week</option>
+                        <option value="This Month">This Month</option>
+                    </select>
+
+                    <button class="btn-generate" onclick="generateAdminReport()">Generate Report</button>
+                    <button class="btn-export" onclick="exportPDF()"><i class="fa-solid fa-download"></i> Export PDF</button>
+                </div>
+
+                <hr class="divider">
+
+                <div id="reportResult" style="display: none;">
+                    
+                    <h2 id="reportTitle">Collection Summary Report (April 2026)</h2>
+                    
+                    <div class="summary-cards">
+                        <div class="card">
+                            <h3>Total Collections</h3>
+                            <p class="card-value">1,245</p>
+                        </div>
+                        <div class="card">
+                            <h3>Total Weight Collected</h3>
+                            <p class="card-value">4,850 kg</p>
+                        </div>
+                        <div class="card">
+                            <h3>Active Collectors</h3>
+                            <p class="card-value">84</p>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Collector Name</th>
+                                    <th>Primary Item Type</th>
+                                    <th>Weight (kg)</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2026-04-17</td>
+                                    <td>John Doe</td>
+                                    <td>Mixed Plastics</td>
+                                    <td>45.0</td>
+                                    <td><span class="badge completed">Processed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-04-16</td>
+                                    <td>Ali bin Ahmad</td>
+                                    <td>Electronics</td>
+                                    <td>12.5</td>
+                                    <td><span class="badge completed">Processed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-04-16</td>
+                                    <td>Siti Nurhaliza</td>
+                                    <td>Cardboard & Paper</td>
+                                    <td>80.2</td>
+                                    <td><span class="badge completed">Processed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-04-15</td>
+                                    <td>Muthu Kumar</td>
+                                    <td>Aluminium Cans</td>
+                                    <td>15.0</td>
+                                    <td><span class="badge pending">In Transit</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function generateAdminReport() {
+            // Get the dropdown elements
+            const reportTypeElement = document.getElementById('reportTypeSelect');
+            const dateRangeElement = document.getElementById('dateRangeSelect');
+
+            // Get their selected values
+            const reportType = reportTypeElement.value;
+            const dateRange = dateRangeElement.value;
+
+            // Validation: Check if the user has selected options from both dropdowns
+            if (!reportType || !dateRange) {
+                alert("Please select both a Report Type and a Date Range before generating the report.");
+                return; // Stop the function here if validation fails
+            }
+
+            // Update the report title dynamically to match what the user selected
+            const reportTitle = document.getElementById('reportTitle');
+            reportTitle.innerText = reportType + " Report (" + dateRange + ")";
+
+            // Reveal the report section
+            const reportResult = document.getElementById('reportResult');
+            reportResult.style.display = 'block';
+        }
+
+        function exportPDF() {
+            // Check if the report is actually visible first
+            const reportResult = document.getElementById('reportResult');
+            if (reportResult.style.display === 'none') {
+                alert("Please generate a report first before exporting.");
+                return;
+            }
+
+            // This is a placeholder alert. 
+            // In a real application, you would use a library like html2pdf.js here to trigger a file download.
+            alert("Preparing your PDF export...");
+        }
+    </script>
+</body>
+</html>

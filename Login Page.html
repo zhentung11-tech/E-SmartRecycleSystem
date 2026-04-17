@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="login_page.css">
+</head>
+<body>
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+        <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile-top">
+            <span>Name</span>
+            <div class="profile-circle-gray">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <aside class="sidebar-left">
+            <ul class="sidebar-menu">
+                <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-box"></i> Submit Item</a></li>
+                <li><a href="#"><i class="fas fa-history"></i> Request History</a></li>
+                <li><a href="#"><i class="fas fa-bell"></i> Notification</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="login-card">
+                
+                <div class="form-header">
+                <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">                    <h2>E-Smart Recycle<br><span>System</span></h2>
+                </div>
+
+                <div class="login-title">Login</div>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" placeholder="Email" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" placeholder="xxxx" required>
+                    </div>
+
+                    <div class="options-row">
+                        <div class="remember-me">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">Remember me</label>
+                        </div>
+                        
+                        <div class="role-selector">
+                            <label><input type="radio" name="userRole" value="user" required checked> User</label>
+                            <label><input type="radio" name="userRole" value="collector"> Collector</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-login">Login</button>
+                    
+                    <div class="signup-link">
+                        Don't have an account? <a href="signup.html">Sign up</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function handleLogin(event) {
+            // Prevent page refresh
+            event.preventDefault();
+
+            // Find selected role
+            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
+
+            // Redirect based on role
+            if (selectedRole === "user") {
+                window.location.href = "dashboard.html";
+            } else if (selectedRole === "collector") {
+                window.location.href = "collector_dashboard.html";
+            }
+        }
+    </script>
+</body>
+</html>

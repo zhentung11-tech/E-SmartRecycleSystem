@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Collector Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="SelectPickupStyle.css">
+    <link rel="stylesheet" href="collector_dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="logo-section">
+            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
+            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile">
+            <span>Collector Name</span>
+            <div class="profile-circle">
+                <i class="fas fa-user-cog"></i>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sub-menu">
+        <ul class="nav-links">
+            <li><a href="collector_dashboard.html" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="available_requests.html" class="nav-item"><i class="fas fa-list"></i> Available Requests</a></li>
+            <li><a href="collector_history.html" class="nav-item"><i class="fas fa-history"></i> Collection History</a></li>
+            <li><a href="collector_notification.html" class="nav-item"><i class="fas fa-bell"></i> Notification</a></li>
+        </ul>
+    </nav>
+
+    <main class="submit-container">
+        <div class="submit-card" style="max-width: 900px;">
+            <h2 class="serif-heading-large">Collector Dashboard</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <i class="fas fa-truck-loading"></i>
+                    <div class="stat-info">
+                        <h3>Today's Tasks</h3>
+                        <p>4 Pending</p>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-info">
+                        <h3>Completed</h3>
+                        <p>128 Total</p>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-weight-hanging"></i>
+                    <div class="stat-info">
+                        <h3>Weight Collected</h3>
+                        <p>450 Kg</p>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border: 1px solid #eee; margin: 30px 0;">
+
+            <h3 class="serif-heading">Quick Actions</h3>
+            <div class="action-section" style="display: flex; gap: 15px;">
+                <a href="available_requests.html" class="btn-dashboard-action">
+                    <i class="fas fa-search-plus"></i> Find New Requests
+                </a>
+                <a href="history.html" class="btn-dashboard-action secondary">
+                    <i class="fas fa-file-invoice"></i> View Report
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

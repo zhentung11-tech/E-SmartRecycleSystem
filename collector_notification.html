@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Notifications</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="SelectPickupStyle.css">
+    <link rel="stylesheet" href="collector_notification.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="logo-section">
+            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
+            <h1>E-Smart Recycle</h1>
+        </div>
+        <div class="user-profile">
+            <span>Collector Name</span>
+            <div class="profile-circle">
+                <i class="fas fa-user-cog"></i>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sub-menu">
+        <ul class="nav-links">
+            <li><a href="collector_dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="available_requests.html" class="nav-item"><i class="fas fa-list"></i> Available Requests</a></li>
+            <li><a href="collector_history.html" class="nav-item"><i class="fas fa-history"></i> Collection History</a></li>
+            <li><a href="collector_notification.html" class="nav-item active"><i class="fas fa-bell"></i> Notification</a></li>
+        </ul>
+    </nav>
+
+    <main class="submit-container">
+        <div class="submit-card" style="max-width: 800px;">
+            <h2 class="serif-heading-large">Notifications</h2>
+            
+            <div class="notification-list">
+                <div class="notification-item unread">
+                    <div class="notif-icon"><i class="fas fa-truck-pickup"></i></div>
+                    <div class="notif-content">
+                        <p class="notif-text"><strong>New Request:</strong> User #USR-8821 has requested a Paper pickup at Kenyalang Park.</p>
+                        <span class="notif-time">Just now</span>
+                    </div>
+                    <a href="available_requests.html" class="notif-link">View</a>
+                </div>
+
+                <div class="notification-item">
+                    <div class="notif-icon"><i class="fas fa-info-circle"></i></div>
+                    <div class="notif-content">
+                        <p class="notif-text">System maintenance scheduled for 2026-04-20 at 02:00 AM.</p>
+                        <span class="notif-time">2 hours ago</span>
+                    </div>
+                </div>
+
+                <div class="notification-item">
+                    <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="notif-content">
+                        <p class="notif-text">Job #USR-4412 has been successfully moved to History.</p>
+                        <span class="notif-time">Yesterday</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
