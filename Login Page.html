@@ -75,21 +75,38 @@
         </main>
     </div>
 
-    <script>
-        function handleLogin(event) {
-            // Prevent page refresh
-            event.preventDefault();
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-            // Find selected role
-            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
 
-            // Redirect based on role
-            if (selectedRole === "user") {
-                window.location.href = "dashboard.html";
-            } else if (selectedRole === "collector") {
-                window.location.href = "collector_dashboard.html";
-            }
-        }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.handleLogin = function(event) {
+            event.preventDefault(); 
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Success! Go to dashboard.
+                    window.location.href = "dashboard.html"; 
+                })
+                .catch((error) => {
+                    alert("Login Failed: Incorrect Email or Password.");
+                });
+        };
     </script>
 
 <script type="module">
