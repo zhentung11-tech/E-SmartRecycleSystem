@@ -258,31 +258,39 @@
         </main>
     </div>
 
-<script>
-        function handleSignup(event) {
-            // 1. Stop the page from just refreshing
-            event.preventDefault();
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-            // 2. Check if both password boxes match exactly
-            const passwords = document.querySelectorAll('input[type="password"]');
-            if (passwords[0].value !== passwords[1].value) {
-                alert("Passwords do not match. Please try again.");
-                return; // Stops the script so they don't get sent to the login page yet
-            }
+        // Your exact Firebase config from your screenshot!
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
 
-            // 3. Find out if they registered as a User or Collector
-            const selectedRole = document.querySelector('input[name="registerRole"]:checked').value;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-            // 4. Show a success message
-            if (selectedRole === "user") {
-                alert("Registration successful! Redirecting to User Login...");
-            } else if (selectedRole === "collector") {
-                alert("Registration successful! Redirecting to Collector Login...");
-            }
+        // This runs when the user clicks Sign Up
+        window.handleSignup = function(event) {
+            event.preventDefault(); 
+            
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
 
-            // 5. THIS IS THE DIRECT LINK TO THE LOGIN PAGE
-            window.location.href = "login Page.html";
-        }
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    alert("Account created successfully! You can now log in.");
+                    window.location.href = "index.html"; // Sends them to login page
+                })
+                .catch((error) => {
+                    alert("Error: " + error.message);
+                });
+        };
     </script>
 
     <script type="module">
