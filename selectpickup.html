@@ -178,14 +178,14 @@
    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        // IMPORT push and set TO SAVE NEW DATA
-        import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        
+        // 1. IMPORT FIRESTORE TOOLS INSTEAD OF REALTIME DB
+        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            databaseURL: "PASTE_YOUR_DATABASE_URL_HERE", // <-- Keep your actual URL here!
             projectId: "e-smartrecyclesystem",
             storageBucket: "e-smartrecyclesystem.firebasestorage.app",
             messagingSenderId: "212695525607",
@@ -194,58 +194,56 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app);
+        
+        // 2. INITIALIZE FIRESTORE
+        const db = getFirestore(app);
 
-        // Variables to remember who is logged in
         let currentUserId = null;
-        let currentUserName = "";
 
         // Auto-fill user data when page loads
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                currentUserId = user.uid; // Save the ID for later
-                const userRef = ref(db, 'users/' + user.uid);
+                currentUserId = user.uid; 
                 
-                get(userRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const userData = snapshot.val();
-                        currentUserName = userData.fullName; // Save the name for later
+                // Fetch from the 'users' collection in Firestore
+                const userRef = doc(db, "users", user.uid);
+                
+                getDoc(userRef).then((docSnap) => {
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
                         
-                        document.getElementById('userNameDisplay').innerText = currentUserName;
+                        document.getElementById('userNameDisplay').innerText = userData.fullName;
                         document.getElementById('pickupAddress').value = userData.address;
                         document.getElementById('mapAddressInput').value = userData.address;
                     }
+                }).catch((error) => {
+                    console.error("Error fetching user data:", error);
                 });
             } else {
                 window.location.href = "index.html";
             }
         });
 
-        // THIS RUNS WHEN THEY CLICK "CONFIRM REQUEST"
+        // 3. THIS RUNS WHEN THEY CLICK "CONFIRM REQUEST"
         window.submitRequest = function(event) {
             event.preventDefault(); 
             
-            // 1. Grab all the info from the boxes
+            // Grab all the info from the boxes
             const itemType = document.getElementById('pickupItemType').value;
             const quantity = document.getElementById('pickupQuantity').value;
             const address = document.getElementById('pickupAddress').value;
             const dateTime = document.getElementById('pickupDateTime').value;
-            const notes = document.getElementById('pickupNotes').value;
 
-            // 2. Create a brand new "file" in the requests folder
-            const newRequestRef = push(ref(db, 'requests'));
-            
-            // 3. Save all the data into that new file
-            set(newRequestRef, {
+            // 4. SAVE TO YOUR FIRESTORE 'request' COLLECTION
+            // Notice how the left side exactly matches your screenshot!
+            addDoc(collection(db, "request"), {
                 userId: currentUserId,
-                userName: currentUserName, // So the collector knows who asked!
-                itemType: itemType,
-                quantity: quantity + " Kg",
-                address: address,
-                dateTime: dateTime,
-                notes: notes,
-                status: "Pending", // Every new request starts as Pending
-                timestamp: Date.now() // Records exactly when they clicked submit
+                category: itemType,
+                weight: quantity,
+                location: address,
+                scheduledDate: dateTime,
+                status: "pending", // Starts as pending
+                createdAt: new Date().toLocaleString() // Saves the exact date/time it was created
             })
             .then(() => {
                 alert("Your request is confirmed. Please wait for a collector to accept.");
