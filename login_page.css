@@ -215,3 +215,15 @@
             font-weight: bold;
             text-decoration: underline;
         }
+
+/* Add input[type="email"] to your existing CSS rule! */
+input[type="password"], 
+input[type="email"], 
+input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    background-color: #D9D9D9; /* The grey color */
+    border: none;
+    box-sizing: border-box;
+    font-size: 14px;
+}
