@@ -94,16 +94,25 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        window.handleLogin = function(event) {
+       window.handleLogin = function(event) {
             event.preventDefault(); 
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            
+            // 1. Check which radio button is selected
+            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
 
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    // Success! Go to dashboard.
-                    window.location.href = "dashboard.html"; 
+                    alert("Login Successful!");
+                    
+                    // 2. Redirect to the correct page based on the role!
+                    if (selectedRole === "user") {
+                        window.location.href = "dashboard.html"; 
+                    } else if (selectedRole === "collector") {
+                        window.location.href = "collector_dashboard.html"; // Make sure this matches your file name!
+                    }
                 })
                 .catch((error) => {
                     alert("Login Failed: Incorrect Email or Password.");
