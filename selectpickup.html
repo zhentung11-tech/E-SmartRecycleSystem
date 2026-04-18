@@ -16,8 +16,8 @@
             <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
             <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile">
-            <span>Name</span>
+    <div class="user-profile">
+            <span id="userNameDisplay">Loading...</span>
             <div class="profile-circle">
                 <i class="fas fa-user" aria-hidden="true"></i>
             </div>
@@ -42,7 +42,7 @@
                 <div class="form-group">
                     <label>Item Type</label>
                     <div class="custom-select">
-                        <select class="gray-input" required>
+                        <select class="gray-input" id="pickupItemType"required>
                             <option value="paper">Paper</option>
                             <option value="plastic">Plastic</option>
                             <option value="metal">Metal</option>
@@ -54,7 +54,7 @@
                 <div class="form-group">
                     <label>Quantity</label>
                     <div class="quantity-group">
-                        <input type="number" class="gray-input quantity-input" value="5" min="1" required>
+                        <input type="number" id="pickupQuantity" class="gray-input quantity-input" value="5" min="1" required>
                         <span class="unit">Kg</span>
                         <i class="fas fa-caret-down"></i>
                     </div>
@@ -73,7 +73,7 @@
                 <div class="form-group">
                     <label>Additional Notes (optional)</label>
                     <div class="custom-select">
-                        <input type="text" class="gray-input" placeholder="Add any additional information or instructions ....">
+                        <input type="text" id="pickupNotes" class="gray-input" placeholder="Add any additional information or instructions ....">
                         <i class="fas fa-caret-down"></i>
                     </div>
                 </div>
@@ -164,21 +164,6 @@
             }
         }
 
-       // 4. Handle Form Submission (THE POPUP SCRIPT)
-        function submitRequest(event) {
-            // Stop the page from refreshing immediately
-            event.preventDefault(); 
-            
-            // Show the success popup message
-            alert("Your request is confirmed. Please wait for a collector to accept.");
-            
-            // Reset the form (optional, since we are leaving the page anyway)
-            document.getElementById("pickupForm").reset();
-
-            // DIRECT LINK BACK TO DASHBOARD
-            window.location.href = "dashboard.html";
-        }
-
         // 5. Prevent selecting past dates & times
         window.onload = function() {
             var dateInput = document.getElementById('pickupDateTime');
@@ -189,5 +174,88 @@
             }
         };
     </script>
+    
+   <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        // IMPORT push and set TO SAVE NEW DATA
+        import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            databaseURL: "PASTE_YOUR_DATABASE_URL_HERE", // <-- Keep your actual URL here!
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Variables to remember who is logged in
+        let currentUserId = null;
+        let currentUserName = "";
+
+        // Auto-fill user data when page loads
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid; // Save the ID for later
+                const userRef = ref(db, 'users/' + user.uid);
+                
+                get(userRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        currentUserName = userData.fullName; // Save the name for later
+                        
+                        document.getElementById('userNameDisplay').innerText = currentUserName;
+                        document.getElementById('pickupAddress').value = userData.address;
+                        document.getElementById('mapAddressInput').value = userData.address;
+                    }
+                });
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // THIS RUNS WHEN THEY CLICK "CONFIRM REQUEST"
+        window.submitRequest = function(event) {
+            event.preventDefault(); 
+            
+            // 1. Grab all the info from the boxes
+            const itemType = document.getElementById('pickupItemType').value;
+            const quantity = document.getElementById('pickupQuantity').value;
+            const address = document.getElementById('pickupAddress').value;
+            const dateTime = document.getElementById('pickupDateTime').value;
+            const notes = document.getElementById('pickupNotes').value;
+
+            // 2. Create a brand new "file" in the requests folder
+            const newRequestRef = push(ref(db, 'requests'));
+            
+            // 3. Save all the data into that new file
+            set(newRequestRef, {
+                userId: currentUserId,
+                userName: currentUserName, // So the collector knows who asked!
+                itemType: itemType,
+                quantity: quantity + " Kg",
+                address: address,
+                dateTime: dateTime,
+                notes: notes,
+                status: "Pending", // Every new request starts as Pending
+                timestamp: Date.now() // Records exactly when they clicked submit
+            })
+            .then(() => {
+                alert("Your request is confirmed. Please wait for a collector to accept.");
+                window.location.href = "dashboard.html"; 
+            })
+            .catch((error) => {
+                alert("Error saving request: " + error.message);
+            });
+        };
+    </script>
+    
 </body>
 </html>
