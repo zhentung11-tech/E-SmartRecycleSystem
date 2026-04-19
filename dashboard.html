@@ -155,6 +155,27 @@
                 // SECURITY: Kick them to login if not authenticated
                 window.location.href = "index.html";
             }
+
+            // 6. Wait to see who is logged in
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // 2. Point to this specific user's file in the "users" collection
+                    const userRef = doc(db, "users", user.uid);
+                    
+                    // 3. Download the file
+                    const userSnap = await getDoc(userRef);
+                    
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        
+                        // 4. Grab the fullName from the database and inject it into the HTML!
+                        document.getElementById('userNameDisplay').innerText = userData.fullName;
+                    }
+                } else {
+                    // If nobody is logged in, kick them back to the login page
+                    window.location.href = "index.html";
+                }
+            });
         });
     </script>
     </head>
