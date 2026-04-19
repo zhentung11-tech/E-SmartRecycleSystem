@@ -142,46 +142,44 @@ body {
     min-width: 80px;
 }
 
-/* --- NEW: Profile Dropdown List Styling --- */
-.profile-dropdown-list {
-    display: none; /* Hidden by default */
+/* --- Profile Dropdown Fixes --- */
+.user-profile-top {
+    position: relative; /* This keeps the dropdown attached to the profile area */
+}
+
+.profile-dropdown {
+    display: none; /* HIDES the menu by default */
     position: absolute;
-    top: 55px; /* Floats directly below the user circle */
+    top: 55px; /* Pushes it down below the gray circle */
     right: 0;
     background-color: white;
     min-width: 160px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sleek shadow */
-    border-radius: 8px; /* Rounded corners */
-    z-index: 9999; /* Ensures it stays on top of everything */
-    overflow: hidden;
-    padding: 5px 0; /* Add small vertical padding */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Creates a nice shadow */
+    border-radius: 6px;
+    z-index: 1000;
+    flex-direction: column; /* Stacks Profile and Logout on top of each other */
 }
 
-/* Styling for the Profile and Logout links inside the list */
-.profile-dropdown-list a {
+.profile-dropdown a {
     color: #333;
-    padding: 12px 20px;
+    padding: 15px 20px;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 12px; /* Space between icon and text */
+    gap: 12px;
     font-size: 15px;
     font-family: Arial, sans-serif;
-    transition: background-color 0.2s, color 0.2s;
-    border: none;
-    width: 100%;
-    box-sizing: border-box;
+    border-bottom: 1px solid #f0f0f0; /* Line between options */
 }
 
-/* Turn Green on hover */
-.profile-dropdown-list a:hover {
-    background-color: #e9f7ef; /* Very light green background */
-    color: #00B050; /* Main green color for text */
+.profile-dropdown a:hover {
+    background-color: #f9f9f9;
+    color: #00B050; /* Turns green when you hover */
 }
 
-/* JavaScript uses this class to show the menu */
+/* JavaScript uses this to make it appear! */
 .show-dropdown {
-    display: block;
+    display: flex !important; 
 }
 
 .badge-pending { background-color: #f59e0b; } /* Orange */
