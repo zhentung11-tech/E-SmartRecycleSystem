@@ -17,14 +17,8 @@
 
        <div class="user-profile-top">
             <span id="userNameDisplay">Loading...</span>
-            
-            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
+            <div class="profile-circle-gray">
                 <i class="fas fa-user"></i>
-            </div>
-
-            <div id="profileDropdown" class="profile-dropdown">
-                <a href="#"><i class="far fa-id-badge"></i> Profile</a>
-                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
@@ -63,8 +57,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        
+
         // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
@@ -190,25 +183,6 @@
                 list.innerHTML = "<p style='text-align: center; color: #888; font-family: Arial, sans-serif; padding: 30px;'>You have no new notifications.</p>";
             }
         }
-
-// 1. Opens and closes the dropdown menu
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        // 2. Closes the menu automatically if the user clicks away
-        window.onclick = function(event) {
-            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user') && !event.target.matches('.profile-circle')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show-dropdown')) {
-                        openDropdown.classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-        
     </script>
 
     
