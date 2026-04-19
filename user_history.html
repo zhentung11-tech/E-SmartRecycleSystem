@@ -84,15 +84,21 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Runs automatically when the page loads
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // 1. FETCH USER NAME FOR THE TOP RIGHT
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                }
+                    on AuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        const userRef = doc(db, "users", user.uid);
+                        const userSnap = await getDoc(userRef);
+                        if (userSnap.exists()) {
+                            // Find the userNameDisplay ID on whatever page is open, and inject the name!
+                            const nameElement = document.getElementById('userNameDisplay');
+                            if (nameElement) {
+                                nameElement.innerText = userSnap.data().fullName;
+                            }
+                        }
+                    } else {
+                        window.location.href = "index.html"; // Kick to login
+                    }
+                });
 
                 // 2. FETCH HISTORY FROM FIRESTORE
                 const q = query(collection(db, "request"), where("userId", "==", user.uid));
