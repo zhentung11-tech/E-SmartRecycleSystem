@@ -142,38 +142,44 @@ body {
     min-width: 80px;
 }
 
-/* --- Profile Dropdown Styles --- */
-.profile-dropdown {
+/* --- NEW: Profile Dropdown List Styling --- */
+.profile-dropdown-list {
     display: none; /* Hidden by default */
     position: absolute;
-    top: 55px; /* Pushes it right below the user circle */
+    top: 55px; /* Floats directly below the user circle */
     right: 0;
     background-color: white;
-    min-width: 150px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    border-radius: 6px;
-    z-index: 1000;
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sleek shadow */
+    border-radius: 8px; /* Rounded corners */
+    z-index: 9999; /* Ensures it stays on top of everything */
     overflow: hidden;
+    padding: 5px 0; /* Add small vertical padding */
 }
 
-.profile-dropdown a {
+/* Styling for the Profile and Logout links inside the list */
+.profile-dropdown-list a {
     color: #333;
     padding: 12px 20px;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 12px; /* Space between icon and text */
     font-size: 15px;
     font-family: Arial, sans-serif;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
+    border: none;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.profile-dropdown a:hover {
-    background-color: #f1f1f1;
-    color: #00B050; /* Turns green on hover */
+/* Turn Green on hover */
+.profile-dropdown-list a:hover {
+    background-color: #e9f7ef; /* Very light green background */
+    color: #00B050; /* Main green color for text */
 }
 
-/* JavaScript will add this class to make the menu visible */
+/* JavaScript uses this class to show the menu */
 .show-dropdown {
     display: block;
 }
