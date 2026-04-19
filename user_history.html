@@ -43,7 +43,7 @@
                 </div>
 
                 <div class="table-container">
-                    <table class="history-table">
+                   <table class="history-table">
                         <thead>
                             <tr>
                                 <th>Request ID</th>
@@ -53,34 +53,9 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="historyTableBody">
                             <tr>
-                                <td>#REQ-1004</td>
-                                <td>17.04.26</td>
-                                <td>Paper</td>
-                                <td>10 Kg</td>
-                                <td><span class="status-badge badge-pending">Pending</span></td>
-                            </tr>
-                            <tr>
-                                <td>#REQ-1003</td>
-                                <td>14.04.26</td>
-                                <td>Plastic</td>
-                                <td>5 Kg</td>
-                                <td><span class="status-badge badge-accepted">Accepted</span></td>
-                            </tr>
-                            <tr>
-                                <td>#REQ-1002</td>
-                                <td>10.04.26</td>
-                                <td>Glass</td>
-                                <td>2 Kg</td>
-                                <td><span class="status-badge badge-rejected">Rejected</span></td>
-                            </tr>
-                            <tr>
-                                <td>#REQ-1001</td>
-                                <td>05.04.26</td>
-                                <td>Metal</td>
-                                <td>8 Kg</td>
-                                <td><span class="status-badge badge-accepted">Accepted</span></td>
+                                <td colspan="5" style="text-align: center; padding: 20px;">Loading your history...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -90,11 +65,9 @@
         </main>
     </div>
 
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        
-        // Import Firestore tools! We need query, where, and getDocs to search for the user's specific requests
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your exact Firebase config
@@ -111,51 +84,54 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Runs automatically when the dashboard loads
+        // Runs automatically when the page loads
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // 1. FETCH USER NAME
+                // 1. FETCH USER NAME FOR THE TOP RIGHT
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) {
                     document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
                 }
 
-                // 2. FETCH REQUESTS FOR THIS SPECIFIC USER
-                // This searches the 'request' collection where the userId matches the logged-in user
+                // 2. FETCH HISTORY FROM FIRESTORE
                 const q = query(collection(db, "request"), where("userId", "==", user.uid));
                 const querySnapshot = await getDocs(q);
 
-                // Set up our counters
-                let totalCount = 0;
-                let pendingCount = 0;
-                let completedCount = 0;
                 let tableHTML = "";
 
-                // 3. IF NO REQUESTS FOUND
+                // 3. IF NO REQUESTS EXIST
                 if (querySnapshot.empty) {
-                    tableHTML = "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No recent requests yet. Start recycling!</td></tr>";
+                    tableHTML = "<tr><td colspan='5' style='text-align: center; padding: 20px;'>No history found. You haven't made any requests yet!</td></tr>";
                 } else {
-                    // 4. IF REQUESTS EXIST, LOOP THROUGH THEM
+                    // 4. LOOP THROUGH EACH REQUEST AND CREATE A ROW
                     querySnapshot.forEach((docSnap) => {
                         const reqData = docSnap.data();
-                        totalCount++; // Add 1 to total
-
-                        // Count statuses (convert to lowercase just to be safe)
-                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                        if (status === "pending") pendingCount++;
-                        if (status === "completed") completedCount++;
-
-                        // Choose badge color based on status
-                        const badgeClass = (status === "pending") ? "pending" : "complete";
                         
-                        // Capitalize the first letter of the status for the table
+                        // Create a short, fake ID based on the Firestore Document ID
+                        const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase(); 
+                        
+                        // Check status to apply the correct CSS color badge
+                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                        let badgeClass = "badge-pending"; // Default orange
+                        
+                        if (status === "accepted" || status === "completed") {
+                            badgeClass = "badge-accepted"; // Green
+                        } else if (status === "rejected") {
+                            badgeClass = "badge-rejected"; // Red
+                        }
+
+                        // Capitalize the first letter for display
                         const displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
 
-                        // Build a new row for the table
+                        // Use the creation date we set up in the selectpickup file
+                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : reqData.scheduledDate.substring(0, 10);
+
+                        // Add the row to our HTML block
                         tableHTML += `
                             <tr>
-                                <td>${reqData.scheduledDate.substring(0, 10)}</td>
+                                <td>${shortId}</td>
+                                <td>${displayDate}</td>
                                 <td>${reqData.category}</td>
                                 <td>${reqData.weight} Kg</td>
                                 <td><span class="status-badge ${badgeClass}">${displayStatus}</span></td>
@@ -164,14 +140,11 @@
                     });
                 }
 
-                // 5. UPDATE THE HTML ON THE SCREEN
-                document.getElementById('total-requests').innerText = totalCount;
-                document.getElementById('pending-requests').innerText = pendingCount;
-                document.getElementById('completed-requests').innerText = completedCount;
-                document.getElementById('recentRequestsTableBody').innerHTML = tableHTML;
+                // 5. INJECT HTML INTO THE TABLE
+                document.getElementById('historyTableBody').innerHTML = tableHTML;
 
             } else {
-                // SECURITY: Kick them to login if not authenticated
+                // Kick to login page if they aren't signed in
                 window.location.href = "index.html";
             }
         });
