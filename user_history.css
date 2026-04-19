@@ -142,6 +142,42 @@ body {
     min-width: 80px;
 }
 
+/* --- Profile Dropdown Styles --- */
+.profile-dropdown {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 55px; /* Pushes it right below the user circle */
+    right: 0;
+    background-color: white;
+    min-width: 150px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.profile-dropdown a {
+    color: #333;
+    padding: 12px 20px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.2s;
+}
+
+.profile-dropdown a:hover {
+    background-color: #f1f1f1;
+    color: #00B050; /* Turns green on hover */
+}
+
+/* JavaScript will add this class to make the menu visible */
+.show-dropdown {
+    display: block;
+}
+
 .badge-pending { background-color: #f59e0b; } /* Orange */
 .badge-accepted { background-color: #00B050; } /* Green */
 .badge-rejected { background-color: #C00000; } /* Red */
