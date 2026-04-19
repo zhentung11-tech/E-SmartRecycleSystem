@@ -10,19 +10,20 @@
 <body>
 
     <header class="top-nav-green">
-        <div class="logo-section">
-            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+        <div class="logo-section-top">
+            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+            <h1>E-Smart Recycle</h1>
         </div>
-             <div class="user-profile-top" style="position: relative;"> 
+
+        <div class="user-profile-top" style="position: relative;">
             <span id="userNameDisplay">Loading...</span>
             
-            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
+            <div class="profile-circle-gray" onclick="toggleProfileDropdown()" style="cursor: pointer;">
                 <i class="fas fa-user"></i>
             </div>
 
-            <div id="profileDropdown" class="profile-dropdown">
-                <a href="#"><i class="far fa-id-badge"></i> Profile</a>
+            <div id="profileMenu" class="profile-dropdown-list">
+                <a href="profile.html"><i class="far fa-id-badge"></i> Profile</a>
                 <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
@@ -190,15 +191,16 @@
             }
         }
 
-        // 1. Opens and closes the dropdown menu
-                window.toggleProfileMenu = function() {
-                    document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        // 1. Toggles (opens/closes) the dropdown menu when you click the gray user circle
+                window.toggleProfileDropdown = function() {
+                    document.getElementById("profileMenu").classList.toggle("show-dropdown");
                 };
         
-                // 2. Closes the menu automatically if the user clicks anywhere else on the screen!
+                // 2. Automatically closes the menu if you click anywhere else on the screen
                 window.onclick = function(event) {
-                    if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user') && !event.target.matches('.profile-circle')) {
-                        const dropdowns = document.getElementsByClassName("profile-dropdown");
+                    // Check if the user clicked outside the profile area
+                    if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user')) {
+                        const dropdowns = document.getElementsByClassName("profile-dropdown-list");
                         for (let i = 0; i < dropdowns.length; i++) {
                             const openDropdown = dropdowns[i];
                             if (openDropdown.classList.contains('show-dropdown')) {
@@ -208,14 +210,13 @@
                     }
                 };
         
-                // 3. securely logs the user out of Firebase
+                // 3. securely logs the user out of the system
                 window.logoutUser = function(event) {
-                    event.preventDefault(); // Stop the <a> tag from refreshing the page
+                    event.preventDefault(); // Stop the link from trying to navigate anywhere
                     
-                    // Firebase logout command
                     signOut(auth).then(() => {
                         alert("You have been successfully logged out.");
-                        window.location.href = "index.html"; // Send them back to login page
+                        window.location.href = "index.html"; // Send them back to the login page
                     }).catch((error) => {
                         alert("Error logging out: " + error.message);
                     });
