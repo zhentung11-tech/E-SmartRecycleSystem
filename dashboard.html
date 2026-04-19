@@ -71,16 +71,17 @@
                     </tbody>
                 </table>
 
-                <script type="module">
+             <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        
+        // Import Firestore tools! We need query, where, and getDocs to search for the user's specific requests
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // IMPORTANT: Use your exact Firebase Config from your login page here!
+        // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            databaseURL: "PASTE_YOUR_DATABASE_URL_HERE", // <-- Don't forget this!
             projectId: "e-smartrecyclesystem",
             storageBucket: "e-smartrecyclesystem.firebasestorage.app",
             messagingSenderId: "212695525607",
@@ -89,28 +90,69 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app);
+        const db = getFirestore(app);
 
-        // This function runs automatically as soon as the dashboard loads!
-        onAuthStateChanged(auth, (user) => {
+        // Runs automatically when the dashboard loads
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // 1. User is logged in! Let's fetch their name from the database
-                const userRef = ref(db, 'users/' + user.uid);
-                
-                get(userRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const userData = snapshot.val();
-                        // 2. Inject their real name into the top right corner!
-                        document.getElementById('userNameDisplay').innerText = userData.fullName;
-                    }
-                }).catch((error) => {
-                    console.error("Error fetching user data:", error);
-                });
+                // 1. FETCH USER NAME
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
 
-                // Note: The stats are currently 0. Later, we will write code to count their actual requests!
+                // 2. FETCH REQUESTS FOR THIS SPECIFIC USER
+                // This searches the 'request' collection where the userId matches the logged-in user
+                const q = query(collection(db, "request"), where("userId", "==", user.uid));
+                const querySnapshot = await getDocs(q);
+
+                // Set up our counters
+                let totalCount = 0;
+                let pendingCount = 0;
+                let completedCount = 0;
+                let tableHTML = "";
+
+                // 3. IF NO REQUESTS FOUND
+                if (querySnapshot.empty) {
+                    tableHTML = "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No recent requests yet. Start recycling!</td></tr>";
+                } else {
+                    // 4. IF REQUESTS EXIST, LOOP THROUGH THEM
+                    querySnapshot.forEach((docSnap) => {
+                        const reqData = docSnap.data();
+                        totalCount++; // Add 1 to total
+
+                        // Count statuses (convert to lowercase just to be safe)
+                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                        if (status === "pending") pendingCount++;
+                        if (status === "completed") completedCount++;
+
+                        // Choose badge color based on status
+                        const badgeClass = (status === "pending") ? "pending" : "complete";
+                        
+                        // Capitalize the first letter of the status for the table
+                        const displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
+
+                        // Build a new row for the table
+                        tableHTML += `
+                            <tr>
+                                <td>${reqData.scheduledDate.substring(0, 10)}</td>
+                                <td>${reqData.category}</td>
+                                <td>${reqData.weight} Kg</td>
+                                <td><span class="status-badge ${badgeClass}">${displayStatus}</span></td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // 5. UPDATE THE HTML ON THE SCREEN
+                document.getElementById('total-requests').innerText = totalCount;
+                document.getElementById('pending-requests').innerText = pendingCount;
+                document.getElementById('completed-requests').innerText = completedCount;
+                document.getElementById('recentRequestsTableBody').innerHTML = tableHTML;
 
             } else {
-                // 3. SECURITY: If they are NOT logged in, send them back to the login page
+                // SECURITY: Kick them to login if not authenticated
                 window.location.href = "index.html";
             }
         });
