@@ -15,7 +15,7 @@
             <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
         <div class="user-profile-top">
-            <span>Name</span>
+        <span id="userNameDisplay">Loading...</span>
             <div class="profile-circle-gray">
                 <i class="fas fa-user"></i>
             </div>
@@ -84,21 +84,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-                    on AuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        const userRef = doc(db, "users", user.uid);
-                        const userSnap = await getDoc(userRef);
-                        if (userSnap.exists()) {
-                            // Find the userNameDisplay ID on whatever page is open, and inject the name!
-                            const nameElement = document.getElementById('userNameDisplay');
-                            if (nameElement) {
-                                nameElement.innerText = userSnap.data().fullName;
-                            }
-                        }
-                    } else {
-                        window.location.href = "index.html"; // Kick to login
-                    }
-                });
+// Runs automatically when the page loads
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. FETCH USER NAME FOR THE TOP RIGHT
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
 
                 // 2. FETCH HISTORY FROM FIRESTORE
                 const q = query(collection(db, "request"), where("userId", "==", user.uid));
@@ -126,6 +120,27 @@
                         } else if (status === "rejected") {
                             badgeClass = "badge-rejected"; // Red
                         }
+
+                        // 5. Wait to see who is logged in
+                        onAuthStateChanged(auth, async (user) => {
+                            if (user) {
+                                // 2. Point to this specific user's file in the "users" collection
+                                const userRef = doc(db, "users", user.uid);
+                                
+                                // 3. Download the file
+                                const userSnap = await getDoc(userRef);
+                                
+                                if (userSnap.exists()) {
+                                    const userData = userSnap.data();
+                                    
+                                    // 4. Grab the fullName from the database and inject it into the HTML!
+                                    document.getElementById('userNameDisplay').innerText = userData.fullName;
+                                }
+                            } else {
+                                // If nobody is logged in, kick them back to the login page
+                                window.location.href = "index.html";
+                            }
+                        });
 
                         // Capitalize the first letter for display
                         const displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
