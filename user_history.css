@@ -185,3 +185,53 @@ body {
 .badge-pending { background-color: #f59e0b; } /* Orange */
 .badge-accepted { background-color: #00B050; } /* Green */
 .badge-rejected { background-color: #C00000; } /* Red */
+
+/* =========================================================
+   PROFILE DROPDOWN STYLES
+   ========================================================= */
+.profile-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-circle-gray {
+    transition: background-color 0.2s ease;
+}
+
+.profile-circle-gray:hover {
+    background-color: #555; /* Slight hover effect so users know it's clickable */
+}
+
+.dropdown-menu {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 50px; /* Positions it just below the circle */
+    right: 0;
+    background-color: white;
+    min-width: 130px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-menu.show {
+    display: block; /* Added via JS when clicked */
+}
+
+.dropdown-menu a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.2s;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f1f1f1;
+    color: #C00000; /* Turns red to indicate a destructive action like logout */
+}
