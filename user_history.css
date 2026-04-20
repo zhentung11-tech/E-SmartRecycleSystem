@@ -199,13 +199,14 @@ body {
 }
 
 .profile-circle-gray:hover {
-    background-color: #555; /* Slight hover effect so users know it's clickable */
+    background-color: #555;
+    cursor: pointer;
 }
 
 .dropdown-menu {
-    display: none; /* Hidden by default */
+    display: none; 
     position: absolute;
-    top: 50px; /* Positions it just below the circle */
+    top: 50px; 
     right: 0;
     background-color: white;
     min-width: 130px;
@@ -216,7 +217,7 @@ body {
 }
 
 .dropdown-menu.show {
-    display: block; /* Added via JS when clicked */
+    display: block; 
 }
 
 .dropdown-menu a {
@@ -233,5 +234,10 @@ body {
 
 .dropdown-menu a:hover {
     background-color: #f1f1f1;
-    color: #C00000; /* Turns red to indicate a destructive action like logout */
+    color: #00B050; /* Changed hover color to match your E-Smart Recycle green */
+}
+
+/* Red hover specifically for the logout button */
+.dropdown-menu a[onclick="logout()"]:hover {
+    color: #C00000; 
 }
