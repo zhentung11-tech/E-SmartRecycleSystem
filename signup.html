@@ -191,13 +191,13 @@
                     <h2>Sign Up</h2>
                 </div>
 
-                <form id="signupForm" onsubmit="handleSignup(event)">
+                <form id="signupForm" onsubmit="handleSignUp(event)">
                     
                     <div class="input-group">
                         <label>Full Name</label>
                         <div class="input-with-icon">
                             <i class="far fa-user"></i>
-                            <input type="text" placeholder="Full Name" required>
+                            <input type="text" id="signupName" placeholder="Full Name" required>
                         </div>
                     </div>
 
@@ -209,8 +209,6 @@
                         </div>
                     </div>
 
-                   
-
                     <div class="input-group">
                         <label>Password</label>
                         <div class="input-with-icon">
@@ -219,13 +217,13 @@
                         </div>
                     </div>
 
- <div class="helper-text">At least 8 character</div>
+                    <div class="helper-text">At least 8 character</div>
                     
                     <div class="input-group">
                         <label>Confirm Password</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
-                            <input type="password" placeholder="Password" minlength="8" required>
+                            <input type="password" id="signupConfirmPassword" placeholder="Password" minlength="8" required>
                         </div>
                     </div>
 
@@ -233,7 +231,7 @@
                         <label>Phone Number</label>
                         <div class="input-with-icon">
                             <i class="fas fa-phone-alt"></i>
-                            <input type="tel" placeholder="Phone Number" required>
+                            <input type="tel" id="signupPhone" placeholder="Phone Number" required>
                         </div>
                     </div>
 
@@ -241,18 +239,18 @@
                         <label>Address</label>
                         <div class="input-with-icon">
                             <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" placeholder="Address" required>
+                            <input type="text" id="signupAddress" placeholder="Address" required>
                         </div>
                     </div>
 
                     <div class="role-section">
                         <div class="role-options">
-                            <label style="cursor: pointer;"><input type="radio" name="registerRole" value="user" required checked> Register as User</label>
-                            <label style="cursor: pointer;"><input type="radio" name="registerRole" value="collector"> Register as Collector</label>
+                            <label style="cursor: pointer;"><input type="radio" name="role" value="user" required checked> Register as User</label>
+                            <label style="cursor: pointer;"><input type="radio" name="role" value="collector"> Register as Collector</label>
                         </div>
                     </div>
 
-                    <button href="login_page.html" type="submit" class="btn-signup-green">Sign Up</button>
+                    <button type="submit" class="btn-signup-green">Sign Up</button>
                     
                 </form>
             </div>
@@ -320,19 +318,11 @@
                     createdAt: new Date().toLocaleString()
                 });
 
-                alert("Account created successfully!");
+               alert("Account created successfully! Please log in.");
                 
-                // Route them to the correct dashboard based on what they chose
-                if (role === "collector") {
-                    window.location.href = "collector_dashboard.html";
-                } else {
-                    window.location.href = "dashboard.html";
-                }
-
-            } catch (error) {
-                alert("Error signing up: " + error.message);
-            }
-        };
+                auth.signOut().then(() => {
+                    window.location.href = "login_page.html";
+                });
     </script>
     
 </body>
