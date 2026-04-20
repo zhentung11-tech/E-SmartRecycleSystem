@@ -77,10 +77,9 @@
 
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        // 1. Added 'signOut' to the imports!
-        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
+        // Your Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
@@ -92,58 +91,24 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        window.handleLogin = async function(event) {
+        // This runs when the user clicks Login
+        window.handleLogin = function(event) {
             event.preventDefault(); 
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
 
-            try {
-                // 1. Check Authentication
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // 2. Open Firestore
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists()) {
-                    const actualRole = userSnap.data().role; 
-                    
-                    // Fallback just in case 'role' is missing from an old account
-                    if (!actualRole) {
-                        alert("Database Error: This account doesn't have a role assigned. Please create a new account.");
-                        signOut(auth);
-                        return;
-                    }
-
-                    // 3. Check Role
-                    if (selectedRole !== actualRole) {
-                        alert("Login Failed: You selected " + selectedRole + ", but you are registered as a " + actualRole + ".");
-                        // FIXED: Uses the correct Firebase v9 logout command
-                        signOut(auth); 
-                        return; 
-                    }
-
-                    // 4. Route to dashboard
-                    if (actualRole === "collector") {
-                        window.location.href = "collector_dashboard.html";
-                    } else {
-                        window.location.href = "dashboard.html";
-                    }
-
-                } else {
-                    alert("Error: User profile not found in database. Please create a new account.");
-                }
-
-            } catch (error) {
-                // FIXED: This will now tell you EXACTLY why it failed!
-                alert("Login Failed: " + error.message);
-                console.error("Detailed error:", error);
-            }
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Success! Redirect to the dashboard
+                    alert("Login Successful!");
+                    window.location.href = "dashboard.html"; 
+                })
+                .catch((error) => {
+                    // Fails if password is wrong or email doesn't exist
+                    alert("Login Failed: Incorrect Email or Password.");
+                });
         };
     </script>
     
