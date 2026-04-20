@@ -77,11 +77,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
         // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            databaseURL: "PASTE_YOUR_DATABASE_URL_HERE", 
             projectId: "e-smartrecyclesystem",
             storageBucket: "e-smartrecyclesystem.firebasestorage.app",
             messagingSenderId: "212695525607",
@@ -92,9 +94,12 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+       let currentUserId = null;
+
 // Runs automatically when the page loads
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                
                 // 1. FETCH USER NAME FOR THE TOP RIGHT
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
@@ -132,10 +137,68 @@
                         // 5. Wait to see who is logged in
                         onAuthStateChanged(auth, async (user) => {
                             if (user) {
-                                // 2. Point to this specific user's file in the "users" collection
+                                //  Point to this specific user's file in the "users" collection
                                 const userRef = doc(db, "users", user.uid);
+
+                        get(userRef).then((snapshot) => {
+                                            if (snapshot.exists()) {
+                                                const data = snapshot.val();
+                                                
+                                                // Fill the top-right name
+                                                document.getElementById('userNameDisplay').innerText = data.fullName;
+                                                
+                                                // Fill the big profile header
+                                                document.getElementById('headerName').innerText = data.fullName;
+                                                document.getElementById('headerRole').innerText = (data.role ? data.role.toUpperCase() : "USER") + " ACCOUNT";
+                        
+                                                // Fill the form boxes automatically
+                                                document.getElementById('profName').value = data.fullName;
+                                                document.getElementById('profEmail').value = data.email;
+                                                document.getElementById('profPhone').value = data.phone;
+                                                document.getElementById('profAddress').value = data.address;
+                                            }
+                                        }).catch((error) => {
+                                            console.error("Error fetching user data:", error);
+                                        });
+                                    } else {
+                                        // Kick back to login if they aren't signed in
+                                        window.location.href = "index.html";
+                                    }
+                                });
+                        
+                                // 4. SAVE NEW DATA WHEN BUTTON IS CLICKED
+                                window.updateProfile = function(event) {
+                                    event.preventDefault();
+                                    
+                                    const btn = document.getElementById('saveBtn');
+                                    btn.innerText = "Saving...";
+                                    
+                                    const newName = document.getElementById('profName').value;
+                                    const newPhone = document.getElementById('profPhone').value;
+                                    const newAddress = document.getElementById('profAddress').value;
+                        
+                                    // Point to this specific user in the database
+                                    const userRef = ref(db, 'users/' + currentUserId);
+                                    
+                                    // Update the specific fields in Realtime Database
+                                    update(userRef, {
+                                        fullName: newName,
+                                        phone: newPhone,
+                                        address: newAddress
+                                    }).then(() => {
+                                        // Update the names on the screen immediately without refreshing
+                                        document.getElementById('userNameDisplay').innerText = newName;
+                                        document.getElementById('headerName').innerText = newName;
+                        
+                                        alert("Profile updated successfully!");
+                                        btn.innerText = "Save Changes";
+                                    }).catch((error) => {
+                                        alert("Error updating profile: " + error.message);
+                                        btn.innerText = "Save Changes";
+                                    });
+                                };
                                 
-                                // 3. Download the file
+                                //  Download the file
                                 const userSnap = await getDoc(userRef);
                                 
                                 if (userSnap.exists()) {
