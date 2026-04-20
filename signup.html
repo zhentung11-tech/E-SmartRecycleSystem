@@ -260,9 +260,12 @@
 
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        // 1. Import Auth tools
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        // 2. Import Firestore tools
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config from your screenshot!
+        // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
@@ -274,25 +277,60 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-
-        // 2. START THE DATABASE
         const db = getFirestore(app);
-    
-        // This runs when the user clicks Sign Up
-        window.handleSignup = function(event) {
-            event.preventDefault(); 
-            
+
+        // Make sure your form has id="signupForm" and onsubmit="handleSignUp(event)"
+        window.handleSignUp = async function(event) {
+            event.preventDefault();
+
+            // Grab the details from your HTML input boxes (Make sure your IDs match these!)
+            const fullName = document.getElementById('signupName').value;
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const phone = document.getElementById('signupPhone').value;
+            const address = document.getElementById('signupAddress').value;
+            
+            // Find out if they clicked the User or Collector radio button
+            const roleElement = document.querySelector('input[name="role"]:checked');
+            const role = roleElement ? roleElement.value : "user"; // Default to user if empty
 
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    alert("Account created successfully! You can now log in.");
-                    window.location.href = "index.html"; // Sends them to login page
-                })
-                .catch((error) => {
-                    alert("Error: " + error.message);
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            try {
+                // STEP 1: Create the secure account in Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // STEP 2 & 3: THE MAGIC LINK! 
+                // We take the "user.uid" from Authentication and use it to name their file in Firestore
+                const userRef = doc(db, "users", user.uid);
+                
+                await setDoc(userRef, {
+                    fullName: fullName,
+                    email: email,
+                    phone: phone,
+                    address: address,
+                    role: role,
+                    createdAt: new Date().toLocaleString()
                 });
+
+                alert("Account created successfully!");
+                
+                // Route them to the correct dashboard based on what they chose
+                if (role === "collector") {
+                    window.location.href = "collector_dashboard.html";
+                } else {
+                    window.location.href = "dashboard.html";
+                }
+
+            } catch (error) {
+                alert("Error signing up: " + error.message);
+            }
         };
     </script>
     
