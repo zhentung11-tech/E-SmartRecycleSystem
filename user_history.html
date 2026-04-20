@@ -16,9 +16,17 @@
         </div>
         <div class="user-profile-top">
         <span id="userNameDisplay">Loading...</span>
-            <div class="profile-circle-gray">
-                <i class="fas fa-user"></i>
-            </div>
+            <div class="profile-circle-gray" onclick="toggleDropdown()" style="cursor: pointer;">
+                    <i class="fas fa-user"></i>
+                </div>
+                
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="profile.html"><i class="fas fa-user-circle"></i> Profile</a>
+                    
+                    <hr style="margin: 0; border: none; border-top: 1px solid #ddd;">
+                    
+                    <a href="loginpage.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
         </div>
     </header>
 
@@ -169,6 +177,41 @@
                 window.location.href = "index.html";
             }
         });
+
+         // 1. Toggle the dropdown menu visibility
+                function toggleDropdown() {
+                    document.getElementById("profileDropdown").classList.toggle("show");
+                }
+        
+                // 2. Close the dropdown if the user clicks anywhere outside of it
+                window.onclick = function(event) {
+                    if (!event.target.closest('.profile-dropdown-container')) {
+                        const dropdowns = document.getElementsByClassName("dropdown-menu");
+                        for (let i = 0; i < dropdowns.length; i++) {
+                            const openDropdown = dropdowns[i];
+                            if (openDropdown.classList.contains('show')) {
+                                openDropdown.classList.remove('show');
+                            }
+                        }
+                    }
+                }
+        
+                // 3. Handle the Logout action
+                function logout() {
+                    // Optional: confirm prompt to prevent accidental logouts
+                    const confirmLogout = confirm("Are you sure you want to log out?");
+                    
+                    if (confirmLogout) {
+                        // If you are using LocalStorage or SessionStorage to hold user data, clear it here:
+                        // localStorage.clear(); 
+                        // sessionStorage.clear();
+        
+                        // Redirect the user to the login screen
+                        // IMPORTANT: Replace 'login.html' with the actual file name of your login page!
+                        window.location.href = "login.html"; 
+                    }
+                }
+       
     </script>
 
 </body>
