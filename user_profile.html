@@ -85,15 +85,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        
-        // 1. IMPORT REALTIME DATABASE TOOLS
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        // IMPORT FIRESTORE TOOLS
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            databaseURL: "https://e-smartrecyclesystem-default-rtdb.asia-southeast1.firebasedatabase.app", 
             projectId: "e-smartrecyclesystem",
             storageBucket: "e-smartrecyclesystem.firebasestorage.app",
             messagingSenderId: "212695525607",
@@ -102,48 +100,47 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        
-        // 2. INITIALIZE REALTIME DB
-        const db = getDatabase(app);
+        const db = getFirestore(app);
 
         let currentUserId = null;
 
-        // 3. LOAD DATA WHEN PAGE OPENS
-        onAuthStateChanged(auth, (user) => {
+        // 1. LOAD DATA WHEN PAGE OPENS
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
                 
-                // Point to the 'users' folder in Realtime DB
-                const userRef = ref(db, 'users/' + user.uid);
-                
-                get(userRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        
-                        // Fill the top-right name
-                        document.getElementById('userNameDisplay').innerText = data.fullName;
-                        
-                        // Fill the big profile header
-                        document.getElementById('headerName').innerText = data.fullName;
-                        document.getElementById('headerRole').innerText = (data.role ? data.role.toUpperCase() : "USER") + " ACCOUNT";
+                // Point to the 'users' folder in FIRESTORE
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
 
-                        // Fill the form boxes automatically
-                        document.getElementById('profName').value = data.fullName;
-                        document.getElementById('profEmail').value = data.email;
-                        document.getElementById('profPhone').value = data.phone;
-                        document.getElementById('profAddress').value = data.address;
-                    }
-                }).catch((error) => {
-                    console.error("Error fetching user data:", error);
-                });
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    
+                    // Tell the developer console that data was found!
+                    console.log("Data successfully loaded from Firestore:", data);
+                    
+                    // Fill the top-right name (If you have this ID on the page)
+                    const topName = document.getElementById('userNameDisplay');
+                    if(topName) topName.innerText = data.fullName;
+                    
+                    // Fill the form boxes automatically
+                    // We use || "" just in case a field is missing in the database
+                    document.getElementById('profName').value = data.fullName || "";
+                    document.getElementById('profEmail').value = data.email || "";
+                    document.getElementById('profPhone').value = data.phone || "";
+                    document.getElementById('profAddress').value = data.address || "";
+                } else {
+                    console.error("No user document found in Firestore for this ID!");
+                    alert("We couldn't find your profile data. Did you sign up correctly?");
+                }
             } else {
                 // Kick back to login if they aren't signed in
                 window.location.href = "index.html";
             }
         });
 
-        // 4. SAVE NEW DATA WHEN BUTTON IS CLICKED
-        window.updateProfile = function(event) {
+        // 2. SAVE NEW DATA WHEN BUTTON IS CLICKED
+        window.updateProfile = async function(event) {
             event.preventDefault();
             
             const btn = document.getElementById('saveBtn');
@@ -153,30 +150,77 @@
             const newPhone = document.getElementById('profPhone').value;
             const newAddress = document.getElementById('profAddress').value;
 
-            // Point to this specific user in the database
-            const userRef = ref(db, 'users/' + currentUserId);
-            
-            // Update the specific fields in Realtime Database
-            update(userRef, {
-                fullName: newName,
-                phone: newPhone,
-                address: newAddress
-            }).then(() => {
-                // Update the names on the screen immediately without refreshing
-                document.getElementById('userNameDisplay').innerText = newName;
-                document.getElementById('headerName').innerText = newName;
+            try {
+                // Point to this specific user in Firestore
+                const userRef = doc(db, "users", currentUserId);
+                
+                // Update the specific fields
+                await updateDoc(userRef, {
+                    fullName: newName,
+                    phone: newPhone,
+                    address: newAddress
+                });
+
+                const topName = document.getElementById('userNameDisplay');
+                if(topName) topName.innerText = newName;
 
                 alert("Profile updated successfully!");
                 btn.innerText = "Save Changes";
-            }).catch((error) => {
+                
+                // Lock the form again after saving!
+                window.lockProfileForm();
+                
+            } catch (error) {
                 alert("Error updating profile: " + error.message);
                 btn.innerText = "Save Changes";
+            }
+        };
+
+        // --- PROFILE EDIT MODE FUNCTIONS ---
+        window.originalProfileData = {};
+
+        window.enableEditMode = function() {
+            window.originalProfileData.name = document.getElementById('profName').value;
+            window.originalProfileData.phone = document.getElementById('profPhone').value;
+            window.originalProfileData.address = document.getElementById('profAddress').value;
+
+            const inputs = ['profName', 'profPhone', 'profAddress'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                el.removeAttribute('readonly');
+                el.classList.remove('view-mode');
+                el.classList.add('edit-mode');
             });
+
+            document.getElementById('viewButtons').style.display = 'none';
+            document.getElementById('editButtons').style.display = 'flex';
+            document.getElementById('profName').focus();
+        };
+
+        window.cancelEditMode = function() {
+            document.getElementById('profName').value = window.originalProfileData.name;
+            document.getElementById('profPhone').value = window.originalProfileData.phone;
+            document.getElementById('profAddress').value = window.originalProfileData.address;
+            window.lockProfileForm();
+        };
+
+        window.lockProfileForm = function() {
+            const inputs = ['profName', 'profPhone', 'profAddress'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                el.setAttribute('readonly', true);
+                el.classList.remove('edit-mode');
+                el.classList.add('view-mode');
+            });
+
+            document.getElementById('viewButtons').style.display = 'block';
+            document.getElementById('editButtons').style.display = 'none';
         };
 
         // --- DROPDOWN & LOGOUT FUNCTIONS ---
         window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+            const dropdown = document.getElementById("profileDropdown");
+            if(dropdown) dropdown.classList.toggle("show-dropdown");
         };
 
         window.onclick = function(event) {
@@ -196,59 +240,6 @@
                 window.location.href = "index.html";
             });
         };
-
-        // --- PROFILE EDIT MODE FUNCTIONS ---
-                // Variable to remember their original details if they click 'Cancel'
-                window.originalProfileData = {};
-        
-                window.enableEditMode = function() {
-                    // 1. Save current text just in case they cancel
-                    window.originalProfileData.name = document.getElementById('profName').value;
-                    window.originalProfileData.phone = document.getElementById('profPhone').value;
-                    window.originalProfileData.address = document.getElementById('profAddress').value;
-        
-                    // 2. Change inputs to editable white boxes
-                    const inputs = ['profName', 'profPhone', 'profAddress'];
-                    inputs.forEach(id => {
-                        const el = document.getElementById(id);
-                        el.removeAttribute('readonly');
-                        el.classList.remove('view-mode');
-                        el.classList.add('edit-mode');
-                    });
-        
-                    // 3. Swap the buttons
-                    document.getElementById('viewButtons').style.display = 'none';
-                    document.getElementById('editButtons').style.display = 'flex';
-                    
-                    // 4. Automatically put the typing cursor in the Name box
-                    document.getElementById('profName').focus();
-                };
-        
-                window.cancelEditMode = function() {
-                    // 1. Put the original text back
-                    document.getElementById('profName').value = window.originalProfileData.name;
-                    document.getElementById('profPhone').value = window.originalProfileData.phone;
-                    document.getElementById('profAddress').value = window.originalProfileData.address;
-        
-                    // 2. Lock the form again
-                    window.lockProfileForm();
-                };
-        
-                window.lockProfileForm = function() {
-                    // 1. Turn boxes back into plain text
-                    const inputs = ['profName', 'profPhone', 'profAddress'];
-                    inputs.forEach(id => {
-                        const el = document.getElementById(id);
-                        el.setAttribute('readonly', true);
-                        el.classList.remove('edit-mode');
-                        el.classList.add('view-mode');
-                    });
-        
-                    // 2. Swap the buttons back
-                    document.getElementById('viewButtons').style.display = 'block';
-                    document.getElementById('editButtons').style.display = 'none';
-                };
-        
     </script>
 </body>
 </html>
