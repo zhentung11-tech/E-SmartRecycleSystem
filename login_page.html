@@ -75,9 +75,12 @@
         </main>
     </div>
 
-<script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        // 1. Import Auth AND signOut
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        // 2. Import Firestore to check the user's role
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your Firebase config
         const firebaseConfig = {
@@ -91,24 +94,62 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // This runs when the user clicks Login
-        window.handleLogin = function(event) {
+        window.handleLogin = async function(event) {
             event.preventDefault(); 
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            
+            // Find out which radio button is currently clicked
+            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
 
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Success! Redirect to the dashboard
+            try {
+                // 1. Securely log them in
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 2. Open their profile in Firestore to see what role they registered as
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const actualRole = userSnap.data().role; 
+                    
+                    // Fallback just in case they don't have a role
+                    if (!actualRole) {
+                        alert("Database Error: This account doesn't have a role assigned.");
+                        signOut(auth);
+                        return;
+                    }
+
+                    // 3. SECURITY CHECK: Did they click the wrong radio button?
+                    if (selectedRole !== actualRole) {
+                        alert("Login Failed: You selected " + selectedRole + " on the screen, but you are registered as a " + actualRole + " in the database.");
+                        signOut(auth); 
+                        return; 
+                    }
+
+                    // 4. SUCCESS! Route them to the correct dashboard
                     alert("Login Successful!");
-                    window.location.href = "dashboard.html"; 
-                })
-                .catch((error) => {
-                    // Fails if password is wrong or email doesn't exist
-                    alert("Login Failed: Incorrect Email or Password.");
-                });
+                    if (actualRole === "collector") {
+                        window.location.href = "collector_dashboard.html";
+                    } else {
+                        window.location.href = "dashboard.html";
+                    }
+
+                } else {
+                    alert("Error: User profile not found in database. Please sign up again.");
+                    signOut(auth);
+                }
+
+            } catch (error) {
+                // This catches wrong passwords, unregistered emails, etc.
+                alert("Login Failed: " + error.message);
+                console.error("Detailed error:", error);
+            }
         };
     </script>
     
