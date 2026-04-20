@@ -50,25 +50,32 @@
                 <form id="profileForm" onsubmit="updateProfile(event)">
                     <div class="form-group">
                         <label>Full Name</label>
-                        <input type="text" id="profName" required>
+                        <input type="text" id="profName" class="view-mode" readonly required>
                     </div>
 
                     <div class="form-group">
-                        <label>Email Address (Cannot be changed)</label>
-                        <input type="email" id="profEmail" disabled>
+                        <label>Email Address</label>
+                        <input type="email" id="profEmail" class="view-mode" readonly disabled>
                     </div>
 
                     <div class="form-group">
                         <label>Phone Number</label>
-                        <input type="tel" id="profPhone" required>
+                        <input type="tel" id="profPhone" class="view-mode" readonly required>
                     </div>
 
                     <div class="form-group">
                         <label>Home Address</label>
-                        <input type="text" id="profAddress" required>
+                        <input type="text" id="profAddress" class="view-mode" readonly required>
                     </div>
 
-                    <button type="submit" class="btn-save" id="saveBtn">Save Changes</button>
+                    <div id="viewButtons">
+                        <button type="button" class="btn-edit" onclick="enableEditMode()">Edit Profile</button>
+                    </div>
+
+                    <div id="editButtons" style="display: none;">
+                        <button type="button" class="btn-cancel" onclick="cancelEditMode()">Cancel</button>
+                        <button type="submit" class="btn-save" id="saveBtn">Save Changes</button>
+                    </div>
                 </form>
 
             </div>
@@ -189,6 +196,59 @@
                 window.location.href = "index.html";
             });
         };
+
+        // --- PROFILE EDIT MODE FUNCTIONS ---
+                // Variable to remember their original details if they click 'Cancel'
+                window.originalProfileData = {};
+        
+                window.enableEditMode = function() {
+                    // 1. Save current text just in case they cancel
+                    window.originalProfileData.name = document.getElementById('profName').value;
+                    window.originalProfileData.phone = document.getElementById('profPhone').value;
+                    window.originalProfileData.address = document.getElementById('profAddress').value;
+        
+                    // 2. Change inputs to editable white boxes
+                    const inputs = ['profName', 'profPhone', 'profAddress'];
+                    inputs.forEach(id => {
+                        const el = document.getElementById(id);
+                        el.removeAttribute('readonly');
+                        el.classList.remove('view-mode');
+                        el.classList.add('edit-mode');
+                    });
+        
+                    // 3. Swap the buttons
+                    document.getElementById('viewButtons').style.display = 'none';
+                    document.getElementById('editButtons').style.display = 'flex';
+                    
+                    // 4. Automatically put the typing cursor in the Name box
+                    document.getElementById('profName').focus();
+                };
+        
+                window.cancelEditMode = function() {
+                    // 1. Put the original text back
+                    document.getElementById('profName').value = window.originalProfileData.name;
+                    document.getElementById('profPhone').value = window.originalProfileData.phone;
+                    document.getElementById('profAddress').value = window.originalProfileData.address;
+        
+                    // 2. Lock the form again
+                    window.lockProfileForm();
+                };
+        
+                window.lockProfileForm = function() {
+                    // 1. Turn boxes back into plain text
+                    const inputs = ['profName', 'profPhone', 'profAddress'];
+                    inputs.forEach(id => {
+                        const el = document.getElementById(id);
+                        el.setAttribute('readonly', true);
+                        el.classList.remove('edit-mode');
+                        el.classList.add('view-mode');
+                    });
+        
+                    // 2. Swap the buttons back
+                    document.getElementById('viewButtons').style.display = 'block';
+                    document.getElementById('editButtons').style.display = 'none';
+                };
+        
     </script>
 </body>
 </html>
