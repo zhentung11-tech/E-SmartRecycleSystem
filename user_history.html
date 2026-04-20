@@ -205,7 +205,7 @@
                 // This talks to your E-Smart Recycle Firebase backend to kill the session
                 signOut(auth).then(() => {
                     // Sign-out successful, NOW we send them to the login page
-                    window.location.href = "index.html"; 
+                    window.location.href = "login_page.html"; 
                 }).catch((error) => {
                     // Just in case something goes wrong
                     alert("Error logging out: " + error.message);
