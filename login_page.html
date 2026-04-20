@@ -77,7 +77,10 @@
 
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        // 1. Import Auth for Login
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        // 2. Import Firestore to check their role
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your exact Firebase config
         const firebaseConfig = {
@@ -91,30 +94,52 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-       window.handleLogin = function(event) {
+        // This runs when they click the "Login" button
+        window.handleLogin = async function(event) {
             event.preventDefault(); 
             
+            // 1. Grab what they typed/selected
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            
-            // 1. Check which radio button is selected
             const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
 
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    alert("Login Successful!");
-                    
-                    // 2. Redirect to the correct page based on the role!
-                    if (selectedRole === "user") {
-                        window.location.href = "dashboard.html"; 
-                    } else if (selectedRole === "collector") {
-                        window.location.href = "collector_dashboard.html"; // Make sure this matches your file name!
+            try {
+                // 2. Check email and password with Firebase Authentication
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 3. Open their file in Firestore to find their TRUE role
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const actualRole = userSnap.data().role; // This is the role they chose during Sign Up!
+
+                    // 4. SECURITY CHECK: Did they click the right radio button?
+                    if (selectedRole !== actualRole) {
+                        alert("Login Failed: You selected " + selectedRole + ", but you are registered as a " + actualRole + ".");
+                        // You can automatically sign them out here if they choose the wrong role
+                        auth.signOut();
+                        return; 
                     }
-                })
-                .catch((error) => {
-                    alert("Login Failed: Incorrect Email or Password.");
-                });
+
+                    // 5. SUCCESS! Route them to the correct dashboard
+                    if (actualRole === "collector") {
+                        window.location.href = "collector_dashboard.html";
+                    } else {
+                        window.location.href = "dashboard.html";
+                    }
+
+                } else {
+                    alert("Error: User profile not found in database.");
+                }
+
+            } catch (error) {
+                // This catches wrong passwords, unregistered emails, etc.
+                alert("Login Failed: Incorrect Email or Password.");
+            }
         };
     </script>
     
