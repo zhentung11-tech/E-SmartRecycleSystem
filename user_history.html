@@ -75,7 +75,7 @@
 
    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your exact Firebase config
@@ -178,31 +178,38 @@
             }
         });
 
-        // Toggle the dropdown menu visibility
-        function toggleDropdown() {
+      // --- DROPDOWN & LOGOUT FUNCTIONS ---
+
+        // 1. Attach toggle function to the window so HTML can see it
+        window.toggleDropdown = function() {
             document.getElementById("profileDropdown").classList.toggle("show");
         }
 
-        // Close the dropdown if the user clicks anywhere outside of it
+        // 2. Attach the click-away closer to the window
         window.onclick = function(event) {
             if (!event.target.closest('.profile-dropdown-container')) {
                 const dropdowns = document.getElementsByClassName("dropdown-menu");
                 for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
                     }
                 }
             }
         }
 
-        // Handle the Logout action
-        function logout() {
+        // 3. Use actual Firebase Authentication Sign Out
+        window.logout = function() {
             const confirmLogout = confirm("Are you sure you want to log out?");
+            
             if (confirmLogout) {
-                // Since I see you use "index.html" for your login redirect in the Firebase code, 
-                // I have updated this link to send them back to index.html!
-                window.location.href = "index.html"; 
+                // This talks to your E-Smart Recycle Firebase backend to kill the session
+                signOut(auth).then(() => {
+                    // Sign-out successful, NOW we send them to the login page
+                    window.location.href = "index.html"; 
+                }).catch((error) => {
+                    // Just in case something goes wrong
+                    alert("Error logging out: " + error.message);
+                });
             }
         }
        
