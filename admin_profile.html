@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Admin Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="user_profile.css">
+</head>
+<body>
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+            <img src="logo.png" alt="E-Smart Recycle Logo">
+            <a href="admin_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+        </div>
+
+        <div class="user-profile-top" style="position: relative;">
+            <span id="userNameDisplay">Loading...</span>
+            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
+                <i class="fas fa-user-shield"></i>
+            </div>
+
+            <div id="profileDropdown" class="profile-dropdown">
+                <a href="admin_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <aside class="sidebar-left">
+            <ul class="sidebar-menu">
+                <li><a href="admin_dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="manage_users.html"><i class="fas fa-users"></i> Manage Users</a></li>
+                <li><a href="manage_requests.html"><i class="fas fa-clipboard-list"></i> All Requests</a></li>
+                <li><a href="system_reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="profile-card">
+                
+                <div class="profile-header">
+                    <div class="big-avatar" style="background-color: #333;"><i class="fas fa-user-shield"></i></div> 
+                    <h2 id="headerName">System Admin</h2>
+                    <p id="headerRole" style="color: #333; font-weight: bold;">ADMIN ACCOUNT</p>
+                </div>
+
+                <form id="profileForm" onsubmit="updateProfile(event)">
+                    <div class="form-group">
+                        <label>Admin Full Name</label>
+                        <input type="text" id="profName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Admin Email (Cannot be changed)</label>
+                        <input type="email" id="profEmail" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" id="profPhone" required>
+                    </div>
+
+                    <button type="submit" class="btn-save" id="saveBtn" style="background-color: #333;">Save Changes</button>
+                </form>
+
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserId = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    
+                    document.getElementById('userNameDisplay').innerText = data.fullName;
+                    document.getElementById('headerName').innerText = data.fullName;
+
+                    document.getElementById('profName').value = data.fullName;
+                    document.getElementById('profEmail').value = data.email;
+                    document.getElementById('profPhone').value = data.phone;
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        window.updateProfile = async function(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = "Saving...";
+            
+            const newName = document.getElementById('profName').value;
+            const newPhone = document.getElementById('profPhone').value;
+
+            try {
+                const userRef = doc(db, "users", currentUserId);
+                
+                await updateDoc(userRef, {
+                    fullName: newName,
+                    phone: newPhone
+                });
+
+                document.getElementById('userNameDisplay').innerText = newName;
+                document.getElementById('headerName').innerText = newName;
+
+                alert("Admin profile updated successfully!");
+                btn.innerText = "Save Changes";
+                
+            } catch (error) {
+                alert("Error updating profile: " + error.message);
+                btn.innerText = "Save Changes";
+            }
+        };
+
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-shield') && !event.target.matches('.profile-circle')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        };
+    </script>
+</body>
+</html>
