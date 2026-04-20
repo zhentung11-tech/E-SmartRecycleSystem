@@ -77,12 +77,10 @@
 
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        // 1. Import Auth for Login
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        // 2. Import Firestore to check their role
+        // 1. Added 'signOut' to the imports!
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
@@ -96,36 +94,41 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // This runs when they click the "Login" button
         window.handleLogin = async function(event) {
             event.preventDefault(); 
             
-            // 1. Grab what they typed/selected
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
 
             try {
-                // 2. Check email and password with Firebase Authentication
+                // 1. Check Authentication
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 3. Open their file in Firestore to find their TRUE role
+                // 2. Open Firestore
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
 
                 if (userSnap.exists()) {
-                    const actualRole = userSnap.data().role; // This is the role they chose during Sign Up!
+                    const actualRole = userSnap.data().role; 
+                    
+                    // Fallback just in case 'role' is missing from an old account
+                    if (!actualRole) {
+                        alert("Database Error: This account doesn't have a role assigned. Please create a new account.");
+                        signOut(auth);
+                        return;
+                    }
 
-                    // 4. SECURITY CHECK: Did they click the right radio button?
+                    // 3. Check Role
                     if (selectedRole !== actualRole) {
                         alert("Login Failed: You selected " + selectedRole + ", but you are registered as a " + actualRole + ".");
-                        // You can automatically sign them out here if they choose the wrong role
-                        auth.signOut();
+                        // FIXED: Uses the correct Firebase v9 logout command
+                        signOut(auth); 
                         return; 
                     }
 
-                    // 5. SUCCESS! Route them to the correct dashboard
+                    // 4. Route to dashboard
                     if (actualRole === "collector") {
                         window.location.href = "collector_dashboard.html";
                     } else {
@@ -133,12 +136,13 @@
                     }
 
                 } else {
-                    alert("Error: User profile not found in database.");
+                    alert("Error: User profile not found in database. Please create a new account.");
                 }
 
             } catch (error) {
-                // This catches wrong passwords, unregistered emails, etc.
-                alert("Login Failed: Incorrect Email or Password.");
+                // FIXED: This will now tell you EXACTLY why it failed!
+                alert("Login Failed: " + error.message);
+                console.error("Detailed error:", error);
             }
         };
     </script>
