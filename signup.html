@@ -26,7 +26,7 @@
         }
         
         .logo-section-top { display: flex; align-items: center; gap: 15px; }
-        .logo-section-top i { font-size: 35px; color: #4A4A4A; }
+        .logo-section-top img { width: 50px; height: auto; }
         .logo-section-top h1 { margin: 0; font-size: 22px; color: #000; }
         
         .user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 18px; }
@@ -84,7 +84,7 @@
             gap: 15px;
             margin-bottom: 25px;
         }
-        .form-header-inline i { font-size: 45px; color: #4A4A4A; }
+        .form-header-inline img { width: 50px; height: auto; }
         .form-header-inline h2 { margin: 0; font-size: 28px; color: #000; font-family: Arial, sans-serif; font-weight: bold; }
 
         /* Form Elements */
@@ -114,7 +114,7 @@
         }
         .input-with-icon input {
             width: 100%; 
-            padding: 10px 10px 10px 35px; /* Extra padding on left for icon */
+            padding: 10px 10px 10px 35px;
             background-color: #D9D9D9; 
             border: none;
             box-sizing: border-box; 
@@ -143,7 +143,7 @@
 
         /* Centered Green Button */
         .btn-signup-green {
-            background-color: #008040; /* Dark green matching image */
+            background-color: #008040;
             color: white; 
             border: none;
             padding: 10px 30px; 
@@ -152,7 +152,7 @@
             font-weight: bold;
             cursor: pointer; 
             display: block;
-            margin: 0 auto; /* Centers the button */
+            margin: 0 auto;
         }
         .btn-signup-green:hover { background-color: #005a2e; }
 
@@ -162,8 +162,8 @@
 
     <header class="top-nav-green">
         <div class="logo-section-top">
-        <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+            <img src="logo.png" alt="E-Smart Recycle Logo">
+            <a href="index.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
         <div class="user-profile-top">
             <div class="profile-circle-gray">
@@ -187,7 +187,7 @@
             <div class="signup-card">
                 
                 <div class="form-header-inline">
-                <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+                    <img src="logo.png" alt="E-Smart Recycle Logo">
                     <h2>Sign Up</h2>
                 </div>
 
@@ -257,19 +257,17 @@
         </main>
     </div>
 
-<script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        
-        // 1. IMPORT REALTIME DATABASE TOOLS (Different from Firestore!)
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        // Import Auth and signOut so we can log them out immediately after creation
+        import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        // Import Firestore to save the data!
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config, now with the Database URL!
+        // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            // YOU MUST PASTE YOUR DATABASE URL HERE:
-            databaseURL: "PASTE_YOUR_DATABASE_URL_HERE", 
             projectId: "e-smartrecyclesystem",
             storageBucket: "e-smartrecyclesystem.firebasestorage.app",
             messagingSenderId: "212695525607",
@@ -278,23 +276,21 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        
-        // 2. START THE REALTIME DATABASE
-        const db = getDatabase(app);
+        const db = getFirestore(app); // Using Firestore!
 
-        window.handleSignup = function(event) {
+        window.handleSignUp = async function(event) {
             event.preventDefault(); 
             
-            // 3. GRAB ALL THE TEXT FROM THE BOXES
+            // Grab exact IDs matching the HTML above
             const name = document.getElementById('signupName').value;
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
-            const confirmPass = document.getElementById('confirmPassword').value;
+            const confirmPass = document.getElementById('signupConfirmPassword').value;
             const phone = document.getElementById('signupPhone').value;
             const address = document.getElementById('signupAddress').value;
             
             // Get which radio button is selected
-            const role = document.querySelector('input[name="registerRole"]:checked').value;
+            const role = document.querySelector('input[name="role"]:checked').value;
 
             // Check if passwords match
             if (password !== confirmPass) {
@@ -302,30 +298,35 @@
                 return;
             }
 
-            // 4. CREATE ACCOUNT IN FIREBASE AUTHENTICATION
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    
-                    // 5. SAVE EXTRA DETAILS IN REALTIME DATABASE
-                    // This creates a folder called 'users' and saves data under their unique ID
-                    return set(ref(db, 'users/' + user.uid), {
-                        fullName: name,
-                        email: email,
-                        phone: phone,
-                        address: address,
-                        role: role
-                    });
-                })
-                .then(() => {
-                    alert("Account and details saved successfully! You can now log in.");
-                    window.location.href = "login_page.html"; 
-                })
-                .catch((error) => {
-                    alert("Error: " + error.message);
+            try {
+                // 1. CREATE ACCOUNT IN FIREBASE AUTHENTICATION
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // 2. SAVE EXTRA DETAILS IN FIRESTORE
+                const userRef = doc(db, "users", user.uid);
+                await setDoc(userRef, {
+                    fullName: name,
+                    email: email,
+                    phone: phone,
+                    address: address,
+                    role: role,
+                    createdAt: new Date().toLocaleString()
                 });
+                
+                // 3. SUCCESS MESSAGE & REDIRECT
+                alert("Account created successfully! Please log in.");
+                
+                // Log them out so they can properly test the login page
+                await signOut(auth);
+                
+                // Redirect to the login page (Make sure your login page is named index.html!)
+                window.location.href = "index.html"; 
+
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
         };
     </script>
-    
 </body>
 </html>
