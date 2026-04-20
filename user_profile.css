@@ -40,3 +40,34 @@ body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction:
 
 .btn-save { width: 100%; padding: 15px; background-color: #00B050; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background-color 0.2s; }
 .btn-save:hover { background-color: #008f40; }
+
+/* --- View vs Edit Mode Styling --- */
+.form-group input.view-mode {
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding-left: 0;
+    color: #333;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.form-group input.view-mode:focus {
+    outline: none; /* Removes the blue glow when clicking a locked box */
+}
+
+.form-group input.edit-mode {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding-left: 12px;
+}
+
+/* New Buttons */
+.btn-edit { width: 100%; padding: 15px; background-color: #545454; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+.btn-edit:hover { background-color: #333; }
+
+.btn-cancel { width: 48%; padding: 15px; background-color: #ccc; color: #333; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.btn-cancel:hover { background-color: #bbb; }
+
+.btn-save { width: 48%; margin-top: 0; } /* Overrides the previous 100% width */
+
+#editButtons { display: flex; justify-content: space-between; margin-top: 10px; }
