@@ -17,10 +17,10 @@
             flex-direction: column;
             height: 100vh;
             font-family: Arial, sans-serif;
-            background-color: #C4C4C4; /* Main Grey Background */
+            background-color: #C4C4C4; 
         }
 
-        /* Top Header (Light Green) */
+        /* Top Header */
         .top-nav-green {
             background-color: #8CC63F; 
             display: flex;
@@ -31,24 +31,27 @@
         }
 
         .logo-section-top { display: flex; align-items: center; gap: 15px; }
-        .logo-icon-black {
-            background-color: #111;
-            color: white;
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 20px;
-        }
+        .logo-section-top img { width: 50px; height: auto; }
         .logo-section-top h1 { margin: 0; font-size: 22px; color: #000; }
 
-        .user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 16px; color: #000;}
+        /* Profile Dropdown Setup */
+        .user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 16px; color: #000; position: relative;}
         .profile-circle-gray {
             background-color: #555; color: white; width: 35px; height: 35px;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer;
         }
+
+        .profile-dropdown {
+            display: none; position: absolute; top: 50px; right: 0; background-color: white; 
+            min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; z-index: 1000; flex-direction: column;
+        }
+        .profile-dropdown a { color: #333; padding: 15px 20px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-size: 15px; border-bottom: 1px solid #f0f0f0; }
+        .profile-dropdown a:hover { background-color: #f9f9f9; color: #1a8a4c; }
+        .show-dropdown { display: flex !important; }
 
         /* Navigation Bar */
         .navbar {
-            background-color: #0f7a45; /* Dark green */
+            background-color: #0f7a45; 
             display: flex;
             padding: 0 10px;
         }  
@@ -101,7 +104,6 @@
             color: #000;
         }
 
-        /* The 3 Stat Boxes */
         .stats-container {
             display: flex;
             gap: 20px;
@@ -111,7 +113,7 @@
         .stat-box {
             flex: 1;
             background-color: #f9f9f9;
-            border-left: 5px solid #1a8a4c; /* Green side border */
+            border-left: 5px solid #1a8a4c; 
             padding: 20px;
             display: flex;
             align-items: center;
@@ -143,14 +145,12 @@
             color: #333;
         }
 
-        /* Subtle dividing line */
         .divider {
             border: 0;
             border-top: 1px solid #eee;
             margin: 40px 0 30px 0;
         }
 
-        /* Quick Actions Section */
         .quick-actions-title {
             font-size: 18px;
             font-weight: bold;
@@ -185,7 +185,6 @@
         .btn-grey { background-color: #555; }
         .btn-grey:hover { background-color: #333; }
 
-        /* Responsive stack for smaller screens */
         @media (max-width: 768px) {
             .stats-container, .actions-container {
                 flex-direction: column;
@@ -197,23 +196,29 @@
 
     <header class="top-nav-green">
         <div class="logo-section-top">
-<img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">            <h1>E-Smart Recycle</h1>
+            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">            
+            <h1>E-Smart Recycle</h1>
         </div>
         <div class="user-profile-top">
-            <span>Admin Name</span>
-            <div class="profile-circle-gray">
+            <span id="userNameDisplay">Loading...</span>
+            <div class="profile-circle-gray" onclick="toggleProfileMenu()">
                 <i class="fas fa-user-shield"></i>
+            </div>
+            
+            <div id="profileDropdown" class="profile-dropdown">
+                <a href="admin_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
 
    <nav class="navbar">
-            <a href="admin_dashboard.html" class="nav-link active"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
-            <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
-            <a href="admin_report.html" class="nav-link "><i class="fa-solid fa-chart-bar"></i> Reports</a>
-            <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
-        </nav>
+        <a href="admin_dashboard.html" class="nav-link active"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+        <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
+        <a href="admin_report.html" class="nav-link"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+        <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
+    </nav>
 
     <main class="main-content">
         <div class="dashboard-card">
@@ -222,26 +227,26 @@
 
             <div class="stats-container">
                 <div class="stat-box">
-                    <i class="fas fa-user-clock"></i>
+                    <i class="fas fa-clipboard-list"></i>
                     <div class="stat-text">
-                        <span class="label">Pending Approvals</span>
-                        <span class="value">12 Pending</span>
+                        <span class="label">Pending Requests</span>
+                        <span class="value" id="statPending">Loading...</span>
                     </div>
                 </div>
                 
                 <div class="stat-box">
-                    <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-users"></i>
                     <div class="stat-text">
-                        <span class="label">Active Users</span>
-                        <span class="value">1,240 Total</span>
+                        <span class="label">Total Accounts</span>
+                        <span class="value" id="statUsers">Loading...</span>
                     </div>
                 </div>
                 
                 <div class="stat-box">
                     <i class="fas fa-weight"></i>
                     <div class="stat-text">
-                        <span class="label">Items Recycled</span>
-                        <span class="value">3,500 Total</span>
+                        <span class="label">Total Weight Recycled</span>
+                        <span class="value" id="statWeight">Loading...</span>
                     </div>
                 </div>
             </div>
@@ -250,10 +255,10 @@
 
             <h3 class="quick-actions-title">Quick Actions</h3>
             <div class="actions-container">
-                <button href="Admin User Management.html"class="btn-action btn-green" onclick="location.href='admin_user_management.html'">
+                <button class="btn-action btn-green" onclick="window.location.href='Admin User Management.html'">
                     <i class="fas fa-users-cog"></i> Manage Users
                 </button>
-                <button class="btn-action btn-grey" onclick="location.href='admin_reports.html'">
+                <button class="btn-action btn-grey" onclick="window.location.href='admin_report.html'">
                     <i class="fas fa-file-alt"></i> View Report
                 </button>
             </div>
@@ -261,5 +266,101 @@
         </div>
     </main>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. Verify Admin Status & Get Name
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    if (userSnap.data().role !== "admin") {
+                        alert("Access Denied: You do not have administrator privileges.");
+                        window.location.href = "index.html"; 
+                        return;
+                    }
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
+
+                // 2. Fetch System Statistics
+                try {
+                    // Get Total Users
+                    const usersSnap = await getDocs(collection(db, "users"));
+                    const totalUsers = usersSnap.size; // Total number of registered accounts
+                    
+                    document.getElementById('statUsers').innerText = totalUsers + " Total";
+
+                    // Get Request Stats
+                    const reqSnap = await getDocs(collection(db, "request"));
+                    let pendingCount = 0;
+                    let totalWeight = 0;
+
+                    reqSnap.forEach(doc => {
+                        const data = doc.data();
+                        const status = data.status ? data.status.toLowerCase() : "pending";
+                        
+                        if (status === "pending") {
+                            pendingCount++;
+                        } else if (status === "completed") {
+                            totalWeight += Number(data.weight) || 0;
+                        }
+                    });
+
+                    document.getElementById('statPending').innerText = pendingCount + " Pending";
+                    document.getElementById('statWeight').innerText = totalWeight + " Kg";
+
+                } catch (error) {
+                    console.error("Error loading stats:", error);
+                    document.getElementById('statUsers').innerText = "Error";
+                    document.getElementById('statPending').innerText = "Error";
+                    document.getElementById('statWeight').innerText = "Error";
+                }
+
+            } else {
+                window.location.href = "index.html"; // Kick to login
+            }
+        });
+
+        // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-shield') && !event.target.matches('.profile-circle')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        };
+    </script>
 </body>
 </html>
