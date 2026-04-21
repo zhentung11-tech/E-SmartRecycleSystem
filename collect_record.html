@@ -6,6 +6,17 @@
     <title>E-Smart Recycle - Collect Records</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="collect_record.css">
+    <style>
+        /* Profile Dropdown Setup for this specific layout */
+        .user-section { position: relative; cursor: pointer; }
+        .profile-dropdown {
+            display: none; position: absolute; top: 55px; right: 0; background-color: white; 
+            min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; z-index: 1000; flex-direction: column;
+        }
+        .profile-dropdown a { color: #333; padding: 15px 20px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-size: 15px; border-bottom: 1px solid #f0f0f0; }
+        .profile-dropdown a:hover { background-color: #f9f9f9; color: #1a8a4c; }
+        .show-dropdown { display: flex !important; }
+    </style>
 </head>
 <body>
 
@@ -16,20 +27,29 @@
                     <i class="fa-solid fa-recycle"></i>
                 </div>
                 <div class="logo-text">
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+                    <a href="admin_dashboard.html" style="text-decoration: none; color: inherit;">
+                        <span>E-Smart</span>
+                        <span>Recycle</span>
+                    </a>
                 </div>
             </div>
-            <div class="user-section">
-                <span class="user-name">Admin Name</span>
+            
+            <div class="user-section" onclick="toggleProfileMenu()">
+                <span class="user-name" id="userNameDisplay">Loading...</span>
                 <div class="avatar">
-                    <i class="fa-solid fa-user"></i>
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a href="admin_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                    <a href="login_page" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </header>
 
         <nav class="navbar">
             <a href="admin_dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+            <a href="adminusermanagement.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
             <a href="collect_record.html" class="nav-link active"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
             <a href="admin_report.html" class="nav-link"><i class="fa-solid fa-chart-bar"></i> Reports</a>
             <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
@@ -40,23 +60,20 @@
                 <h1>Collector Records</h1>
 
                 <div class="controls">
-                    <input type="text" class="search-box" placeholder="Search by Collector Name...">
+                    <input type="text" class="search-box" id="searchInput" onkeyup="filterTable()" placeholder="Search by Collector, Location, or Item...">
                     
-                    <select class="dropdown">
-                        <option value="" disabled selected hidden>Filter by Status</option>
-                        <option value="all">All</option>
+                    <select class="dropdown" id="statusFilter" onchange="filterTable()">
+                        <option value="all" selected>Filter by Status: All</option>
                         <option value="completed">Completed</option>
-                        <option value="pending">Pending</option>
+                        <option value="pending">In Progress (Accepted)</option>
                     </select>
-
-                    <button class="btn-search">Search</button>
                 </div>
 
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>Date</th>
+                                <th>Date Assigned</th>
                                 <th>Collector Name</th>
                                 <th>Location</th>
                                 <th>Items Collected</th>
@@ -65,42 +82,9 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="recordTableBody">
                             <tr>
-                                <td>2026-04-17</td>
-                                <td>Ali bin Ahmad</td>
-                                <td>Block A, Apartment</td>
-                                <td>Paper, Plastic</td>
-                                <td>15.5</td>
-                                <td><span class="badge completed">Completed</span></td>
-                                <td><button class="btn-view">View</button></td>
-                            </tr>
-                            <tr>
-                                <td>2026-04-16</td>
-                                <td>John Doe</td>
-                                <td>Taman Mutiara</td>
-                                <td>Electronics, Glass</td>
-                                <td>8.0</td>
-                                <td><span class="badge pending">Pending</span></td>
-                                <td><button class="btn-view">View</button></td>
-                            </tr>
-                            <tr>
-                                <td>2026-04-15</td>
-                                <td>Siti Nurhaliza</td>
-                                <td>Jalan Merdeka</td>
-                                <td>Aluminium Cans</td>
-                                <td>4.2</td>
-                                <td><span class="badge completed">Completed</span></td>
-                                <td><button class="btn-view">View</button></td>
-                            </tr>
-                            <tr>
-                                <td>2026-04-14</td>
-                                <td>Muthu Kumar</td>
-                                <td>Block C, Condominium</td>
-                                <td>Paper</td>
-                                <td>22.0</td>
-                                <td><span class="badge completed">Completed</span></td>
-                                <td><button class="btn-view">View</button></td>
+                                <td colspan="7" style="text-align: center; padding: 20px;">Loading collector records from database...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -110,5 +94,166 @@
         </main>
     </div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. Verify Admin Status
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    if (userSnap.data().role !== "admin") {
+                        alert("Access Denied: You do not have administrator privileges.");
+                        window.location.href = "index.html"; 
+                        return;
+                    }
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
+
+                // 2. Fetch the records!
+                loadCollectorRecords();
+
+            } else {
+                window.location.href = "index.html"; 
+            }
+        });
+
+        async function loadCollectorRecords() {
+            const tableBody = document.getElementById('recordTableBody');
+            
+            try {
+                // Download all users to create a dictionary (translates collectorId into real Name)
+                const usersSnap = await getDocs(collection(db, "users"));
+                const userDictionary = {};
+                usersSnap.forEach(doc => {
+                    userDictionary[doc.id] = doc.data().fullName || "Unknown Collector";
+                });
+
+                // Fetch all requests
+                const requestSnap = await getDocs(collection(db, "request"));
+                let tableHTML = "";
+                let recordCount = 0;
+
+                requestSnap.forEach((docSnap) => {
+                    const reqData = docSnap.data();
+                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+
+                    // ONLY show requests that have been accepted or completed
+                    if (status === "accepted" || status === "completed") {
+                        recordCount++;
+                        
+                        const displayDate = reqData.updatedAt || reqData.createdAt || "Recent";
+                        
+                        // Find the Collector's real name using our dictionary
+                        const collectorName = userDictionary[reqData.collectorId] || "Unknown Collector";
+
+                        // Set the Badge Color and text
+                        let badgeClass = "pending"; // You can use your yellow CSS for pending/in-progress
+                        let displayStatus = "In Progress";
+                        
+                        if (status === "completed") {
+                            badgeClass = "completed"; // Uses your green CSS class
+                            displayStatus = "Completed";
+                        }
+
+                        // Build table row
+                        tableHTML += `
+                            <tr>
+                                <td>${displayDate.substring(0, 10)}</td>
+                                <td>${collectorName}</td>
+                                <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                                <td>${reqData.category || '-'}</td>
+                                <td>${reqData.weight || '0'}</td>
+                                <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
+                                <td><button class="btn-view" onclick="alert('Viewing details for job ID: ${docSnap.id}')" style="padding: 5px 10px; background-color: #333; color: white; border: none; border-radius: 3px; cursor: pointer;">View</button></td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                tableBody.innerHTML = tableHTML || "<tr><td colspan='7' style='text-align: center; padding: 20px;'>No active collector records found.</td></tr>";
+
+            } catch (error) {
+                console.error("Error fetching records:", error);
+                tableBody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: red;'>Error loading records.</td></tr>";
+            }
+        }
+
+        // --- LIVE SEARCH AND FILTER FUNCTION ---
+        window.filterTable = function() {
+            const searchText = document.getElementById("searchInput").value.toLowerCase();
+            const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
+            const tableBody = document.getElementById("recordTableBody");
+            const tr = tableBody.getElementsByTagName("tr");
+
+            for (let i = 0; i < tr.length; i++) {
+                if (tr[i].getElementsByTagName("td").length === 1) continue; // Skip loading row
+                
+                const rowText = tr[i].textContent || tr[i].innerText;
+                const badgeText = tr[i].querySelector('.badge').innerText.toLowerCase();
+
+                // Check if it matches search text
+                const matchesSearch = rowText.toLowerCase().includes(searchText);
+                
+                // Check if it matches status dropdown (In Progress = pending)
+                let matchesStatus = false;
+                if (statusFilter === "all") {
+                    matchesStatus = true;
+                } else if (statusFilter === "completed" && badgeText === "completed") {
+                    matchesStatus = true;
+                } else if (statusFilter === "pending" && badgeText === "in progress") {
+                    matchesStatus = true;
+                }
+
+                // Show or hide row
+                if (matchesSearch && matchesStatus) {
+                    tr[i].style.display = ""; 
+                } else {
+                    tr[i].style.display = "none"; 
+                }
+            }
+        };
+
+        // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-section')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "login_page.html";
+            });
+        };
+    </script>
 </body>
 </html>
