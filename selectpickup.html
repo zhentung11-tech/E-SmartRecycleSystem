@@ -42,7 +42,7 @@
                 <div class="form-group">
                     <label>Item Type</label>
                     <div class="custom-select">
-                        <select class="gray-input" id="pickupItemType"required>
+                        <select class="gray-input" id="pickupItemType" required>
                             <option value="paper">Paper</option>
                             <option value="plastic">Plastic</option>
                             <option value="metal">Metal</option>
@@ -92,8 +92,6 @@
             </form>
         </div>
     </main>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -235,15 +233,14 @@
             const dateTime = document.getElementById('pickupDateTime').value;
 
             // 4. SAVE TO YOUR FIRESTORE 'request' COLLECTION
-            // Notice how the left side exactly matches your screenshot!
             addDoc(collection(db, "request"), {
                 userId: currentUserId,
                 category: itemType,
                 weight: quantity,
-                location: address,
+                pickupAddress: address, // <--- CHANGED THIS LINE!
                 scheduledDate: dateTime,
-                status: "pending", // Starts as pending
-                createdAt: new Date().toLocaleString() // Saves the exact date/time it was created
+                status: "pending", 
+                createdAt: new Date().toLocaleString() 
             })
             .then(() => {
                 alert("Your request is confirmed. Please wait for a collector to accept.");
