@@ -6,77 +6,102 @@
     <title>E-Smart Recycle - Admin Reports</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="admin_report.css">
+    
+    <style>
+        .top-nav-green {
+            background-color: #8CC63F; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            height: 60px;
+        }
+        .logo-section-top { display: flex; align-items: center; gap: 15px; }
+        .logo-section-top img { width: 50px; height: auto; }
+        .logo-section-top h1 { margin: 0; font-size: 22px; color: #000; font-family: Arial, sans-serif;}
+
+        .user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 16px; color: #000; position: relative; font-family: Arial, sans-serif;}
+        .profile-circle-gray {
+            background-color: #555; color: white; width: 35px; height: 35px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer;
+        }
+
+        .profile-dropdown {
+            display: none; position: absolute; top: 50px; right: 0; background-color: white; 
+            min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; z-index: 1000; flex-direction: column;
+        }
+        .profile-dropdown a { color: #333; padding: 15px 20px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-size: 15px; border-bottom: 1px solid #f0f0f0; }
+        .profile-dropdown a:hover { background-color: #f9f9f9; color: #1a8a4c; }
+        .show-dropdown { display: flex !important; }
+    </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <header class="header">
-            <div class="logo-section">
-                <div class="logo-box">
-            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
-                </div>
-                <div class="logo-text">
-                    <span>E-Smart</span>
-                    <span>Recycle</span>
-                </div>
+    <div class="app-container" style="max-width: 100%;">
+        
+        <header class="top-nav-green">
+            <div class="logo-section-top">
+                <img src="logo.png" alt="E-Smart Recycle Logo">            
+                <a href="admin_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
             </div>
-            <div class="user-section">
-                <span class="user-name">Admin Name</span>
-                <div class="avatar">
-                    <i class="fa-solid fa-user"></i>
+            <div class="user-profile-top">
+                <span id="userNameDisplay">Loading...</span>
+                <div class="profile-circle-gray" onclick="toggleProfileMenu()">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a href="admin_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                    <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </header>
 
         <nav class="navbar">
             <a href="admin_dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+            <a href="adminusermanagement.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
             <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
             <a href="admin_report.html" class="nav-link active"><i class="fa-solid fa-chart-bar"></i> Reports</a>
             <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
         </nav>
 
-        <main class="main-content">
-            <div class="content-card">
+        <main class="main-content" style="display: flex; justify-content: center;">
+            <div class="content-card" style="width: 100%; max-width: 1100px;">
                 <h1>System Reports</h1>
 
                 <div class="controls">
                     <select class="dropdown" id="reportTypeSelect">
                         <option value="" disabled selected hidden>Select Report Type</option>
                         <option value="Collection Summary">Collection Summary</option>
-                        <option value="User Activity">User Activity</option>
-                        <option value="Financial Overview">Financial Overview</option>
-                    </select>
+                        </select>
 
                     <select class="dropdown" id="dateRangeSelect">
                         <option value="" disabled selected hidden>Date Range</option>
-                        <option value="Today">Today</option>
-                        <option value="This Week">This Week</option>
-                        <option value="This Month">This Month</option>
+                        <option value="All Time">All Time</option>
                     </select>
 
-                    <button class="btn-generate" onclick="generateAdminReport()">Generate Report</button>
-                    <button class="btn-export" onclick="exportPDF()"><i class="fa-solid fa-download"></i> Export PDF</button>
+                    <button type="button" class="btn-generate" id="generateBtn" onclick="generateAdminReport()">Generate Report</button>
+                    <button type="button" class="btn-export" onclick="exportPDF()"><i class="fa-solid fa-download"></i> Export PDF</button>
                 </div>
 
                 <hr class="divider">
 
                 <div id="reportResult" style="display: none;">
                     
-                    <h2 id="reportTitle">Collection Summary Report (April 2026)</h2>
+                    <h2 id="reportTitle">Collection Summary Report</h2>
                     
                     <div class="summary-cards">
                         <div class="card">
                             <h3>Total Collections</h3>
-                            <p class="card-value">1,245</p>
+                            <p class="card-value" id="totalCollections">0</p>
                         </div>
                         <div class="card">
                             <h3>Total Weight Collected</h3>
-                            <p class="card-value">4,850 kg</p>
+                            <p class="card-value" id="totalWeight">0 kg</p>
                         </div>
                         <div class="card">
                             <h3>Active Collectors</h3>
-                            <p class="card-value">84</p>
+                            <p class="card-value" id="activeCollectors">0</p>
                         </div>
                     </div>
 
@@ -85,42 +110,14 @@
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Collector Name</th>
-                                    <th>Primary Item Type</th>
+                                    <th>Item Type</th>
                                     <th>Weight (kg)</th>
+                                    <th>Address</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>2026-04-17</td>
-                                    <td>John Doe</td>
-                                    <td>Mixed Plastics</td>
-                                    <td>45.0</td>
-                                    <td><span class="badge completed">Processed</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2026-04-16</td>
-                                    <td>Ali bin Ahmad</td>
-                                    <td>Electronics</td>
-                                    <td>12.5</td>
-                                    <td><span class="badge completed">Processed</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2026-04-16</td>
-                                    <td>Siti Nurhaliza</td>
-                                    <td>Cardboard & Paper</td>
-                                    <td>80.2</td>
-                                    <td><span class="badge completed">Processed</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2026-04-15</td>
-                                    <td>Muthu Kumar</td>
-                                    <td>Aluminium Cans</td>
-                                    <td>15.0</td>
-                                    <td><span class="badge pending">In Transit</span></td>
-                                </tr>
-                            </tbody>
+                            <tbody id="reportTableBody">
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -129,43 +126,159 @@
         </main>
     </div>
 
-    <script>
-        function generateAdminReport() {
-            // Get the dropdown elements
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app); // EXPOSE DB TO WINDOW SO THE BUTTON CAN USE IT
+        window.db = db; 
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Verify Admin Status
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    if (userSnap.data().role !== "admin") {
+                        alert("Access Denied: You do not have administrator privileges.");
+                        window.location.href = "index.html"; 
+                        return;
+                    }
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
+            } else {
+                window.location.href = "index.html"; // Kick to login
+            }
+        });
+
+        // --- REAL-TIME REPORT GENERATION ---
+        window.generateAdminReport = async function() {
             const reportTypeElement = document.getElementById('reportTypeSelect');
             const dateRangeElement = document.getElementById('dateRangeSelect');
+            const generateBtn = document.getElementById('generateBtn');
 
-            // Get their selected values
             const reportType = reportTypeElement.value;
             const dateRange = dateRangeElement.value;
 
-            // Validation: Check if the user has selected options from both dropdowns
             if (!reportType || !dateRange) {
-                alert("Please select both a Report Type and a Date Range before generating the report.");
-                return; // Stop the function here if validation fails
+                alert("Please select both a Report Type and a Date Range.");
+                return; 
             }
 
-            // Update the report title dynamically to match what the user selected
-            const reportTitle = document.getElementById('reportTitle');
-            reportTitle.innerText = reportType + " Report (" + dateRange + ")";
+            generateBtn.innerText = "Loading...";
+            generateBtn.disabled = true;
 
-            // Reveal the report section
-            const reportResult = document.getElementById('reportResult');
-            reportResult.style.display = 'block';
-        }
+            try {
+                // 1. Fetch all requests from Firestore
+                const querySnapshot = await getDocs(collection(window.db, "request"));
+                
+                let totalCollections = 0;
+                let totalWeight = 0;
+                let uniqueCollectors = new Set(); // A Set automatically prevents duplicates!
+                let tableHTML = "";
 
-        function exportPDF() {
-            // Check if the report is actually visible first
+                // 2. Loop through all data and calculate
+                querySnapshot.forEach((docSnap) => {
+                    const reqData = docSnap.data();
+                    
+                    totalCollections++; // Count every request
+                    totalWeight += Number(reqData.weight) || 0; // Add up the weight
+                    
+                    // If a collector accepted it, track their ID to count active collectors
+                    if (reqData.collectorId) {
+                        uniqueCollectors.add(reqData.collectorId);
+                    }
+
+                    // Format Data for the table
+                    const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "N/A";
+                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                    
+                    let badgeClass = "pending";
+                    let displayStatus = "Pending";
+                    
+                    if (status === "completed" || status === "accepted") {
+                        badgeClass = "completed";
+                        displayStatus = "Processed";
+                    }
+
+                    // Build the table row
+                    tableHTML += `
+                        <tr>
+                            <td>${displayDate}</td>
+                            <td>${reqData.category || '-'}</td>
+                            <td>${reqData.weight || '0'}</td>
+                            <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                            <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
+                        </tr>
+                    `;
+                });
+
+                // 3. Inject the calculated numbers into the HTML cards
+                document.getElementById('totalCollections').innerText = totalCollections;
+                document.getElementById('totalWeight').innerText = totalWeight + " kg";
+                document.getElementById('activeCollectors').innerText = uniqueCollectors.size;
+                
+                // 4. Inject the rows into the table
+                document.getElementById('reportTableBody').innerHTML = tableHTML || "<tr><td colspan='5'>No records found.</td></tr>";
+
+                // 5. Reveal the report
+                document.getElementById('reportTitle').innerText = reportType + " Report (" + dateRange + ")";
+                document.getElementById('reportResult').style.display = 'block';
+
+            } catch (error) {
+                console.error("Error loading report:", error);
+                alert("Failed to load report data. Please try again.");
+            }
+
+            generateBtn.innerText = "Generate Report";
+            generateBtn.disabled = false;
+        };
+
+        window.exportPDF = function() {
             const reportResult = document.getElementById('reportResult');
             if (reportResult.style.display === 'none') {
                 alert("Please generate a report first before exporting.");
                 return;
             }
+            alert("Preparing your PDF export... (Requires external library like html2pdf.js)");
+        };
 
-            // This is a placeholder alert. 
-            // In a real application, you would use a library like html2pdf.js here to trigger a file download.
-            alert("Preparing your PDF export...");
-        }
+        // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-shield') && !event.target.matches('.profile-circle')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "login_page.html";
+            });
+        };
     </script>
 </body>
 </html>
