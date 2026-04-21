@@ -5,73 +5,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Smart Recycle - Collector Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="SelectPickupStyle.css">
-    <link rel="stylesheet" href="collector_dashboard.css">
+    <link rel="stylesheet" href="user_profile.css"> <link rel="stylesheet" href="collector_dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <header class="top-nav">
-        <div class="logo-section">
-            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
-            <a href="Login Page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+<body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+            <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile">
-            <span>Collector Name</span>
-            <div class="profile-circle">
+
+        <div class="user-profile-top" style="position: relative;">
+            <span id="userNameDisplay">Loading...</span>
+            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
                 <i class="fas fa-user-cog"></i>
+            </div>
+
+            <div id="profileDropdown" class="profile-dropdown">
+                <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
 
-    <nav class="sub-menu">
-        <ul class="nav-links">
-            <li><a href="collector_dashboard.html" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="available_requests.html" class="nav-item"><i class="fas fa-list"></i> Available Requests</a></li>
-            <li><a href="collector_history.html" class="nav-item"><i class="fas fa-history"></i> Collection History</a></li>
-            <li><a href="collector_notification.html" class="nav-item"><i class="fas fa-bell"></i> Notification</a></li>
-        </ul>
-    </nav>
+    <div class="layout-container">
+        
+        <aside class="sidebar-left">
+            <ul class="sidebar-menu">
+                <li><a href="collector_dashboard.html" style="background-color: #C4C4C4;"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="available_request.html"><i class="fas fa-clipboard-list"></i> Available Requests</a></li>
+                <li><a href="collector_history.html"><i class="fas fa-history"></i> My Tasks</a></li>
+                <li><a href="collector_notification.html"><i class="fas fa-bell"></i> Notification</a></li>
+            </ul>
+        </aside>
 
-    <main class="submit-container">
-        <div class="submit-card" style="max-width: 900px;">
-            <h2 class="serif-heading-large">Collector Dashboard</h2>
-            
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <i class="fas fa-truck-loading"></i>
-                    <div class="stat-info">
-                        <h3>Today's Tasks</h3>
-                        <p>4 Pending</p>
+        <main class="main-content">
+            <div class="submit-card" style="background-color: white; width: 100%; max-width: 900px; padding: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px;">
+                <h2 style="font-family: 'Georgia', serif; font-size: 28px; margin-top: 0;">Collector Dashboard</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <i class="fas fa-truck-loading"></i>
+                        <div class="stat-info">
+                            <h3>Today's Tasks</h3>
+                            <p id="pendingTasks">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="stat-info">
+                            <h3>Completed</h3>
+                            <p id="completedTasks">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-weight-hanging"></i>
+                        <div class="stat-info">
+                            <h3>Weight Collected</h3>
+                            <p id="totalWeight">Loading...</p>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-box">
-                    <i class="fas fa-check-circle"></i>
-                    <div class="stat-info">
-                        <h3>Completed</h3>
-                        <p>128 Total</p>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <i class="fas fa-weight-hanging"></i>
-                    <div class="stat-info">
-                        <h3>Weight Collected</h3>
-                        <p>450 Kg</p>
-                    </div>
+
+                <hr style="border: 1px solid #eee; margin: 30px 0;">
+
+                <h3 style="font-family: 'Georgia', serif;">Quick Actions</h3>
+                <div class="action-section" style="display: flex; gap: 15px;">
+                    <a href="available_request.html" class="btn-dashboard-action">
+                        <i class="fas fa-search-plus"></i> Find New Requests
+                    </a>
+                    <a href="collector_history.html" class="btn-dashboard-action secondary">
+                        <i class="fas fa-file-invoice"></i> View Report
+                    </a>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <hr style="border: 1px solid #eee; margin: 30px 0;">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-            <h3 class="serif-heading">Quick Actions</h3>
-            <div class="action-section" style="display: flex; gap: 15px;">
-                <a href="available_requests.html" class="btn-dashboard-action">
-                    <i class="fas fa-search-plus"></i> Find New Requests
-                </a>
-                <a href="history.html" class="btn-dashboard-action secondary">
-                    <i class="fas fa-file-invoice"></i> View Report
-                </a>
-            </div>
-        </div>
-    </main>
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. GET COLLECTOR NAME
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    // Security Check: Make sure they are actually a collector!
+                    if (userSnap.data().role !== "collector") {
+                        alert("Access Denied: You are not authorized to view the Collector Dashboard.");
+                        window.location.href = "dashboard.html";
+                        return;
+                    }
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
+
+                // 2. CALCULATE COLLECTOR STATS
+                // Search for requests assigned specifically to this collector
+                const q = query(collection(db, "request"), where("collectorId", "==", user.uid));
+                const querySnapshot = await getDocs(q);
+
+                let pendingCount = 0;
+                let completedCount = 0;
+                let totalKg = 0;
+
+                querySnapshot.forEach((docSnap) => {
+                    const reqData = docSnap.data();
+                    const status = reqData.status ? reqData.status.toLowerCase() : "";
+
+                    // If they accepted it but haven't finished it
+                    if (status === "accepted") {
+                        pendingCount++;
+                    } 
+                    // If they successfully picked it up
+                    else if (status === "completed") {
+                        completedCount++;
+                        totalKg += Number(reqData.weight) || 0;
+                    }
+                });
+
+                // 3. INJECT THE NUMBERS INTO THE PAGE
+                document.getElementById('pendingTasks').innerText = pendingCount + " Pending";
+                document.getElementById('completedTasks').innerText = completedCount + " Total";
+                document.getElementById('totalWeight').innerText = totalKg + " Kg";
+
+            } else {
+                // Kick to login if not signed in
+                window.location.href = "index.html";
+            }
+        });
+
+        // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-cog') && !event.target.matches('.profile-circle')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        };
+    </script>
 </body>
 </html>
