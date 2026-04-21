@@ -96,3 +96,43 @@
 .accept-job-btn i {
     font-size: 10px; /* Smaller dropdown arrow */
 }
+
+/* --- Action Buttons (Accept & Reject) --- */
+.action-buttons-container {
+    display: flex;
+    gap: 10px;
+}
+
+.accept-job-btn {
+    background-color: #00B050; 
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.accept-job-btn:hover { background-color: #008f40; }
+
+.reject-job-btn {
+    background-color: #C00000; 
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.reject-job-btn:hover { background-color: #a00000; }
+
+/* Ensure the address doesn't break the table width */
+.collector-table td:nth-child(4) {
+    max-width: 200px;
+    word-wrap: break-word;
+}
