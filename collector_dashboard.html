@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Smart Recycle - Collector Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="user_profile.css"> <link rel="stylesheet" href="collector_dashboard.css">
+    <link rel="stylesheet" href="user_profile.css"> 
+    <link rel="stylesheet" href="collector_dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
@@ -24,7 +24,7 @@
 
             <div id="profileDropdown" class="profile-dropdown">
                 <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
-                <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
@@ -42,20 +42,23 @@
 
         <main class="main-content">
             <div class="submit-card" style="background-color: white; width: 100%; max-width: 900px; padding: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px;">
-                <h2 style="font-family: 'Georgia', serif; font-size: 28px; margin-top: 0;">Collector Dashboard</h2>
+                
+                <h2 style="font-family: 'Georgia', serif; font-size: 28px; margin-top: 0; color: #333;">
+                    Welcome back, <span id="welcomeName" style="color: #0d7a46;">Collector</span>!
+                </h2>
                 
                 <div class="stats-grid">
                     <div class="stat-box">
                         <i class="fas fa-truck-loading"></i>
                         <div class="stat-info">
-                            <h3>Today's Tasks</h3>
+                            <h3>In Progress (Accepted)</h3>
                             <p id="pendingTasks">Loading...</p>
                         </div>
                     </div>
                     <div class="stat-box">
                         <i class="fas fa-check-circle"></i>
                         <div class="stat-info">
-                            <h3>Completed</h3>
+                            <h3>Total Completed</h3>
                             <p id="completedTasks">Loading...</p>
                         </div>
                     </div>
@@ -72,13 +75,14 @@
 
                 <h3 style="font-family: 'Georgia', serif;">Quick Actions</h3>
                 <div class="action-section" style="display: flex; gap: 15px;">
-                    <a href="available_request.html" class="btn-dashboard-action">
+                    <a href="available_requests.html" class="btn-dashboard-action">
                         <i class="fas fa-search-plus"></i> Find New Requests
                     </a>
                     <a href="collector_history.html" class="btn-dashboard-action secondary">
-                        <i class="fas fa-file-invoice"></i> View Report
+                        <i class="fas fa-file-invoice"></i> View My Tasks
                     </a>
                 </div>
+
             </div>
         </main>
     </div>
@@ -109,17 +113,20 @@
                 const userSnap = await getDoc(userRef);
 
                 if (userSnap.exists()) {
-                    // Security Check: Make sure they are actually a collector!
+                    // Security Check
                     if (userSnap.data().role !== "collector") {
                         alert("Access Denied: You are not authorized to view the Collector Dashboard.");
-                        window.location.href = "dashboard.html";
+                        window.location.href = "login_page.html";
                         return;
                     }
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                    
+                    // Inject Name into Header and Greeting
+                    const fullName = userSnap.data().fullName || "Collector";
+                    document.getElementById('userNameDisplay').innerText = fullName;
+                    document.getElementById('welcomeName').innerText = fullName;
                 }
 
                 // 2. CALCULATE COLLECTOR STATS
-                // Search for requests assigned specifically to this collector
                 const q = query(collection(db, "request"), where("collectorId", "==", user.uid));
                 const querySnapshot = await getDocs(q);
 
@@ -131,24 +138,20 @@
                     const reqData = docSnap.data();
                     const status = reqData.status ? reqData.status.toLowerCase() : "";
 
-                    // If they accepted it but haven't finished it
                     if (status === "accepted") {
                         pendingCount++;
-                    } 
-                    // If they successfully picked it up
-                    else if (status === "completed") {
+                    } else if (status === "completed") {
                         completedCount++;
                         totalKg += Number(reqData.weight) || 0;
                     }
                 });
 
-                // 3. INJECT THE NUMBERS INTO THE PAGE
-                document.getElementById('pendingTasks').innerText = pendingCount + " Pending";
-                document.getElementById('completedTasks').innerText = completedCount + " Total";
-                document.getElementById('totalWeight').innerText = totalKg + " Kg";
+                // 3. INJECT NUMBERS (Rounding Weight to max 2 decimals)
+                document.getElementById('pendingTasks').innerText = pendingCount + " Active";
+                document.getElementById('completedTasks').innerText = completedCount + " Tasks";
+                document.getElementById('totalWeight').innerText = Math.round(totalKg * 100) / 100 + " Kg";
 
             } else {
-                // Kick to login if not signed in
                 window.location.href = "login_page.html";
             }
         });
