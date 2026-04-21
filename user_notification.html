@@ -6,53 +6,117 @@
     <title>E-Smart Recycle - User Notifications</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="user_notification.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css"> <style>
+        /* Exact Dropdown Styling from your History Page */
+        .profile-dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 55px;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            z-index: 1000;
+            overflow: hidden;
+            flex-direction: column;
+        }
 
-    <header class="top-nav-green">
-        <div class="logo-section-top">
-            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
-            <a href="dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-menu a {
+            color: #333;
+            padding: 12px 20px;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .dropdown-menu hr {
+            margin: 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+
+        /* Gray Profile Circle */
+        .profile-circle-gray {
+            background-color: #666;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; background-color: #C4C4C4;">
+
+    <header style="background-color: #8CC63F; display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; height: 60px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto; background-color: white; padding: 5px;">
+            <a href="dashboard.html" style="text-decoration: none;"><h1 style="margin: 0; font-size: 22px; color: #000; font-family: Arial, sans-serif;">E-Smart Recycle</h1></a>
         </div>
 
-        <div class="user-profile-top" style="position: relative;">
+        <div style="display: flex; align-items: center; gap: 15px; font-family: Arial, sans-serif;">
             <span id="userNameDisplay">Loading...</span>
-            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
-                <i class="fas fa-user"></i>
-            </div>
             
-            <div id="profileDropdown" class="profile-dropdown">
-                <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
-                <hr style="margin: 0; border: none; border-top: 1px solid #ddd;">
-                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div class="profile-dropdown-container">
+                <div class="profile-circle-gray" onclick="toggleDropdown()">
+                    <i class="fas fa-user"></i>
+                </div>
+                
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
+                    <hr>
+                    <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
         </div>
     </header>
 
-    <div class="layout-container">
+    <div style="display: flex; flex: 1; overflow: hidden;">
         
-        <aside class="sidebar-left">
-            <ul class="sidebar-menu">
-                <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="selectpickup.html"><i class="fas fa-box"></i> Submit Item</a></li>
-                <li><a href="user_history.html"><i class="fas fa-history"></i> Request History</a></li>
-                <li><a href="user_notification.html" class="active" style="background-color: #C4C4C4;"><i class="fas fa-bell"></i> Notification</a></li>
+        <aside style="width: 250px; background-color: #E0E0E0; padding-top: 20px;">
+            <ul style="list-style: none; padding: 0; margin: 0; font-family: Arial, sans-serif;">
+                <li><a href="dashboard.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-home" style="width: 20px;"></i> Dashboard</a></li>
+                <li><a href="selectpickup.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-box" style="width: 20px;"></i> Submit Item</a></li>
+                <li><a href="user_history.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-history" style="width: 20px;"></i> Request History</a></li>
+                <li style="background-color: #C4C4C4;"><a href="user_notification.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333; font-weight: bold;"><i class="fas fa-bell" style="width: 20px;"></i> Notification</a></li>
             </ul>
         </aside>
 
-        <main class="main-content">
-            <div class="history-card">
+        <main style="flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start;">
+            <div style="background-color: white; width: 100%; max-width: 900px; padding: 40px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 
-                <h2 class="serif-heading-large">My Notifications</h2>
+                <h2 style="font-family: 'Georgia', serif; font-size: 28px; margin-top: 0; margin-bottom: 25px;">My Notifications</h2>
                 
-                <div class="gray-header-bar">
+                <div style="background-color: #D9D9D9; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-family: 'Georgia', serif; font-size: 16px; margin-bottom: 20px;">
                     <span>Recent Updates</span>
                     <button onclick="markAllAsRead()" id="markReadBtn" style="background: none; border: none; color: #00B050; font-weight: bold; cursor: pointer; font-size: 14px;">
                         <i class="fas fa-check-double"></i> Mark all as read
                     </button>
                 </div>
 
-                <div class="notification-list" id="notifList">
+                <div class="notification-list" id="notifList" style="display: flex; flex-direction: column; gap: 15px;">
                     <p style="text-align: center; color: #888; padding: 30px;">Loading notifications...</p>
                 </div>
             </div>
@@ -95,18 +159,17 @@
 
                 // 3. ALWAYS ADD THE WELCOME NOTIFICATION AT THE BOTTOM
                 notifHTML += `
-                    <div class="user-notif-item">
-                        <div class="notif-content-wrapper">
-                            <div class="notif-icon-circle bg-gray"><i class="fas fa-star"></i></div>
-                            <div class="notif-content-area">
-                                <div class="notif-header">
-                                    <h3>Welcome to E-Smart Recycle</h3>
-                                    <span>System</span>
+                    <div class="user-notif-item" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #f9f9f9; border-left: 4px solid #ccc; border-radius: 4px;">
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="font-size: 24px; color: #555; width: 40px; text-align: center;"><i class="fas fa-star"></i></div>
+                            <div>
+                                <div style="display: flex; gap: 15px; align-items: baseline; margin-bottom: 5px;">
+                                    <h3 style="margin: 0; font-size: 16px; font-family: Arial, sans-serif;">Welcome to E-Smart Recycle</h3>
+                                    <span style="font-size: 12px; color: #888; font-weight: bold;">System</span>
                                 </div>
-                                <p>Thank you for joining us! Start submitting your recyclable items today to keep the environment clean.</p>
+                                <p style="margin: 0; font-size: 14px; color: #333; font-family: Arial, sans-serif;">Thank you for joining us! Start submitting your recyclable items today to keep the environment clean.</p>
                             </div>
                         </div>
-                        <button class="dismiss-btn" onclick="dismissNotif(this)" title="Dismiss"><i class="fas fa-times"></i></button>
                     </div>
                 `;
 
@@ -115,32 +178,31 @@
                     const reqData = docSnap.data();
                     const status = reqData.status ? reqData.status.toLowerCase() : "pending";
                     
-                    let iconClass = "bg-orange";
+                    let iconColor = "#ffcc00";
                     let icon = "fa-clock";
                     let title = "Pickup Request Submitted";
                     let message = `Your request for ${reqData.weight} Kg of ${reqData.category} has been received and is waiting for a collector.`;
 
                     if (status === "accepted" || status === "completed") {
-                        iconClass = "bg-green";
-                        icon = "fa-check";
+                        iconColor = "#00B050";
+                        icon = "fa-check-circle";
                         title = "Pickup Request Accepted!";
                         message = `Your request for ${reqData.weight} Kg of ${reqData.category} has been accepted by a collector! They will arrive soon.`;
                     }
 
                     // Prepend the new notification so it shows up ABOVE the welcome message
                     notifHTML = `
-                        <div class="user-notif-item unread">
-                            <div class="notif-content-wrapper">
-                                <div class="notif-icon-circle ${iconClass}"><i class="fas ${icon}"></i></div>
-                                <div class="notif-content-area">
-                                    <div class="notif-header">
-                                        <h3>${title}</h3>
-                                        <span>${reqData.createdAt ? reqData.createdAt.substring(0, 10) : 'Recent'}</span>
+                        <div class="user-notif-item unread" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #eef7f2; border-left: 4px solid #0d7a46; border-radius: 4px;">
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div style="font-size: 24px; color: ${iconColor}; width: 40px; text-align: center;"><i class="fas ${icon}"></i></div>
+                                <div>
+                                    <div style="display: flex; gap: 15px; align-items: baseline; margin-bottom: 5px;">
+                                        <h3 style="margin: 0; font-size: 16px; font-family: Arial, sans-serif;">${title}</h3>
+                                        <span style="font-size: 12px; color: #888; font-weight: bold;">${reqData.createdAt ? reqData.createdAt.substring(0, 10) : 'Recent'}</span>
                                     </div>
-                                    <p>${message}</p>
+                                    <p style="margin: 0; font-size: 14px; color: #333; font-family: Arial, sans-serif;">${message}</p>
                                 </div>
                             </div>
-                            <button class="dismiss-btn" onclick="dismissNotif(this)" title="Dismiss"><i class="fas fa-times"></i></button>
                         </div>
                     ` + notifHTML; 
                 });
@@ -153,18 +215,7 @@
             }
         });
 
-        // --- THESE ARE YOUR ORIGINAL UI FUNCTIONS ---
-        window.dismissNotif = function(buttonElement) {
-            const notifItem = buttonElement.closest('.user-notif-item');
-            notifItem.style.opacity = "0";
-            notifItem.style.transform = "translateX(20px)";
-            
-            setTimeout(() => {
-                notifItem.remove();
-                checkIfEmpty();
-            }, 300);
-        }
-
+        // --- MARK AS READ FUNCTION ---
         window.markAllAsRead = function() {
             const unreadItems = document.querySelectorAll('.user-notif-item.unread');
             
@@ -174,6 +225,8 @@
             }
 
             unreadItems.forEach(item => {
+                item.style.backgroundColor = "#f9f9f9";
+                item.style.borderLeftColor = "#ccc";
                 item.classList.remove('unread');
             });
 
@@ -183,45 +236,40 @@
             btn.style.cursor = "default";
         }
 
-        window.checkIfEmpty = function() {
-            const list = document.getElementById('notifList');
-            if (list.children.length === 0) {
-                list.innerHTML = "<p style='text-align: center; color: #888; font-family: Arial, sans-serif; padding: 30px;'>You have no new notifications.</p>";
-            }
+        // --- THE PERFECT DROPDOWN AND LOGOUT FUNCTIONS ---
+
+        // 1. Toggles the "show" class to open/close the box
+        window.toggleDropdown = function() {
+            document.getElementById("profileDropdown").classList.toggle("show");
         }
 
-        // --- FIXED DROPDOWN & LOGOUT FUNCTIONS ---
-
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
+        // 2. Closes the dropdown if the user clicks anywhere else on the screen
         window.onclick = function(event) {
-            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user') && !event.target.matches('.profile-circle')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
+            if (!event.target.closest('.profile-dropdown-container')) {
+                const dropdowns = document.getElementsByClassName("dropdown-menu");
                 for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
                     }
                 }
             }
-        };
+        }
 
+        // 3. Secure Firebase Logout
         window.logoutUser = function(event) {
-            event.preventDefault(); // Prevents the browser from instantly jumping pages
+            event.preventDefault(); // STOPS the browser from instantly jumping to the login page!
             
             const confirmLogout = confirm("Are you sure you want to log out?");
             
             if (confirmLogout) {
                 signOut(auth).then(() => {
-                    // Session successfully killed. Safe to redirect!
+                    // Session killed successfully, NOW we redirect safely
                     window.location.href = "login_page.html"; 
                 }).catch((error) => {
                     alert("Error logging out: " + error.message);
                 });
             }
         };
-        
     </script>
 </body>
 </html>
