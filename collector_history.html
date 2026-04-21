@@ -3,10 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Smart Recycle - Collection History</title>
+    <title>E-Smart Recycle - My Tasks</title>
     <link rel="stylesheet" href="user_profile.css"> 
     <link rel="stylesheet" href="collector_history.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Specific button for completing a task */
+        .btn-complete-task {
+            background-color: #00B050; 
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-complete-task:hover { background-color: #008f40; }
+        
+        /* Standard green badge for already completed tasks */
+        .badge-completed {
+            background-color: #eef7f2;
+            color: #00B050;
+            border: 1px solid #00B050;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
 
@@ -15,13 +45,11 @@
             <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
             <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-
         <div class="user-profile-top" style="position: relative;">
             <span id="userNameDisplay">Loading...</span>
             <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
                 <i class="fas fa-user-cog"></i>
             </div>
-
             <div id="profileDropdown" class="profile-dropdown">
                 <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
                 <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -34,7 +62,7 @@
         <aside class="sidebar-left">
             <ul class="sidebar-menu">
                 <li><a href="collector_dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="available_request.html"><i class="fas fa-clipboard-list"></i> Available Requests</a></li>
+                <li><a href="available_requests.html"><i class="fas fa-clipboard-list"></i> Available Requests</a></li>
                 <li><a href="collector_history.html" style="background-color: #C4C4C4;"><i class="fas fa-history"></i> My Tasks</a></li>
                 <li><a href="collector_notification.html"><i class="fas fa-bell"></i> Notification</a></li>
             </ul>
@@ -42,28 +70,27 @@
 
         <main class="main-content">
             <div class="submit-card" style="width: 100%; max-width: 950px; background-color: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                <h2 class="serif-heading-large" style="font-family: 'Georgia', serif; font-size: 24px; margin-top: 0; margin-bottom: 25px;">Collection History</h2>
+                <h2 style="font-family: 'Georgia', serif; font-size: 24px; margin-top: 0; margin-bottom: 25px;">My Tasks & History</h2>
                 
-                <div class="collector-section-header">
+                <div style="background-color: #D9D9D9; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-family: 'Georgia', serif; font-size: 16px; margin-bottom: 20px;">
                     <span>Assigned and Processed Requests</span>
                     <i class="fas fa-file-alt"></i>
                 </div>
 
                 <div class="collector-table-container">
-                    <table class="collector-table">
+                    <table class="collector-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
-                            <tr>
-                                <th>Request ID</th>
-                                <th>Date</th>
-                                <th>Item Type</th>
-                                <th>Quantity</th>
-                                <th>Pickup Address</th>
-                                <th>Status</th>
+                            <tr style="border-bottom: 2px solid #ccc; text-align: left;">
+                                <th style="padding: 15px 10px;">Date</th>
+                                <th style="padding: 15px 10px;">Item Type</th>
+                                <th style="padding: 15px 10px;">Weight</th>
+                                <th style="padding: 15px 10px;">Pickup Address</th>
+                                <th style="padding: 15px 10px;">Status / Action</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 20px;">Loading your task history...</td>
+                                <td colspan="5" style="text-align: center; padding: 20px;">Loading your tasks...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -81,9 +108,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
+        // Your Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
@@ -104,65 +131,108 @@
                 const userSnap = await getDoc(userRef);
 
                 if (userSnap.exists()) {
-                    // Security Check to ensure they are a collector
                     if (userSnap.data().role !== "collector") {
-                        window.location.href = "dashboard.html";
+                        window.location.href = "login_page.html";
                         return;
                     }
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName || "Collector";
                 }
 
-                // 2. FETCH HISTORY ASSIGNED TO THIS COLLECTOR
-                const q = query(collection(db, "request"), where("collectorId", "==", user.uid));
+                // 2. LOAD TASKS FOR THIS SPECIFIC COLLECTOR
+                window.loadMyTasks(user.uid);
+
+            } else {
+                window.location.href = "login_page.html";
+            }
+        });
+
+        // Function to build the table
+        window.loadMyTasks = async function(collectorId) {
+            const tableBody = document.getElementById('historyTableBody');
+            
+            try {
+                // Query: Find requests where collectorId matches the logged-in collector
+                const q = query(collection(db, "request"), where("collectorId", "==", collectorId));
                 const querySnapshot = await getDocs(q);
 
                 let tableHTML = "";
+                let hasTasks = false;
 
-                if (querySnapshot.empty) {
-                    tableHTML = "<tr><td colspan='6' style='text-align: center; padding: 20px;'>You have not accepted any tasks yet.</td></tr>";
-                } else {
-                    querySnapshot.forEach((docSnap) => {
-                        const reqData = docSnap.data();
-                        
-                        // Create a short ID
-                        const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase(); 
-                        
-                        // Format the date
-                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "N/A";
-                        
-                        // Determine the CSS styling based on the status
-                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                        let badgeClass = "status-accept"; // Green by default
-                        let displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
-                        
-                        if (status === "rejected") {
-                            badgeClass = "status-reject"; // Red
-                        } else if (status === "pending") {
-                            badgeClass = "status-reject"; // We'll borrow the red class or make it an inline style for pending
-                            displayStatus = "Pending";
-                        }
+                querySnapshot.forEach((docSnap) => {
+                    hasTasks = true;
+                    const reqData = docSnap.data();
+                    const status = reqData.status ? reqData.status.toLowerCase() : "unknown";
+                    
+                    const displayDate = reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : "Recent";
+                    
+                    let actionHTML = "";
 
-                        // Add the row to our HTML block
+                    // If the job is "accepted", show the Complete button!
+                    if (status === "accepted") {
+                        actionHTML = `
+                            <button class="btn-complete-task" onclick="markJobComplete('${docSnap.id}')">
+                                <i class="fas fa-box-open"></i> Mark Completed
+                            </button>
+                        `;
+                    } 
+                    // If the job is already "completed", just show a green badge
+                    else if (status === "completed") {
+                        actionHTML = `<span class="badge-completed"><i class="fas fa-check"></i> Completed</span>`;
+                    }
+
+                    // Build the row (only show accepted or completed)
+                    if (status === "accepted" || status === "completed") {
                         tableHTML += `
-                            <tr>
-                                <td>${shortId}</td>
-                                <td>${displayDate}</td>
-                                <td>${reqData.category || '-'}</td>
-                                <td>${reqData.weight || '0'} Kg</td>
-                                <td>${reqData.pickupAddress || reqData.address || '-'}</td>
-                                <td><span class="status-label ${badgeClass}">${displayStatus}</span></td>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 15px 10px;">${displayDate}</td>
+                                <td style="padding: 15px 10px;">${reqData.category || '-'}</td>
+                                <td style="padding: 15px 10px; font-weight: bold;">${reqData.weight || '0'} Kg</td>
+                                <td style="padding: 15px 10px; max-width: 250px; word-wrap: break-word;">${reqData.pickupAddress || reqData.address || '-'}</td>
+                                <td style="padding: 15px 10px;">${actionHTML}</td>
                             </tr>
                         `;
-                    });
+                    }
+                });
+
+                if (!hasTasks || tableHTML === "") {
+                    tableBody.innerHTML = "<tr><td colspan='5' style='text-align: center; padding: 20px; color: #666;'>You have not accepted any tasks yet. Go to 'Available Requests' to find jobs!</td></tr>";
+                } else {
+                    tableBody.innerHTML = tableHTML;
                 }
 
-                // 3. INJECT THE HTML INTO THE TABLE
-                document.getElementById('historyTableBody').innerHTML = tableHTML;
-
-            } else {
-                window.location.href = "index.html"; // Kick to login
+            } catch (error) {
+                console.error("Error loading tasks:", error);
+                tableBody.innerHTML = "<tr><td colspan='5' style='text-align: center; color: red;'>Error loading data.</td></tr>";
             }
-        });
+        };
+
+        // 3. THE MAGIC COMPLETION FUNCTION
+        window.markJobComplete = async function(requestId) {
+            const confirmComplete = confirm("Have you successfully collected this item from the user's location?");
+            
+            if (confirmComplete) {
+                try {
+                    const requestRef = doc(db, "request", requestId);
+                    
+                    // Update Firestore status to 'completed'
+                    await updateDoc(requestRef, {
+                        status: "completed",
+                        updatedAt: new Date().toLocaleString()
+                    });
+
+                    alert("Job marked as Completed! Your dashboard stats will now update.");
+                    
+                    // Reload the table instantly to change the button into a Badge
+                    const user = auth.currentUser;
+                    if (user) {
+                        window.loadMyTasks(user.uid);
+                    }
+
+                } catch (error) {
+                    alert("Error updating job: " + error.message);
+                }
+            }
+        };
 
         // --- DROPDOWN & LOGOUT FUNCTIONS ---
         window.toggleProfileMenu = function() {
@@ -183,7 +253,7 @@
         window.logoutUser = function(event) {
             event.preventDefault();
             signOut(auth).then(() => {
-                window.location.href = "index.html";
+                window.location.href = "login_page.html";
             });
         };
     </script>
