@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Smart Recycle - Admin Notifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_notification.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="top-nav-green">
+            <div class="logo-section-top">
+                <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+                <a href="admin_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+            </div>
+            
+            <div class="user-profile-top" onclick="toggleProfileMenu()">
+                <span id="userNameDisplay">Loading...</span>
+                <div class="profile-circle-gray">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a href="admin_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                    <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </header>
+
+        <nav class="navbar">
+            <a href="admin_dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="adminusermanagement.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+            <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
+            <a href="admin_report.html" class="nav-link"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+            <a href="admin_notification.html" class="nav-link active"><i class="fa-regular fa-bell"></i> Notification</a>
+        </nav>
+
+        <main class="main-container">
+            <div class="notification-card">
+                
+                <div class="header-row">
+                    <h2>System Activity Log</h2>
+                    <button class="btn-mark-read" id="markReadBtn" onclick="markAllAsRead()">
+                        <i class="fas fa-check-double"></i> Mark all as read
+                    </button>
+                </div>
+
+                <div class="notification-list" id="notifList">
+                    <p style="text-align: center; color: #888; padding: 40px;">Scanning database for system activities...</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. Verify Admin Status
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    if (userSnap.data().role !== "admin") {
+                        alert("Access Denied: You do not have administrator privileges.");
+                        window.location.href = "index.html"; 
+                        return;
+                    }
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
+
+                // 2. Fetch all system activities
+                loadNotifications();
+
+            } else {
+                window.location.href = "index.html"; 
+            }
+        });
+
+        async function loadNotifications() {
+            const listContainer = document.getElementById('notifList');
+            
+            try {
+                // Fetch all requests
+                const requestSnap = await getDocs(collection(db, "request"));
+                let notifications = [];
+
+                requestSnap.forEach((docSnap) => {
+                    const reqData = docSnap.data();
+                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                    
+                    const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase(); 
+                    
+                    // Prioritize the updatedAt date, fallback to createdAt
+                    const dateStr = reqData.updatedAt || reqData.createdAt || "Unknown Date";
+                    
+                    let textHtml = "";
+                    let iconHtml = "";
+
+                    // Customize the message based on the status
+                    if (status === "pending") {
+                        textHtml = `<strong>New Pickup Request:</strong> A user submitted a new ${reqData.weight || 'unknown '} Kg ${reqData.category || 'item'} request. Waiting for a collector.`;
+                        iconHtml = `<i class="fas fa-box-open" style="color: #007bff;"></i>`; // Blue icon
+                    } else if (status === "accepted") {
+                        textHtml = `<strong>Job In Progress:</strong> Request ${shortId} has been accepted by a collector and is currently in transit.`;
+                        iconHtml = `<i class="fas fa-truck-fast" style="color: #ffcc00;"></i>`; // Yellow icon
+                    } else if (status === "completed") {
+                        textHtml = `<strong>Collection Completed:</strong> Request ${shortId} (${reqData.category}) was successfully collected and recorded!`;
+                        iconHtml = `<i class="fas fa-check-circle" style="color: #00B050;"></i>`; // Green icon
+                    } else if (status === "rejected") {
+                        textHtml = `<strong>Request Rejected:</strong> Request ${shortId} was declined by a collector.`;
+                        iconHtml = `<i class="fas fa-times-circle" style="color: #C00000;"></i>`; // Red icon
+                    }
+
+                    if (textHtml !== "") {
+                        notifications.push({
+                            html: `
+                                <div class="notification-item unread">
+                                    <div class="notif-icon">${iconHtml}</div>
+                                    <div class="notif-content">
+                                        <p class="notif-text">${textHtml}</p>
+                                        <span class="notif-time">${dateStr}</span>
+                                    </div>
+                                </div>
+                            `,
+                            // Simple string sort for dates, assuming they are formatted as YYYY-MM-DD
+                            sortKey: dateStr
+                        });
+                    }
+                });
+
+                // Sort notifications so the newest ones (highest sortKey string) appear at the top
+                notifications.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+
+                // Always add a system welcome message at the very bottom
+                const welcomeHtml = `
+                    <div class="notification-item">
+                        <div class="notif-icon"><i class="fas fa-shield-alt" style="color: #555;"></i></div>
+                        <div class="notif-content">
+                            <p class="notif-text"><strong>System Active:</strong> E-Smart Recycle admin dashboard initialized successfully.</p>
+                            <span class="notif-time">System Default</span>
+                        </div>
+                    </div>
+                `;
+
+                // Render HTML
+                let finalHTML = notifications.map(n => n.html).join("");
+                listContainer.innerHTML = finalHTML + welcomeHtml;
+
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+                listContainer.innerHTML = "<p style='text-align: center; color: red;'>Error loading system activities.</p>";
+            }
+        }
+
+        // --- UI FUNCTIONS ---
+        window.markAllAsRead = function() {
+            const unreadItems = document.querySelectorAll('.notification-item.unread');
+            
+            if (unreadItems.length === 0) {
+                alert("All notifications are already read!");
+                return;
+            }
+
+            unreadItems.forEach(item => {
+                item.classList.remove('unread');
+            });
+
+            const btn = document.getElementById('markReadBtn');
+            btn.innerHTML = "<i class='fas fa-check'></i> All caught up!";
+            btn.style.color = "#888";
+            btn.style.cursor = "default";
+        }
+
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-profile-top')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "login_page.html";
+            });
+        };
+    </script>
+</body>
+</html>
