@@ -4,90 +4,188 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Smart Recycle - Collection History</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="SelectPickupStyle.css">
+    <link rel="stylesheet" href="user_profile.css"> 
     <link rel="stylesheet" href="collector_history.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <header class="top-nav">
-        <div class="logo-section">
-            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
-            <a href="Login Page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+<body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+            <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile">
-            <span>Collector Name</span>
-            <div class="profile-circle">
+
+        <div class="user-profile-top" style="position: relative;">
+            <span id="userNameDisplay">Loading...</span>
+            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
                 <i class="fas fa-user-cog"></i>
+            </div>
+
+            <div id="profileDropdown" class="profile-dropdown">
+                <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
 
-    <nav class="sub-menu">
-        <ul class="nav-links">
-            <li><a href="collector_dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="available_requests.html" class="nav-item"><i class="fas fa-list"></i> Available Requests</a></li>
-            <li><a href="collector_history.html" class="nav-item active"><i class="fas fa-history"></i> Collection History</a></li>
-            <li><a href="collector_notification.html" class="nav-item"><i class="fas fa-bell"></i> Notification</a></li>
-        </ul>
-    </nav>
+    <div class="layout-container">
+        
+        <aside class="sidebar-left">
+            <ul class="sidebar-menu">
+                <li><a href="collector_dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="available_request.html"><i class="fas fa-clipboard-list"></i> Available Requests</a></li>
+                <li><a href="collector_history.html" style="background-color: #C4C4C4;"><i class="fas fa-history"></i> My Tasks</a></li>
+                <li><a href="collector_notification.html"><i class="fas fa-bell"></i> Notification</a></li>
+            </ul>
+        </aside>
 
-    <main class="submit-container">
-        <div class="submit-card" style="max-width: 950px;">
-            <h2 class="serif-heading-large">Collection History</h2>
-            
-            <div class="collector-section-header">
-                <span>Completed and Processed Requests</span>
-                <i class="fas fa-file-alt"></i>
-            </div>
+        <main class="main-content">
+            <div class="submit-card" style="width: 100%; max-width: 950px; background-color: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <h2 class="serif-heading-large" style="font-family: 'Georgia', serif; font-size: 24px; margin-top: 0; margin-bottom: 25px;">Collection History</h2>
+                
+                <div class="collector-section-header">
+                    <span>Assigned and Processed Requests</span>
+                    <i class="fas fa-file-alt"></i>
+                </div>
 
-            <div class="collector-table-container">
-                <table class="collector-table">
-                    <thead>
-                        <tr>
-                            <th>User ID</th>
-                            <th>Date</th>
-                            <th>Item Type</th>
-                            <th>Quantity</th>
-                            <th>Pickup Address</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>#USR-8821</td>
-                            <td>17.04.26</td>
-                            <td>Paper</td>
-                            <td>10 Kg</td>
-                            <td>No 12, Jalan Song, Kuching</td>
-                            <td><span class="status-label status-accept">Accepted</span></td>
-                        </tr>
-                        <tr>
-                            <td>#USR-4412</td>
-                            <td>16.04.26</td>
-                            <td>Glass</td>
-                            <td>5 Kg</td>
-                            <td>Kenyalang Park, Kuching</td>
-                            <td><span class="status-label status-reject">Rejected</span></td>
-                        </tr>
-                        <tr>
-                            <td>#USR-9903</td>
-                            <td>15.04.26</td>
-                            <td>Metal</td>
-                            <td>8 Kg</td>
-                            <td>Tabuan Jaya, Kuching</td>
-                            <td><span class="status-label status-accept">Accepted</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <div class="collector-table-container">
+                    <table class="collector-table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Date</th>
+                                <th>Item Type</th>
+                                <th>Quantity</th>
+                                <th>Pickup Address</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 20px;">Loading your task history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div style="margin-top: 25px; text-align: right;">
-                <a href="collector_dashboard.html" style="color: #0d7a46; text-decoration: none; font-weight: bold;">
-                    <i class="fas fa-arrow-left"></i> Return to Dashboard
-                </a>
+                <div style="margin-top: 25px; text-align: right;">
+                    <a href="collector_dashboard.html" style="color: #0d7a46; text-decoration: none; font-weight: bold;">
+                        <i class="fas fa-arrow-left"></i> Return to Dashboard
+                    </a>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // Your exact Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. GET COLLECTOR NAME
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    // Security Check to ensure they are a collector
+                    if (userSnap.data().role !== "collector") {
+                        window.location.href = "dashboard.html";
+                        return;
+                    }
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
+
+                // 2. FETCH HISTORY ASSIGNED TO THIS COLLECTOR
+                const q = query(collection(db, "request"), where("collectorId", "==", user.uid));
+                const querySnapshot = await getDocs(q);
+
+                let tableHTML = "";
+
+                if (querySnapshot.empty) {
+                    tableHTML = "<tr><td colspan='6' style='text-align: center; padding: 20px;'>You have not accepted any tasks yet.</td></tr>";
+                } else {
+                    querySnapshot.forEach((docSnap) => {
+                        const reqData = docSnap.data();
+                        
+                        // Create a short ID
+                        const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase(); 
+                        
+                        // Format the date
+                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "N/A";
+                        
+                        // Determine the CSS styling based on the status
+                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                        let badgeClass = "status-accept"; // Green by default
+                        let displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
+                        
+                        if (status === "rejected") {
+                            badgeClass = "status-reject"; // Red
+                        } else if (status === "pending") {
+                            badgeClass = "status-reject"; // We'll borrow the red class or make it an inline style for pending
+                            displayStatus = "Pending";
+                        }
+
+                        // Add the row to our HTML block
+                        tableHTML += `
+                            <tr>
+                                <td>${shortId}</td>
+                                <td>${displayDate}</td>
+                                <td>${reqData.category || '-'}</td>
+                                <td>${reqData.weight || '0'} Kg</td>
+                                <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                                <td><span class="status-label ${badgeClass}">${displayStatus}</span></td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // 3. INJECT THE HTML INTO THE TABLE
+                document.getElementById('historyTableBody').innerHTML = tableHTML;
+
+            } else {
+                window.location.href = "index.html"; // Kick to login
+            }
+        });
+
+        // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-cog') && !event.target.matches('.profile-circle')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        };
+    </script>
 </body>
 </html>
