@@ -12,21 +12,19 @@
     <header class="top-nav-green">
         <div class="logo-section-top">
             <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+            <a href="dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
 
-           <div class="user-profile-top">
+        <div class="user-profile-top" style="position: relative;">
             <span id="userNameDisplay">Loading...</span>
-            <div class="profile-dropdown-container">
-                <div class="profile-circle-gray" onclick="toggleDropdown()" style="cursor: pointer;">
-                    <i class="fas fa-user"></i>
-                </div>
-                
-                <div class="dropdown-menu" id="profileDropdown">
-                    <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
-                    <hr style="margin: 0; border: none; border-top: 1px solid #ddd;">
-                    <a href="login_page.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                </div>
+            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
+                <i class="fas fa-user"></i>
+            </div>
+            
+            <div id="profileDropdown" class="profile-dropdown">
+                <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
+                <hr style="margin: 0; border: none; border-top: 1px solid #ddd;">
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
@@ -38,7 +36,7 @@
                 <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
                 <li><a href="selectpickup.html"><i class="fas fa-box"></i> Submit Item</a></li>
                 <li><a href="user_history.html"><i class="fas fa-history"></i> Request History</a></li>
-                <li><a href="user_notification.html" class="active"><i class="fas fa-bell"></i> Notification</a></li>
+                <li><a href="user_notification.html" class="active" style="background-color: #C4C4C4;"><i class="fas fa-bell"></i> Notification</a></li>
             </ul>
         </aside>
 
@@ -63,7 +61,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your exact Firebase config
@@ -151,7 +149,7 @@
                 document.getElementById('notifList').innerHTML = notifHTML;
 
             } else {
-                window.location.href = "index.html"; // Kick to login
+                window.location.href = "login_page.html"; // Kick to login
             }
         });
 
@@ -192,43 +190,38 @@
             }
         }
 
-      // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        // --- FIXED DROPDOWN & LOGOUT FUNCTIONS ---
 
-        // 1. Attach toggle function to the window so HTML can see it
-        window.toggleDropdown = function() {
-            document.getElementById("profileDropdown").classList.toggle("show");
-        }
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
 
-        // 2. Attach the click-away closer to the window
         window.onclick = function(event) {
-            if (!event.target.closest('.profile-dropdown-container')) {
-                const dropdowns = document.getElementsByClassName("dropdown-menu");
+            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user') && !event.target.matches('.profile-circle')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
                 for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
                     }
                 }
             }
-        }
+        };
 
-        // 3. Use actual Firebase Authentication Sign Out
-        window.logout = function() {
+        window.logoutUser = function(event) {
+            event.preventDefault(); // Prevents the browser from instantly jumping pages
+            
             const confirmLogout = confirm("Are you sure you want to log out?");
             
             if (confirmLogout) {
-                // This talks to your E-Smart Recycle Firebase backend to kill the session
                 signOut(auth).then(() => {
-                    // Sign-out successful, NOW we send them to the login page
+                    // Session successfully killed. Safe to redirect!
                     window.location.href = "login_page.html"; 
                 }).catch((error) => {
-                    // Just in case something goes wrong
                     alert("Error logging out: " + error.message);
                 });
             }
-        }
+        };
         
     </script>
-
-    
 </body>
 </html>
