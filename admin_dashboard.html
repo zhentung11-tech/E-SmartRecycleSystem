@@ -207,14 +207,14 @@
             
             <div id="profileDropdown" class="profile-dropdown">
                 <a href="admin_profile.html"><i class="far fa-id-badge"></i> Profile</a>
-                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
 
    <nav class="navbar">
         <a href="admin_dashboard.html" class="nav-link active"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="Admin User Management.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
+        <a href="adminusermanagement.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
         <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
         <a href="admin_report.html" class="nav-link"><i class="fa-solid fa-chart-bar"></i> Reports</a>
         <a href="#" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
@@ -358,7 +358,7 @@
         window.logoutUser = function(event) {
             event.preventDefault();
             signOut(auth).then(() => {
-                window.location.href = "index.html";
+                window.location.href = "login_page.html";
             });
         };
     </script>
