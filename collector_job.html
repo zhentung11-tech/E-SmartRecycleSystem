@@ -3,131 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Smart Recycle - Collector Jobs</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="SelectPickupStyle.css">
-    <link rel="stylesheet" href="collector_job.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>E-Smart Recycle - Available Requests</title>
+    <link rel="stylesheet" href="user_profile.css"> 
+    <link rel="stylesheet" href="collector_job.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <header class="top-nav">
-        <div class="logo-section">
-            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+<body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
+
+    <header class="top-nav-green">
+        <div class="logo-section-top">
+            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
+            <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile">
-            <span>Name</span>
-            <div class="profile-circle">
-                <i class="fas fa-user" aria-hidden="true"></i>
+        <div class="user-profile-top" style="position: relative;">
+            <span id="userNameDisplay">Loading...</span>
+            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <div id="profileDropdown" class="profile-dropdown">
+                <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
 
-    <nav class="sub-menu">
-        <ul class="nav-links">
-            <li><a href="collector_dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="collector_jobs.html" class="nav-item active"><i class="fas fa-box"></i> Available Request</a></li>
-            <li><a href="collector_history.html" class="nav-item"><i class="fas fa-history"></i> Request History</a></li>
-            <li><a href="collector_notification.html" class="nav-item"><i class="fas fa-bell"></i> Notification</a></li>
-        </ul>
-    </nav>
-
-   <main class="submit-container">
-    <div class="submit-card">
+    <div class="layout-container">
         
-        <h2 class="serif-heading-large">Submit Recyclable Item</h2>
+        <aside class="sidebar-left">
+            <ul class="sidebar-menu">
+                <li><a href="collector_dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="collector_job.html" style="background-color: #C4C4C4;"><i class="fas fa-clipboard-list"></i> Available Requests</a></li>
+                <li><a href="collector_history.html"><i class="fas fa-history"></i> My Tasks</a></li>
+                <li><a href="collector_notification.html"><i class="fas fa-bell"></i> Notification</a></li>
+            </ul>
+        </aside>
 
-        <div class="collector-section-header">
-            <span>Plastic Section Submission Form</span>
-            <i class="fas fa-caret-down white-icon"></i>
-        </div>
+        <main class="main-content">
+            <div class="submit-card" style="width: 100%; max-width: 950px; background-color: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                
+                <h2 class="serif-heading-large">Available User Requests</h2>
 
-        <div class="collector-table-container">
-            
-            <div class="collector-filter-row">
-                <span class="filter-label">Item Type</span>
-                <div class="custom-select filter-select">
-                    <select class="gray-input">
-                        <option>Select</option>
-                        <option>Paper</option>
-                        <option>Glass</option>
-                        <option>Metal</option>
-                    </select>
+                <div class="collector-section-header">
+                    <span>Pending Pickups in your Area</span>
+                    <i class="fas fa-map-marker-alt"></i>
                 </div>
+
+                <div class="collector-table-container">
+                    <table class="collector-table">
+                        <thead>
+                            <tr>
+                                <th>Date Submitted</th>
+                                <th>Item Type</th>
+                                <th>Weight</th>
+                                <th>Pickup Address</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobsTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px;">Searching for pending requests...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
-
-            <table class="collector-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Request</th>
-                        <th>Quantity</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>xx.xx.xx</td>
-                        <td>Paper</td>
-                        <td>xx</td>
-                        <td>
-                            <button class="accept-job-btn">
-                                Accept Job <i class="fas fa-caret-down"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>xx.xx.xx</td>
-                        <td>Glass</td>
-                        <td>xx</td>
-                        <td>
-                            <button class="accept-job-btn">
-                                Accept Job <i class="fas fa-caret-down"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>xx.xx.xx</td>
-                        <td>Metal</td>
-                        <td>xx</td>
-                        <td>
-                            <button class="accept-job-btn">
-                                Accept Job <i class="fas fa-caret-down"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
+        </main>
     </div>
-</main>
 
-   <script>
-    function filterCollectorJobs() {
-        // Get the value chosen in the "Item Type" dropdown
-        var selectedValue = document.getElementById("itemFilter").value;
-        var table = document.getElementById("collectorTable");
-        var rows = table.getElementsByTagName("tr");
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Loop through rows starting from index 1 (skipping the header)
-        for (var i = 1; i < rows.length; i++) {
-            var rowType = rows[i].getAttribute("data-type");
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
 
-            // Show all if "Select" is picked, otherwise show only the matching type
-            if (selectedValue === "all" || rowType === selectedValue) {
-                rows[i].style.display = "";
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Store the current collector's ID so we can assign jobs to them
+        window.currentCollectorId = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                window.currentCollectorId = user.uid;
+
+                // 1. GET COLLECTOR NAME
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    if (userSnap.data().role !== "collector") {
+                        window.location.href = "dashboard.html"; // Kick out standard users
+                        return;
+                    }
+                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                }
+
+                // 2. FETCH ALL PENDING REQUESTS
+                loadPendingRequests();
+
             } else {
-                rows[i].style.display = "none";
+                window.location.href = "index.html"; // Kick to login
+            }
+        });
+
+        // Function to load and render the table
+        async function loadPendingRequests() {
+            const tableBody = document.getElementById('jobsTableBody');
+            
+            try {
+                // Get ALL requests (We filter them in JavaScript to catch ones that might be missing the "status" field)
+                const querySnapshot = await getDocs(collection(db, "request"));
+                let tableHTML = "";
+                let pendingCount = 0;
+
+                querySnapshot.forEach((docSnap) => {
+                    const reqData = docSnap.data();
+                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+
+                    // Only show jobs that are "pending"
+                    if (status === "pending") {
+                        pendingCount++;
+                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "Recent";
+                        
+                        // Pass the document ID into the buttons so Firebase knows which exact request to update
+                        tableHTML += `
+                            <tr>
+                                <td>${displayDate}</td>
+                                <td>${reqData.category || '-'}</td>
+                                <td>${reqData.weight || '0'} Kg</td>
+                                <td>${reqData.pickupAddress || reqData.address || 'Address not provided'}</td>
+                                <td>
+                                    <div class="action-buttons-container">
+                                        <button class="accept-job-btn" onclick="handleJob('${docSnap.id}', 'accepted')">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                        <button class="reject-job-btn" onclick="handleJob('${docSnap.id}', 'rejected')">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                if (pendingCount === 0) {
+                    tableBody.innerHTML = "<tr><td colspan='5' style='text-align: center; padding: 20px; color: #666;'>No new requests available at the moment. Check back later!</td></tr>";
+                } else {
+                    tableBody.innerHTML = tableHTML;
+                }
+
+            } catch (error) {
+                console.error("Error loading requests:", error);
+                tableBody.innerHTML = "<tr><td colspan='5' style='text-align: center; padding: 20px; color: red;'>Error loading data.</td></tr>";
             }
         }
-    }
 
-    function acceptJob(button) {
-        alert("Job confirmed! Please proceed to the collection point.");
-        button.innerHTML = "Accepted <i class='fas fa-check'></i>";
-        button.style.backgroundColor = "#545454";
-        button.disabled = true;
-    }
-</script>
+        // 3. HANDLE ACCEPT OR REJECT CLICKS
+        window.handleJob = async function(requestId, newStatus) {
+            // Confirm the action before doing it
+            const actionText = newStatus === 'accepted' ? 'Accept this request?' : 'Reject this request?';
+            if (!confirm(actionText)) return;
+
+            try {
+                const requestRef = doc(db, "request", requestId);
+                
+                // Update Firestore: Change the status, and assign the collector's ID!
+                await updateDoc(requestRef, {
+                    status: newStatus,
+                    collectorId: window.currentCollectorId,
+                    updatedAt: new Date().toLocaleString()
+                });
+
+                alert(`Request has been ${newStatus}!`);
+                
+                // Reload the table instantly so the accepted/rejected job disappears from this screen
+                loadPendingRequests();
+
+            } catch (error) {
+                alert("Error updating request: " + error.message);
+            }
+        };
+
+        // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-cog') && !event.target.matches('.profile-circle')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        };
+    </script>
 </body>
 </html>
