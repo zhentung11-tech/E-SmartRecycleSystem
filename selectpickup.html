@@ -14,20 +14,18 @@
     <header class="top-nav">
         <div class="logo-section">
             <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+            <a href="dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile-top">
+        
+        <div class="user-profile-top" style="position: relative; display: flex; align-items: center; gap: 10px;">
             <span id="userNameDisplay">Loading...</span>
-            <div class="profile-dropdown-container">
-                <div class="profile-circle-gray" onclick="toggleDropdown()" style="cursor: pointer;">
-                    <i class="fas fa-user"></i>
-                </div>
-                
-                <div class="dropdown-menu" id="profileDropdown">
-                    <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
-                    <hr style="margin: 0; border: none; border-top: 1px solid #ddd;">
-                    <a href="login_page.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                </div>
+            <div class="profile-circle" onclick="toggleProfileMenu()" style="cursor: pointer; display: flex; justify-content: center; align-items: center;">
+                <i class="fas fa-user" aria-hidden="true"></i>
+            </div>
+            
+            <div id="profileDropdown" class="profile-dropdown" style="display: none; position: absolute; top: 50px; right: 0; background-color: white; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; z-index: 1000; flex-direction: column;">
+                <a href="user_profile.html" style="color: #333; padding: 15px 20px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-size: 15px; border-bottom: 1px solid #f0f0f0;"><i class="fas fa-user-circle"></i> Profile</a>
+                <a href="#" onclick="logoutUser(event)" style="color: #333; padding: 15px 20px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-size: 15px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
@@ -183,7 +181,7 @@
     
    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"; // Added signOut
         
         // 1. IMPORT FIRESTORE TOOLS INSTEAD OF REALTIME DB
         import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -219,14 +217,17 @@
                         const userData = docSnap.data();
                         
                         document.getElementById('userNameDisplay').innerText = userData.fullName;
-                        document.getElementById('pickupAddress').value = userData.address;
-                        document.getElementById('mapAddressInput').value = userData.address;
+                        // Only auto-fill if the fields exist to prevent overriding user inputs by accident
+                        if (userData.address) {
+                            document.getElementById('pickupAddress').value = userData.address;
+                            document.getElementById('mapAddressInput').value = userData.address;
+                        }
                     }
                 }).catch((error) => {
                     console.error("Error fetching user data:", error);
                 });
             } else {
-                window.location.href = "index.html";
+                window.location.href = "login_page.html";
             }
         });
 
@@ -245,7 +246,7 @@
                 userId: currentUserId,
                 category: itemType,
                 weight: quantity,
-                pickupAddress: address, // <--- CHANGED THIS LINE!
+                pickupAddress: address, 
                 scheduledDate: dateTime,
                 status: "pending", 
                 createdAt: new Date().toLocaleString() 
@@ -259,41 +260,40 @@
             });
         };
 
-      // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        // --- FIXED DROPDOWN & LOGOUT FUNCTIONS ---
 
-        // 1. Attach toggle function to the window so HTML can see it
-        window.toggleDropdown = function() {
-            document.getElementById("profileDropdown").classList.toggle("show");
-        }
+        window.toggleProfileMenu = function() {
+            const dropdown = document.getElementById("profileDropdown");
+            if (dropdown.style.display === "none" || dropdown.style.display === "") {
+                dropdown.style.display = "flex";
+            } else {
+                dropdown.style.display = "none";
+            }
+        };
 
-        // 2. Attach the click-away closer to the window
         window.onclick = function(event) {
-            if (!event.target.closest('.profile-dropdown-container')) {
-                const dropdowns = document.getElementsByClassName("dropdown-menu");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
-                    }
+            if (!event.target.closest('.user-profile-top')) {
+                const dropdown = document.getElementById("profileDropdown");
+                if (dropdown && dropdown.style.display === "flex") {
+                    dropdown.style.display = "none";
                 }
             }
-        }
+        };
 
-        // 3. Use actual Firebase Authentication Sign Out
-        window.logout = function() {
+        window.logoutUser = function(event) {
+            event.preventDefault(); // Prevents the browser from instantly jumping pages
+            
             const confirmLogout = confirm("Are you sure you want to log out?");
             
             if (confirmLogout) {
-                // This talks to your E-Smart Recycle Firebase backend to kill the session
                 signOut(auth).then(() => {
-                    // Sign-out successful, NOW we send them to the login page
+                    // Session successfully killed. Safe to redirect!
                     window.location.href = "login_page.html"; 
                 }).catch((error) => {
-                    // Just in case something goes wrong
                     alert("Error logging out: " + error.message);
                 });
             }
-        }
-       
+        };
     </script>
     
 </body>
