@@ -4,189 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Smart Recycle - Notifications</title>
-    <link rel="stylesheet" href="user_profile.css"> 
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="SelectPickupStyle.css">
     <link rel="stylesheet" href="collector_notification.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
-
-    <header class="top-nav-green">
-        <div class="logo-section-top">
-            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
-            <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+<body>
+    <header class="top-nav">
+        <div class="logo-section">
+            <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
+            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile-top" style="position: relative;">
-            <span id="userNameDisplay">Loading...</span>
-            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
+        <div class="user-profile">
+            <span>Collector Name</span>
+            <div class="profile-circle">
                 <i class="fas fa-user-cog"></i>
-            </div>
-            <div id="profileDropdown" class="profile-dropdown">
-                <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
-                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
 
-    <div class="layout-container">
-        
-        <aside class="sidebar-left">
-            <ul class="sidebar-menu">
-                <li><a href="collector_dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="collector_job.html"><i class="fas fa-clipboard-list"></i> Available Requests</a></li>
-                <li><a href="collector_history.html"><i class="fas fa-history"></i> My Tasks</a></li>
-                <li><a href="collector_notification.html" style="background-color: #C4C4C4;"><i class="fas fa-bell"></i> Notification</a></li>
-            </ul>
-        </aside>
+    <nav class="sub-menu">
+        <ul class="nav-links">
+            <li><a href="collector_dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="available_requests.html" class="nav-item"><i class="fas fa-list"></i> Available Requests</a></li>
+            <li><a href="collector_history.html" class="nav-item"><i class="fas fa-history"></i> Collection History</a></li>
+            <li><a href="collector_notification.html" class="nav-item active"><i class="fas fa-bell"></i> Notification</a></li>
+        </ul>
+    </nav>
 
-        <main class="main-content">
-            <div class="submit-card" style="width: 100%; max-width: 800px; background-color: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                
-                <h2 style="font-family: 'Georgia', serif; font-size: 24px; margin-top: 0; margin-bottom: 25px;">Notifications</h2>
-                
-                <div style="background-color: #D9D9D9; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-family: 'Georgia', serif; font-size: 16px; margin-bottom: 20px;">
-                    <span>Recent Updates</span>
-                    <button onclick="markAllAsRead()" id="markReadBtn" style="background: none; border: none; color: #00B050; font-weight: bold; cursor: pointer; font-size: 14px;">
-                        <i class="fas fa-check-double"></i> Mark all as read
-                    </button>
-                </div>
-
-                <div class="notification-list" id="notifList">
-                    <p style="text-align: center; color: #888; padding: 30px;">Loading notifications...</p>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // 1. GET COLLECTOR NAME
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists()) {
-                    if (userSnap.data().role !== "collector") {
-                        window.location.href = "dashboard.html"; // Kick out normal users
-                        return;
-                    }
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                }
-
-                // 2. FETCH REQUESTS TO BUILD NOTIFICATIONS
-                const querySnapshot = await getDocs(collection(db, "request"));
-
-                let notifHTML = "";
-
-                // 3. ALWAYS ADD A SYSTEM NOTIFICATION AT THE BOTTOM
-                notifHTML += `
-                    <div class="notification-item">
-                        <div class="notif-icon"><i class="fas fa-info-circle"></i></div>
-                        <div class="notif-content">
-                            <p class="notif-text">Welcome to the Collector Dashboard! You can accept new jobs in the "Available Requests" tab.</p>
-                            <span class="notif-time">System Message</span>
-                        </div>
-                    </div>
-                `;
-
-                // 4. LOOP THROUGH REQUESTS TO FIND PENDING JOBS AND COMPLETED TASKS
-                querySnapshot.forEach((docSnap) => {
-                    const reqData = docSnap.data();
-                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                    const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "Recent";
-                    
-                    // IF A USER SUBMITTED A BRAND NEW JOB:
-                    if (status === "pending") {
-                        notifHTML = `
-                            <div class="notification-item unread">
-                                <div class="notif-icon"><i class="fas fa-truck-pickup"></i></div>
-                                <div class="notif-content">
-                                    <p class="notif-text"><strong>New Request:</strong> A user has requested a ${reqData.category} pickup (${reqData.weight} Kg).</p>
-                                    <span class="notif-time">${displayDate}</span>
-                                </div>
-                                <a href="collector_job.html" class="notif-link">View</a>
-                            </div>
-                        ` + notifHTML; 
-                    } 
-                    // IF THIS SPECIFIC COLLECTOR COMPLETED A JOB:
-                    else if (status === "completed" && reqData.collectorId === user.uid) {
-                        notifHTML = `
-                            <div class="notification-item">
-                                <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
-                                <div class="notif-content">
-                                    <p class="notif-text"><strong>Job Completed:</strong> Your collection of ${reqData.weight} Kg of ${reqData.category} has been successfully moved to History.</p>
-                                    <span class="notif-time">${reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : displayDate}</span>
-                                </div>
-                            </div>
-                        ` + notifHTML;
-                    }
-                });
-
-                // 5. INJECT ALL NOTIFICATIONS INTO THE PAGE
-                document.getElementById('notifList').innerHTML = notifHTML;
-
-            } else {
-                window.location.href = "index.html"; // Kick to login
-            }
-        });
-
-        // --- UI AND MENU FUNCTIONS ---
-        window.markAllAsRead = function() {
-            const unreadItems = document.querySelectorAll('.notification-item.unread');
+    <main class="submit-container">
+        <div class="submit-card" style="max-width: 800px;">
+            <h2 class="serif-heading-large">Notifications</h2>
             
-            if (unreadItems.length === 0) {
-                alert("All notifications are already read!");
-                return;
-            }
+            <div class="notification-list">
+                <div class="notification-item unread">
+                    <div class="notif-icon"><i class="fas fa-truck-pickup"></i></div>
+                    <div class="notif-content">
+                        <p class="notif-text"><strong>New Request:</strong> User #USR-8821 has requested a Paper pickup at Kenyalang Park.</p>
+                        <span class="notif-time">Just now</span>
+                    </div>
+                    <a href="available_requests.html" class="notif-link">View</a>
+                </div>
 
-            unreadItems.forEach(item => {
-                item.classList.remove('unread');
-            });
+                <div class="notification-item">
+                    <div class="notif-icon"><i class="fas fa-info-circle"></i></div>
+                    <div class="notif-content">
+                        <p class="notif-text">System maintenance scheduled for 2026-04-20 at 02:00 AM.</p>
+                        <span class="notif-time">2 hours ago</span>
+                    </div>
+                </div>
 
-            const btn = document.getElementById('markReadBtn');
-            btn.innerHTML = "<i class='fas fa-check'></i> All caught up!";
-            btn.style.color = "#888";
-            btn.style.cursor = "default";
-        }
-
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-cog') && !event.target.matches('.profile-circle')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = "index.html";
-            });
-        };
-    </script>
+                <div class="notification-item">
+                    <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="notif-content">
+                        <p class="notif-text">Job #USR-4412 has been successfully moved to History.</p>
+                        <span class="notif-time">Yesterday</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
 </html>
