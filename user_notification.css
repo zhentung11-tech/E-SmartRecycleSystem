@@ -202,3 +202,103 @@ body {
 .dismiss-btn:hover {
     color: #C00000;
 }
+
+/* --- Profile Dropdown Fixes --- */
+.user-profile-top {
+    position: relative; /* This keeps the dropdown attached to the profile area */
+}
+
+.profile-dropdown {
+    display: none; /* HIDES the menu by default */
+    position: absolute;
+    top: 55px; /* Pushes it down below the gray circle */
+    right: 0;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Creates a nice shadow */
+    border-radius: 6px;
+    z-index: 1000;
+    flex-direction: column; /* Stacks Profile and Logout on top of each other */
+}
+
+.profile-dropdown a {
+    color: #333;
+    padding: 15px 20px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    border-bottom: 1px solid #f0f0f0; /* Line between options */
+}
+
+.profile-dropdown a:hover {
+    background-color: #f9f9f9;
+    color: #00B050; /* Turns green when you hover */
+}
+
+/* JavaScript uses this to make it appear! */
+.show-dropdown {
+    display: flex !important; 
+}
+
+.badge-pending { background-color: #f59e0b; } /* Orange */
+.badge-accepted { background-color: #00B050; } /* Green */
+.badge-rejected { background-color: #C00000; } /* Red */
+
+/* =========================================================
+   PROFILE DROPDOWN STYLES
+   ========================================================= */
+.profile-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-circle-gray {
+    transition: background-color 0.2s ease;
+}
+
+.profile-circle-gray:hover {
+    background-color: #555;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    display: none; 
+    position: absolute;
+    top: 50px; 
+    right: 0;
+    background-color: white;
+    min-width: 130px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-menu.show {
+    display: block; 
+}
+
+.dropdown-menu a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.2s;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f1f1f1;
+    color: #00B050; /* Changed hover color to match your E-Smart Recycle green */
+}
+
+/* Red hover specifically for the logout button */
+.dropdown-menu a[onclick="logout()"]:hover {
+    color: #C00000; 
+}
