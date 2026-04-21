@@ -125,7 +125,15 @@
                         return;
                     }
 
-                    // 3. SECURITY CHECK: Did they click the wrong radio button?
+                    // 🌟 NEW: SECRET ADMIN ROUTING 🌟
+                    // If the database says they are an admin, ignore the radio buttons and send them to the admin dashboard!
+                    if (actualRole === "admin") {
+                        alert("Welcome back, Admin!");
+                        window.location.href = "admin_dashboard.html";
+                        return; // Stop the script here
+                    }
+
+                    // 3. SECURITY CHECK for standard Users and Collectors
                     if (selectedRole !== actualRole) {
                         alert("Login Failed: You selected " + selectedRole + " on the screen, but you are registered as a " + actualRole + " in the database.");
                         signOut(auth); 
@@ -146,7 +154,6 @@
                 }
 
             } catch (error) {
-                // This catches wrong passwords, unregistered emails, etc.
                 alert("Login Failed: " + error.message);
                 console.error("Detailed error:", error);
             }
