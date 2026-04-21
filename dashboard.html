@@ -13,10 +13,18 @@
             <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
             <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile" aria-label="User Menu" tabindex="0">
+        <div class="user-profile-top">
             <span id="userNameDisplay">Loading...</span>
-            <div class="profile-circle">
-                <i class="fas fa-user" aria-hidden="true"></i>
+            <div class="profile-dropdown-container">
+                <div class="profile-circle-gray" onclick="toggleDropdown()" style="cursor: pointer;">
+                    <i class="fas fa-user"></i>
+                </div>
+                
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
+                    <hr style="margin: 0; border: none; border-top: 1px solid #ddd;">
+                    <a href="login_page.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
         </div>
     </header>
@@ -177,6 +185,43 @@
                 }
             });
         });
+
+              // --- DROPDOWN & LOGOUT FUNCTIONS ---
+
+        // 1. Attach toggle function to the window so HTML can see it
+        window.toggleDropdown = function() {
+            document.getElementById("profileDropdown").classList.toggle("show");
+        }
+
+        // 2. Attach the click-away closer to the window
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile-dropdown-container')) {
+                const dropdowns = document.getElementsByClassName("dropdown-menu");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // 3. Use actual Firebase Authentication Sign Out
+        window.logout = function() {
+            const confirmLogout = confirm("Are you sure you want to log out?");
+            
+            if (confirmLogout) {
+                // This talks to your E-Smart Recycle Firebase backend to kill the session
+                signOut(auth).then(() => {
+                    // Sign-out successful, NOW we send them to the login page
+                    window.location.href = "login_page.html"; 
+                }).catch((error) => {
+                    // Just in case something goes wrong
+                    alert("Error logging out: " + error.message);
+                });
+            }
+        }
+
     </script>
-    </head>
-    
+   
+            </body>
+            </html>
