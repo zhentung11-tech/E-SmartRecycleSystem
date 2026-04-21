@@ -33,9 +33,9 @@
         <aside class="sidebar-left">
             <ul class="sidebar-menu">
                 <li><a href="admin_dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="manage_users.html"><i class="fas fa-users"></i> Manage Users</a></li>
-                <li><a href="manage_requests.html"><i class="fas fa-clipboard-list"></i> All Requests</a></li>
-                <li><a href="system_reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <li><a href="adminusermanagement.html"><i class="fas fa-users"></i> Manage Users</a></li>
+                <li><a href="collect_record.html"><i class="fas fa-clipboard-list"></i> All Requests</a></li>
+                <li><a href="admin_reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
             </ul>
         </aside>
 
@@ -51,20 +51,27 @@
                 <form id="profileForm" onsubmit="updateProfile(event)">
                     <div class="form-group">
                         <label>Admin Full Name</label>
-                        <input type="text" id="profName" required>
+                        <input type="text" id="profName" class="view-mode" readonly required>
                     </div>
 
                     <div class="form-group">
                         <label>Admin Email (Cannot be changed)</label>
-                        <input type="email" id="profEmail" disabled>
+                        <input type="email" id="profEmail" class="view-mode" disabled>
                     </div>
 
                     <div class="form-group">
                         <label>Contact Number</label>
-                        <input type="tel" id="profPhone" required>
+                        <input type="tel" id="profPhone" class="view-mode" readonly required>
                     </div>
 
-                    <button type="submit" class="btn-save" id="saveBtn" style="background-color: #333;">Save Changes</button>
+                    <div id="viewButtons">
+                        <button type="button" class="btn-edit" onclick="enableEditMode()">Edit Profile</button>
+                    </div>
+
+                    <div id="editButtons" style="display: none;">
+                        <button type="button" class="btn-cancel" onclick="cancelEditMode()">Cancel</button>
+                        <button type="submit" class="btn-save" id="saveBtn" style="background-color: #333;">Save Changes</button>
+                    </div>
                 </form>
 
             </div>
@@ -96,74 +103,4 @@
             if (user) {
                 currentUserId = user.uid;
                 
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists()) {
-                    const data = userSnap.data();
-                    
-                    document.getElementById('userNameDisplay').innerText = data.fullName;
-                    document.getElementById('headerName').innerText = data.fullName;
-
-                    document.getElementById('profName').value = data.fullName;
-                    document.getElementById('profEmail').value = data.email;
-                    document.getElementById('profPhone').value = data.phone;
-                }
-            } else {
-                window.location.href = "index.html";
-            }
-        });
-
-        window.updateProfile = async function(event) {
-            event.preventDefault();
-            
-            const btn = document.getElementById('saveBtn');
-            btn.innerText = "Saving...";
-            
-            const newName = document.getElementById('profName').value;
-            const newPhone = document.getElementById('profPhone').value;
-
-            try {
-                const userRef = doc(db, "users", currentUserId);
-                
-                await updateDoc(userRef, {
-                    fullName: newName,
-                    phone: newPhone
-                });
-
-                document.getElementById('userNameDisplay').innerText = newName;
-                document.getElementById('headerName').innerText = newName;
-
-                alert("Admin profile updated successfully!");
-                btn.innerText = "Save Changes";
-                
-            } catch (error) {
-                alert("Error updating profile: " + error.message);
-                btn.innerText = "Save Changes";
-            }
-        };
-
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-shield') && !event.target.matches('.profile-circle')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = "index.html";
-            });
-        };
-    </script>
-</body>
-</html>
+                const userRef = doc(db,
