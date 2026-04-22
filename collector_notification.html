@@ -165,9 +165,26 @@
                         const reqData = docSnap.data();
                         const status = reqData.status ? reqData.status.toLowerCase() : "pending";
                         
-                        // We use the date string for sorting. Fallback to '0' if missing so it goes to bottom
-                        const sortDate = reqData.updatedAt || reqData.createdAt || "0"; 
-                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "Recent";
+                        // --- BULLETPROOF DATE CHECKER ---
+                        // Safely handles Timestamps, Strings, or missing dates so the app never crashes!
+                        let sortDate = "0";
+                        let rawDate = reqData.updatedAt || reqData.createdAt;
+                        if (rawDate) {
+                            sortDate = rawDate.toDate ? rawDate.toDate().toISOString() : String(rawDate);
+                        }
+
+                        let displayDate = "Recent";
+                        if (reqData.createdAt) {
+                            displayDate = reqData.createdAt.toDate ? reqData.createdAt.toDate().toLocaleDateString() : String(reqData.createdAt).substring(0, 10);
+                        }
+                        
+                        let displayUpdated = "Recent";
+                        if (reqData.updatedAt) {
+                            displayUpdated = reqData.updatedAt.toDate ? reqData.updatedAt.toDate().toLocaleDateString() : String(reqData.updatedAt).substring(0, 10);
+                        } else {
+                            displayUpdated = displayDate;
+                        }
+                        // ---------------------------------
                         
                         // IF A USER SUBMITTED A BRAND NEW JOB:
                         if (status === "pending") {
@@ -194,7 +211,7 @@
                                         <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
                                         <div class="notif-content">
                                             <p class="notif-text"><strong>Job Completed:</strong> Your collection of ${reqData.weight} Kg of ${reqData.category} has been successfully moved to History.</p>
-                                            <span class="notif-time">${reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : displayDate}</span>
+                                            <span class="notif-time">${displayUpdated}</span>
                                         </div>
                                     </div>
                                 `
