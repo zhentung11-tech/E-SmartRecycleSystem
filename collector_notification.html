@@ -79,69 +79,76 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // 1. GET COLLECTOR NAME
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
+                try {
+                    // 1. GET COLLECTOR NAME
+                    const userRef = doc(db, "users", user.uid);
+                    const userSnap = await getDoc(userRef);
 
-                if (userSnap.exists()) {
-                    if (userSnap.data().role !== "collector") {
-                        window.location.href = "login_page.html"; // Kick out normal users
-                        return;
+                    if (userSnap.exists()) {
+                        if (userSnap.data().role !== "collector") {
+                            window.location.href = "login_page.html"; // Kick out normal users
+                            return;
+                        }
+                        document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
                     }
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                }
 
-                // 2. FETCH REQUESTS TO BUILD NOTIFICATIONS
-                const querySnapshot = await getDocs(collection(db, "request"));
+                    // 2. FETCH REQUESTS TO BUILD NOTIFICATIONS
+                    const querySnapshot = await getDocs(collection(db, "request"));
 
-                let notifHTML = "";
+                    let notifHTML = "";
 
-                // 3. ALWAYS ADD A SYSTEM NOTIFICATION AT THE BOTTOM
-                notifHTML += `
-                    <div class="notification-item">
-                        <div class="notif-icon"><i class="fas fa-info-circle"></i></div>
-                        <div class="notif-content">
-                            <p class="notif-text">Welcome to the Collector Dashboard! You can accept new jobs in the "Available Requests" tab.</p>
-                            <span class="notif-time">System Message</span>
+                    // 3. ALWAYS ADD A SYSTEM NOTIFICATION AT THE BOTTOM
+                    notifHTML += `
+                        <div class="notification-item">
+                            <div class="notif-icon"><i class="fas fa-info-circle"></i></div>
+                            <div class="notif-content">
+                                <p class="notif-text">Welcome to the Collector Dashboard! You can accept new jobs in the "Available Requests" tab.</p>
+                                <span class="notif-time">System Message</span>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
-                // 4. LOOP THROUGH REQUESTS TO FIND PENDING JOBS AND COMPLETED TASKS
-                querySnapshot.forEach((docSnap) => {
-                    const reqData = docSnap.data();
-                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                    const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "Recent";
-                    
-                    // IF A USER SUBMITTED A BRAND NEW JOB:
-                    if (status === "pending") {
-                        notifHTML = `
-                            <div class="notification-item unread">
-                                <div class="notif-icon"><i class="fas fa-truck-pickup"></i></div>
-                                <div class="notif-content">
-                                    <p class="notif-text"><strong>New Request:</strong> A user has requested a ${reqData.category} pickup (${reqData.weight} Kg).</p>
-                                    <span class="notif-time">${displayDate}</span>
+                    // 4. LOOP THROUGH REQUESTS TO FIND PENDING JOBS AND COMPLETED TASKS
+                    querySnapshot.forEach((docSnap) => {
+                        const reqData = docSnap.data();
+                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "Recent";
+                        
+                        // IF A USER SUBMITTED A BRAND NEW JOB:
+                        if (status === "pending") {
+                            notifHTML = `
+                                <div class="notification-item unread">
+                                    <div class="notif-icon"><i class="fas fa-truck-pickup"></i></div>
+                                    <div class="notif-content">
+                                        <p class="notif-text"><strong>New Request:</strong> A user has requested a ${reqData.category} pickup (${reqData.weight} Kg).</p>
+                                        <span class="notif-time">${displayDate}</span>
+                                    </div>
+                                    <a href="collector_job.html" class="notif-link">View</a>
                                 </div>
-                                <a href="collector_job.html" class="notif-link">View</a>
-                            </div>
-                        ` + notifHTML; 
-                    } 
-                    // IF THIS SPECIFIC COLLECTOR COMPLETED A JOB:
-                    else if (status === "completed" && reqData.collectorId === user.uid) {
-                        notifHTML = `
-                            <div class="notification-item">
-                                <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
-                                <div class="notif-content">
-                                    <p class="notif-text"><strong>Job Completed:</strong> Your collection of ${reqData.weight} Kg of ${reqData.category} has been successfully moved to History.</p>
-                                    <span class="notif-time">${reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : displayDate}</span>
+                            ` + notifHTML; 
+                        } 
+                        // IF THIS SPECIFIC COLLECTOR COMPLETED A JOB:
+                        else if (status === "completed" && reqData.collectorId === user.uid) {
+                            notifHTML = `
+                                <div class="notification-item">
+                                    <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
+                                    <div class="notif-content">
+                                        <p class="notif-text"><strong>Job Completed:</strong> Your collection of ${reqData.weight} Kg of ${reqData.category} has been successfully moved to History.</p>
+                                        <span class="notif-time">${reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : displayDate}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        ` + notifHTML;
-                    }
-                });
+                            ` + notifHTML;
+                        }
+                    });
 
-                // 5. INJECT ALL NOTIFICATIONS INTO THE PAGE
-                document.getElementById('notifList').innerHTML = notifHTML;
+                    // 5. INJECT ALL NOTIFICATIONS INTO THE PAGE
+                    document.getElementById('notifList').innerHTML = notifHTML;
+
+                } catch (error) {
+                    // IF ANYTHING CRASHES, IT WILL SHOW ON THE SCREEN HERE!
+                    console.error("Database Error:", error);
+                    document.getElementById('notifList').innerHTML = `<p style="text-align: center; color: red; font-weight: bold; padding: 30px;">Error loading notifications: ${error.message}</p>`;
+                }
 
             } else {
                 window.location.href = "login_page.html"; // Kick to login
