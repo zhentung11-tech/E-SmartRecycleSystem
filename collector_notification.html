@@ -15,14 +15,15 @@
             <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
             <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile-top" style="position: relative;">
+        <div class="user-profile-top" style="position: relative; display: flex; align-items: center; gap: 10px;">
             <span id="userNameDisplay">Loading...</span>
             <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
                 <i class="fas fa-user-cog"></i>
             </div>
+            
             <div id="profileDropdown" class="profile-dropdown">
                 <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
-                <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
@@ -84,7 +85,7 @@
 
                 if (userSnap.exists()) {
                     if (userSnap.data().role !== "collector") {
-                        window.location.href = "dashboard.html"; // Kick out normal users
+                        window.location.href = "login_page.html"; // Kick out normal users
                         return;
                     }
                     document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
@@ -143,7 +144,7 @@
                 document.getElementById('notifList').innerHTML = notifHTML;
 
             } else {
-                window.location.href = "index.html"; // Kick to login
+                window.location.href = "login_page.html"; // Kick to login
             }
         });
 
@@ -166,12 +167,14 @@
             btn.style.cursor = "default";
         }
 
+        // --- FIXED DROPDOWN & LOGOUT FUNCTIONS ---
         window.toggleProfileMenu = function() {
             document.getElementById("profileDropdown").classList.toggle("show-dropdown");
         };
 
         window.onclick = function(event) {
-            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-cog') && !event.target.matches('.profile-circle')) {
+            // Check if clicking outside the entire user profile area
+            if (!event.target.closest('.user-profile-top')) {
                 const dropdowns = document.getElementsByClassName("profile-dropdown");
                 for (let i = 0; i < dropdowns.length; i++) {
                     if (dropdowns[i].classList.contains('show-dropdown')) {
@@ -182,10 +185,18 @@
         };
 
         window.logoutUser = function(event) {
-            event.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = "login_page.html";
-            });
+            event.preventDefault(); // Stops the browser from fast-jumping!
+            
+            const confirmLogout = confirm("Are you sure you want to log out?");
+            
+            if (confirmLogout) {
+                signOut(auth).then(() => {
+                    // Sign-out successful, NOW we send them to the login page
+                    window.location.href = "login_page.html"; 
+                }).catch((error) => {
+                    alert("Error logging out: " + error.message);
+                });
+            }
         };
     </script>
 </body>
