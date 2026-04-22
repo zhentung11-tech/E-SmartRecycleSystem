@@ -6,24 +6,86 @@
     <title>E-Smart Recycle - User Dashboard</title>
     <link rel="stylesheet" href="dashstyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Exact Dropdown Styling to match the rest of your system */
+        .profile-dropdown-container {
+            position: relative;
+            display: inline-block;
+            font-family: Arial, sans-serif;
+        }
+        
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            z-index: 1000;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-menu a {
+            color: #333;
+            padding: 12px 20px;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .dropdown-menu hr {
+            margin: 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+
+        .profile-circle-gray {
+            background-color: #545454;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <header class="top-nav">
         <div class="logo-section">
             <img src="logo.png" alt="E-Smart Recycle Logo" class="nav-logo">
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+            <a href="dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile-top">
+        
+        <div class="user-profile-top" style="display: flex; align-items: center; gap: 10px; font-family: Arial, sans-serif;">
             <span id="userNameDisplay">Loading...</span>
             <div class="profile-dropdown-container">
-                <div class="profile-circle-gray" onclick="toggleDropdown()" style="cursor: pointer;">
+                <div class="profile-circle-gray" onclick="toggleDropdown()">
                     <i class="fas fa-user"></i>
                 </div>
                 
                 <div class="dropdown-menu" id="profileDropdown">
                     <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
-                    <hr style="margin: 0; border: none; border-top: 1px solid #ddd;">
-                    <a href="login_page.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <hr>
+                    <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
@@ -78,12 +140,14 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </main>
 
-             <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        
-        // Import Firestore tools! We need query, where, and getDocs to search for the user's specific requests
+        // Added signOut here!
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your exact Firebase config
@@ -111,49 +175,44 @@
                 }
 
                 // 2. FETCH REQUESTS FOR THIS SPECIFIC USER
-                // This searches the 'request' collection where the userId matches the logged-in user
                 const q = query(collection(db, "request"), where("userId", "==", user.uid));
                 const querySnapshot = await getDocs(q);
 
-                // Set up our counters
                 let totalCount = 0;
                 let pendingCount = 0;
                 let completedCount = 0;
                 let tableHTML = "";
 
-                // 3. IF NO REQUESTS FOUND
+                // 3. PROCESS REQUESTS
                 if (querySnapshot.empty) {
                     tableHTML = "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No recent requests yet. Start recycling!</td></tr>";
                 } else {
-                    // 4. IF REQUESTS EXIST, LOOP THROUGH THEM
                     querySnapshot.forEach((docSnap) => {
                         const reqData = docSnap.data();
-                        totalCount++; // Add 1 to total
+                        totalCount++;
 
-                        // Count statuses (convert to lowercase just to be safe)
                         const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                        if (status === "pending") pendingCount++;
+                        if (status === "pending" || status === "accepted") pendingCount++;
                         if (status === "completed") completedCount++;
 
-                        // Choose badge color based on status
-                        const badgeClass = (status === "pending") ? "pending" : "complete";
-                        
-                        // Capitalize the first letter of the status for the table
+                        const badgeClass = (status === "completed") ? "complete" : "pending";
                         const displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
 
-                        // Build a new row for the table
+                        // Ensure date exists
+                        const displayDate = reqData.scheduledDate ? reqData.scheduledDate.substring(0, 10) : "Recent";
+
                         tableHTML += `
                             <tr>
-                                <td>${reqData.scheduledDate.substring(0, 10)}</td>
-                                <td>${reqData.category}</td>
-                                <td>${reqData.weight} Kg</td>
+                                <td>${displayDate}</td>
+                                <td>${reqData.category || '-'}</td>
+                                <td>${reqData.weight || '0'} Kg</td>
                                 <td><span class="status-badge ${badgeClass}">${displayStatus}</span></td>
                             </tr>
                         `;
                     });
                 }
 
-                // 5. UPDATE THE HTML ON THE SCREEN
+                // 4. UPDATE HTML ON THE SCREEN
                 document.getElementById('total-requests').innerText = totalCount;
                 document.getElementById('pending-requests').innerText = pendingCount;
                 document.getElementById('completed-requests').innerText = completedCount;
@@ -161,39 +220,16 @@
 
             } else {
                 // SECURITY: Kick them to login if not authenticated
-                window.location.href = "index.html";
+                window.location.href = "login_page.html";
             }
-
-            // 6. Wait to see who is logged in
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    // 2. Point to this specific user's file in the "users" collection
-                    const userRef = doc(db, "users", user.uid);
-                    
-                    // 3. Download the file
-                    const userSnap = await getDoc(userRef);
-                    
-                    if (userSnap.exists()) {
-                        const userData = userSnap.data();
-                        
-                        // 4. Grab the fullName from the database and inject it into the HTML!
-                        document.getElementById('userNameDisplay').innerText = userData.fullName;
-                    }
-                } else {
-                    // If nobody is logged in, kick them back to the login page
-                    window.location.href = "index.html";
-                }
-            });
         });
 
-              // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        // --- DROPDOWN & LOGOUT FUNCTIONS ---
 
-        // 1. Attach toggle function to the window so HTML can see it
         window.toggleDropdown = function() {
             document.getElementById("profileDropdown").classList.toggle("show");
-        }
+        };
 
-        // 2. Attach the click-away closer to the window
         window.onclick = function(event) {
             if (!event.target.closest('.profile-dropdown-container')) {
                 const dropdowns = document.getElementsByClassName("dropdown-menu");
@@ -203,25 +239,23 @@
                     }
                 }
             }
-        }
+        };
 
-        // 3. Use actual Firebase Authentication Sign Out
-        window.logout = function() {
+        window.logoutUser = function(event) {
+            event.preventDefault(); // STOPS the browser from instantly jumping to the login page!
+            
             const confirmLogout = confirm("Are you sure you want to log out?");
             
             if (confirmLogout) {
-                // This talks to your E-Smart Recycle Firebase backend to kill the session
                 signOut(auth).then(() => {
-                    // Sign-out successful, NOW we send them to the login page
+                    // Session killed successfully, NOW we redirect safely
                     window.location.href = "login_page.html"; 
                 }).catch((error) => {
-                    // Just in case something goes wrong
                     alert("Error logging out: " + error.message);
                 });
             }
-        }
+        };
 
     </script>
-   
-            </body>
-            </html>
+</body>
+</html>
