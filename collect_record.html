@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="collect_record.css">
     <style>
         /* Profile Dropdown Setup for this specific layout */
-        .user-section { position: relative; cursor: pointer; }
+        .user-section { position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .profile-dropdown {
             display: none; position: absolute; top: 55px; right: 0; background-color: white; 
             min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; z-index: 1000; flex-direction: column;
@@ -21,26 +21,24 @@
 <body>
 
     <div class="app-container">
-        <header class="header">
-            <div class="logo-section">
-                <div class="logo-box">
-                    <i class="fa-solid fa-recycle"></i>
-                </div>
-        <div class="logo-section-top">
-            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">            
-            <h1>E-Smart Recycle</h1>
-        </div>
+        <header class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 30px;">
+            
+            <div class="logo-section" style="display: flex; align-items: center; gap: 15px;">
+                <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">            
+                <a href="admin_dashboard.html" style="text-decoration: none; color: inherit;">
+                    <h1 style="margin: 0; font-size: 22px;">E-Smart Recycle</h1>
+                </a>
             </div>
             
             <div class="user-section" onclick="toggleProfileMenu()">
                 <span class="user-name" id="userNameDisplay">Loading...</span>
-                <div class="avatar">
+                <div class="avatar" style="background-color: #555; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 
                 <div id="profileDropdown" class="profile-dropdown">
                     <a href="admin_profile.html"><i class="far fa-id-badge"></i> Profile</a>
-                    <a href="login_page" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </header>
@@ -50,7 +48,7 @@
             <a href="adminusermanagement.html" class="nav-link"><i class="fa-regular fa-user"></i> User</a>
             <a href="collect_record.html" class="nav-link active"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
             <a href="admin_report.html" class="nav-link"><i class="fa-solid fa-chart-bar"></i> Reports</a>
-            <a href="admin_notification" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
+            <a href="admin_notification.html" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
         </nav>
 
         <main class="main-content">
