@@ -7,6 +7,66 @@
     <link rel="stylesheet" href="user_profile.css"> 
     <link rel="stylesheet" href="collector_notification.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Exact Dropdown Styling guaranteed to load */
+        .profile-dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            z-index: 1000;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .profile-dropdown.show-dropdown {
+            display: flex;
+        }
+
+        .profile-dropdown a {
+            color: #333;
+            padding: 12px 20px;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .profile-dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        .profile-circle-gray {
+            background-color: #545454;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
 
@@ -15,15 +75,18 @@
             <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">
             <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile-top" style="position: relative; display: flex; align-items: center; gap: 10px;">
-            <span id="userNameDisplay">Loading...</span>
-            <div class="profile-circle-gray" onclick="toggleProfileMenu()" style="cursor: pointer;">
-                <i class="fas fa-user-cog"></i>
-            </div>
-            
-            <div id="profileDropdown" class="profile-dropdown">
-                <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
-                <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        
+        <div class="user-profile-top" style="display: flex; align-items: center; gap: 10px;">
+            <span id="userNameDisplay" style="font-family: Arial, sans-serif;">Loading...</span>
+            <div class="profile-dropdown-container">
+                <div class="profile-circle-gray" onclick="toggleProfileMenu()">
+                    <i class="fas fa-user-cog"></i>
+                </div>
+                
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
+                    <a href="#" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
         </div>
     </header>
@@ -92,13 +155,64 @@
                         document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
                     }
 
-                    // 2. FETCH REQUESTS TO BUILD NOTIFICATIONS
+                    // 2. FETCH ALL REQUESTS
                     const querySnapshot = await getDocs(collection(db, "request"));
 
-                    let notifHTML = "";
+                    // We will push all notifications into an Array so we can sort them!
+                    let notificationsArray = [];
 
-                    // 3. ALWAYS ADD A SYSTEM NOTIFICATION AT THE BOTTOM
-                    notifHTML += `
+                    querySnapshot.forEach((docSnap) => {
+                        const reqData = docSnap.data();
+                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                        
+                        // We use the date string for sorting. Fallback to '0' if missing so it goes to bottom
+                        const sortDate = reqData.updatedAt || reqData.createdAt || "0"; 
+                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "Recent";
+                        
+                        // IF A USER SUBMITTED A BRAND NEW JOB:
+                        if (status === "pending") {
+                            notificationsArray.push({
+                                dateCode: sortDate,
+                                html: `
+                                    <div class="notification-item unread">
+                                        <div class="notif-icon"><i class="fas fa-truck-pickup"></i></div>
+                                        <div class="notif-content">
+                                            <p class="notif-text"><strong>New Request:</strong> A user has requested a ${reqData.category} pickup (${reqData.weight} Kg).</p>
+                                            <span class="notif-time">${displayDate}</span>
+                                        </div>
+                                        <a href="collector_job.html" class="notif-link">View</a>
+                                    </div>
+                                `
+                            });
+                        } 
+                        // IF THIS SPECIFIC COLLECTOR COMPLETED A JOB:
+                        else if (status === "completed" && reqData.collectorId === user.uid) {
+                            notificationsArray.push({
+                                dateCode: sortDate,
+                                html: `
+                                    <div class="notification-item">
+                                        <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
+                                        <div class="notif-content">
+                                            <p class="notif-text"><strong>Job Completed:</strong> Your collection of ${reqData.weight} Kg of ${reqData.category} has been successfully moved to History.</p>
+                                            <span class="notif-time">${reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : displayDate}</span>
+                                        </div>
+                                    </div>
+                                `
+                            });
+                        }
+                    });
+
+                    // 3. SORT THE ARRAY (Newest at the top)
+                    notificationsArray.sort((a, b) => b.dateCode.localeCompare(a.dateCode));
+
+                    // 4. COMBINE THEM INTO ONE LONG HTML STRING
+                    let finalHTML = "";
+                    notificationsArray.forEach(notif => {
+                        finalHTML += notif.html;
+                    });
+
+                    // 5. ALWAYS ADD A SYSTEM NOTIFICATION AT THE VERY BOTTOM
+                    finalHTML += `
                         <div class="notification-item">
                             <div class="notif-icon"><i class="fas fa-info-circle"></i></div>
                             <div class="notif-content">
@@ -108,44 +222,10 @@
                         </div>
                     `;
 
-                    // 4. LOOP THROUGH REQUESTS TO FIND PENDING JOBS AND COMPLETED TASKS
-                    querySnapshot.forEach((docSnap) => {
-                        const reqData = docSnap.data();
-                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                        const displayDate = reqData.createdAt ? reqData.createdAt.substring(0, 10) : "Recent";
-                        
-                        // IF A USER SUBMITTED A BRAND NEW JOB:
-                        if (status === "pending") {
-                            notifHTML = `
-                                <div class="notification-item unread">
-                                    <div class="notif-icon"><i class="fas fa-truck-pickup"></i></div>
-                                    <div class="notif-content">
-                                        <p class="notif-text"><strong>New Request:</strong> A user has requested a ${reqData.category} pickup (${reqData.weight} Kg).</p>
-                                        <span class="notif-time">${displayDate}</span>
-                                    </div>
-                                    <a href="collector_job.html" class="notif-link">View</a>
-                                </div>
-                            ` + notifHTML; 
-                        } 
-                        // IF THIS SPECIFIC COLLECTOR COMPLETED A JOB:
-                        else if (status === "completed" && reqData.collectorId === user.uid) {
-                            notifHTML = `
-                                <div class="notification-item">
-                                    <div class="notif-icon green-icon"><i class="fas fa-check-circle"></i></div>
-                                    <div class="notif-content">
-                                        <p class="notif-text"><strong>Job Completed:</strong> Your collection of ${reqData.weight} Kg of ${reqData.category} has been successfully moved to History.</p>
-                                        <span class="notif-time">${reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : displayDate}</span>
-                                    </div>
-                                </div>
-                            ` + notifHTML;
-                        }
-                    });
-
-                    // 5. INJECT ALL NOTIFICATIONS INTO THE PAGE
-                    document.getElementById('notifList').innerHTML = notifHTML;
+                    // 6. INJECT EVERYTHING INTO THE PAGE
+                    document.getElementById('notifList').innerHTML = finalHTML;
 
                 } catch (error) {
-                    // IF ANYTHING CRASHES, IT WILL SHOW ON THE SCREEN HERE!
                     console.error("Database Error:", error);
                     document.getElementById('notifList').innerHTML = `<p style="text-align: center; color: red; font-weight: bold; padding: 30px;">Error loading notifications: ${error.message}</p>`;
                 }
