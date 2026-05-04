@@ -75,6 +75,7 @@
                         <option value="" disabled selected hidden>Select Report Type</option>
                         <option value="Collection Summary">Collection Summary</option>
                         <option value="User Summary">User Data Summary</option>
+                        <option value="Collector Performance">Collector Performance</option>
                     </select>
 
                     <select class="dropdown" id="dateRangeSelect">
@@ -139,7 +140,6 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Verify Admin Status
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
 
@@ -152,7 +152,7 @@
                     document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
                 }
             } else {
-                window.location.href = "index.html"; // Kick to login
+                window.location.href = "index.html";
             }
         });
 
@@ -175,7 +175,7 @@
             let startTime = 0; // Default to All Time
             
             if (dateRange === "Today") {
-                now.setHours(0, 0, 0, 0); // Midnight this morning
+                now.setHours(0, 0, 0, 0); 
                 startTime = now.getTime();
             } else if (dateRange === "Last 7 Days") {
                 startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
@@ -196,11 +196,9 @@
                 let tableHTML = "";
 
                 // ----------------------------------------------------
-                // LOGIC A: IF THEY SELECT 'COLLECTION SUMMARY'
+                // LOGIC A: COLLECTION SUMMARY
                 // ----------------------------------------------------
                 if (reportType === "Collection Summary") {
-                    
-                    // Setup UI for Collections
                     summaryContainer.innerHTML = `
                         <div class="card"><h3>Total Collections</h3><p class="card-value" id="totalCollections">0</p></div>
                         <div class="card"><h3>Total Weight Collected</h3><p class="card-value" id="totalWeight">0 kg</p></div>
@@ -208,7 +206,6 @@
                     `;
                     theadContainer.innerHTML = `<tr><th>Date</th><th>Item Type</th><th>Weight (kg)</th><th>Address</th><th>Status</th></tr>`;
 
-                    // Fetch data
                     const querySnapshot = await getDocs(collection(window.db, "request"));
                     let totalCollections = 0;
                     let totalWeight = 0;
@@ -217,7 +214,6 @@
                     querySnapshot.forEach((docSnap) => {
                         const reqData = docSnap.data();
                         
-                        // Extract Date
                         let sortValue = 0;
                         let displayDate = "N/A";
                         let rawDate = reqData.createdAt;
@@ -232,7 +228,7 @@
                             }
                         }
 
-                        // ** THE FILTER: If this record is older than the selected timeframe, skip it! **
+                        // Time filter
                         if (startTime > 0 && sortValue < startTime) return;
 
                         totalCollections++; 
@@ -244,13 +240,13 @@
                         let displayStatus = "Pending";
                         
                         if (status === "pending") {
-                            badgeStyles += "background-color: #fff3cd; color: #856404;"; // Yellow
+                            badgeStyles += "background-color: #fff3cd; color: #856404;"; 
                         } else if (status === "accepted") {
                             displayStatus = "In Progress";
-                            badgeStyles += "background-color: #cce5ff; color: #004085;"; // Blue
+                            badgeStyles += "background-color: #cce5ff; color: #004085;"; 
                         } else if (status === "completed") {
                             displayStatus = "Completed";
-                            badgeStyles += "background-color: #d4edda; color: #155724;"; // Green
+                            badgeStyles += "background-color: #d4edda; color: #155724;"; 
                         }
 
                         recordsArray.push({
@@ -267,18 +263,15 @@
                         });
                     });
 
-                    // Update UI Numbers
                     document.getElementById('totalCollections').innerText = totalCollections;
                     document.getElementById('totalWeight').innerText = Math.round(totalWeight * 100) / 100 + " kg";
                     document.getElementById('activeCollectors').innerText = uniqueCollectors.size;
                 } 
 
                 // ----------------------------------------------------
-                // LOGIC B: IF THEY SELECT 'USER SUMMARY'
+                // LOGIC B: USER SUMMARY
                 // ----------------------------------------------------
                 else if (reportType === "User Summary") {
-                    
-                    // Setup UI for Users
                     summaryContainer.innerHTML = `
                         <div class="card"><h3>Total Accounts</h3><p class="card-value" id="totalAccounts">0</p></div>
                         <div class="card"><h3>Normal Users</h3><p class="card-value" id="totalNormalUsers">0</p></div>
@@ -286,7 +279,6 @@
                     `;
                     theadContainer.innerHTML = `<tr><th>Account ID</th><th>Full Name</th><th>Role</th><th>Email Address</th><th>Phone</th></tr>`;
 
-                    // Fetch Users
                     const querySnapshot = await getDocs(collection(window.db, "users"));
                     let totalAccounts = 0;
                     let totalNormalUsers = 0;
@@ -295,17 +287,13 @@
                     querySnapshot.forEach((docSnap) => {
                         const userData = docSnap.data();
                         
-                        // Extract Date
                         let sortValue = 0;
                         if (userData.createdAt) {
-                            if (userData.createdAt.toDate) { 
-                                sortValue = userData.createdAt.toDate().getTime(); 
-                            } else { 
-                                sortValue = new Date(userData.createdAt).getTime();
-                            }
+                            if (userData.createdAt.toDate) { sortValue = userData.createdAt.toDate().getTime(); } 
+                            else { sortValue = new Date(userData.createdAt).getTime(); }
                         }
 
-                        // ** THE FILTER: If we don't have a date for an old user, but the Admin selected "Today", skip them! **
+                        // Time filter
                         if (startTime > 0 && sortValue < startTime) return;
 
                         totalAccounts++;
@@ -341,25 +329,113 @@
                         });
                     });
 
-                    // Update UI Numbers
                     document.getElementById('totalAccounts').innerText = totalAccounts;
                     document.getElementById('totalNormalUsers').innerText = totalNormalUsers;
                     document.getElementById('totalCollectors').innerText = totalCollectors;
                 }
 
+                // ----------------------------------------------------
+                // LOGIC C: COLLECTOR PERFORMANCE SUMMARY
+                // ----------------------------------------------------
+                else if (reportType === "Collector Performance") {
+                    summaryContainer.innerHTML = `
+                        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="perfActiveCollectors">0</p></div>
+                        <div class="card"><h3>Total Jobs Done</h3><p class="card-value" id="perfTotalJobs">0</p></div>
+                        <div class="card"><h3>Total Weight Collected</h3><p class="card-value" id="perfTotalWeight">0 kg</p></div>
+                    `;
+                    theadContainer.innerHTML = `<tr><th>Collector Name</th><th>Phone Number</th><th>Status</th><th>Jobs Completed</th><th>Weight Collected</th></tr>`;
+
+                    // First: Get all the Collectors
+                    const usersSnap = await getDocs(collection(window.db, "users"));
+                    let collectorsMap = {};
+                    
+                    usersSnap.forEach(doc => {
+                        const data = doc.data();
+                        if(data.role === "collector") {
+                            collectorsMap[doc.id] = {
+                                name: data.fullName || "Unknown",
+                                phone: data.phone || "N/A",
+                                jobs: 0,
+                                weight: 0,
+                                lastActive: 0
+                            };
+                        }
+                    });
+
+                    // Second: Get all requests and match them to the collectors
+                    const reqSnap = await getDocs(collection(window.db, "request"));
+                    let totalJobs = 0;
+                    let totalWeight = 0;
+                    let activeCount = 0;
+
+                    reqSnap.forEach(docSnap => {
+                        const reqData = docSnap.data();
+                        
+                        // Extract Date
+                        let sortValue = 0;
+                        let rawDate = reqData.updatedAt || reqData.createdAt;
+                        if (rawDate) {
+                            if (rawDate.toDate) sortValue = rawDate.toDate().getTime(); 
+                            else sortValue = new Date(rawDate).getTime();
+                        }
+
+                        // Time Filter
+                        if (startTime > 0 && sortValue < startTime) return;
+
+                        const status = reqData.status ? reqData.status.toLowerCase() : "";
+                        const cId = reqData.collectorId;
+
+                        // Only count if it's COMPLETED and assigned to a known collector
+                        if (status === "completed" && cId && collectorsMap[cId]) {
+                            collectorsMap[cId].jobs += 1;
+                            collectorsMap[cId].weight += (Number(reqData.weight) || 0);
+                            if (sortValue > collectorsMap[cId].lastActive) {
+                                collectorsMap[cId].lastActive = sortValue;
+                            }
+                            
+                            totalJobs++;
+                            totalWeight += (Number(reqData.weight) || 0);
+                        }
+                    });
+
+                    // Third: Convert map data into table rows
+                    for (const [cId, cData] of Object.entries(collectorsMap)) {
+                        
+                        if (cData.jobs > 0) activeCount++;
+
+                        let badgeClass = cData.jobs > 0 ? "background-color: #d4edda; color: #155724;" : "background-color: #f8d7da; color: #721c24;";
+                        let statusText = cData.jobs > 0 ? "Active" : "Inactive";
+
+                        // We push ALL collectors to the array, but sort by whoever was active most recently
+                        recordsArray.push({
+                            timestamp: cData.lastActive,
+                            html: `
+                                <tr>
+                                    <td style="font-weight: bold; color: #333;">${cData.name}</td>
+                                    <td>${cData.phone}</td>
+                                    <td><span style="padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; ${badgeClass}">${statusText}</span></td>
+                                    <td>${cData.jobs} Tasks</td>
+                                    <td>${Math.round(cData.weight * 100) / 100} kg</td>
+                                </tr>
+                            `
+                        });
+                    }
+
+                    // Update UI Numbers
+                    document.getElementById('perfActiveCollectors').innerText = activeCount;
+                    document.getElementById('perfTotalJobs').innerText = totalJobs;
+                    document.getElementById('perfTotalWeight').innerText = Math.round(totalWeight * 100) / 100 + " kg";
+                }
+
                 // --- FINAL RENDER PROCESS ---
-                // Sort the array (Newest dates at the top)
                 recordsArray.sort((a, b) => b.timestamp - a.timestamp);
 
-                // Combine array back into one long HTML string
                 recordsArray.forEach(record => {
                     tableHTML += record.html;
                 });
                 
-                // Inject the rows into the table
                 tbodyContainer.innerHTML = tableHTML || "<tr><td colspan='5' style='text-align:center; padding: 30px; color: #888;'>No records found for this timeframe.</td></tr>";
 
-                // Reveal the report
                 document.getElementById('reportTitle').innerText = reportType + " Report (" + dateRange + ")";
                 document.getElementById('reportResult').style.display = 'block';
 
