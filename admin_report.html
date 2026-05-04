@@ -69,14 +69,20 @@
             <div class="content-card" style="width: 100%; max-width: 1100px;">
                 <h1>System Reports</h1>
 
+                <!-- UPDATED DROP DOWNS -->
                 <div class="controls">
                     <select class="dropdown" id="reportTypeSelect">
                         <option value="" disabled selected hidden>Select Report Type</option>
                         <option value="Collection Summary">Collection Summary</option>
-                        </select>
+                        <option value="User Summary">User Data Summary</option>
+                    </select>
 
                     <select class="dropdown" id="dateRangeSelect">
                         <option value="" disabled selected hidden>Date Range</option>
+                        <option value="Today">Today</option>
+                        <option value="Last 7 Days">Last 7 Days</option>
+                        <option value="Last 30 Days">Last 30 Days</option>
+                        <option value="This Month">This Month</option>
                         <option value="All Time">All Time</option>
                     </select>
 
@@ -90,34 +96,19 @@
                     
                     <h2 id="reportTitle">Collection Summary Report</h2>
                     
-                    <div class="summary-cards">
-                        <div class="card">
-                            <h3>Total Collections</h3>
-                            <p class="card-value" id="totalCollections">0</p>
-                        </div>
-                        <div class="card">
-                            <h3>Total Weight Collected</h3>
-                            <p class="card-value" id="totalWeight">0 kg</p>
-                        </div>
-                        <div class="card">
-                            <h3>Active Collectors</h3>
-                            <p class="card-value" id="activeCollectors">0</p>
-                        </div>
+                    <!-- Dynamic Summary Cards Container -->
+                    <div class="summary-cards" id="dynamicSummaryCards">
+                        <!-- Cards are injected here by JS -->
                     </div>
 
                     <div class="table-wrapper">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Item Type</th>
-                                    <th>Weight (kg)</th>
-                                    <th>Address</th>
-                                    <th>Status</th>
-                                </tr>
+                            <thead id="dynamicTableHeader">
+                                <!-- Headers are injected here by JS -->
                             </thead>
                             <tbody id="reportTableBody">
-                                </tbody>
+                                <!-- Table Data goes here -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -167,12 +158,9 @@
 
         // --- UPGRADED REAL-TIME REPORT GENERATION ---
         window.generateAdminReport = async function() {
-            const reportTypeElement = document.getElementById('reportTypeSelect');
-            const dateRangeElement = document.getElementById('dateRangeSelect');
+            const reportType = document.getElementById('reportTypeSelect').value;
+            const dateRange = document.getElementById('dateRangeSelect').value;
             const generateBtn = document.getElementById('generateBtn');
-
-            const reportType = reportTypeElement.value;
-            const dateRange = dateRangeElement.value;
 
             if (!reportType || !dateRange) {
                 alert("Please select both a Report Type and a Date Range.");
@@ -182,90 +170,196 @@
             generateBtn.innerText = "Loading...";
             generateBtn.disabled = true;
 
+            // 1. Setup the Time Filter Logic!
+            const now = new Date();
+            let startTime = 0; // Default to All Time
+            
+            if (dateRange === "Today") {
+                now.setHours(0, 0, 0, 0); // Midnight this morning
+                startTime = now.getTime();
+            } else if (dateRange === "Last 7 Days") {
+                startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+            } else if (dateRange === "Last 30 Days") {
+                startTime = now.getTime() - (30 * 24 * 60 * 60 * 1000);
+            } else if (dateRange === "This Month") {
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                startTime = firstDay.getTime();
+            }
+
             try {
-                // 1. Fetch all requests from Firestore
-                const querySnapshot = await getDocs(collection(window.db, "request"));
+                // Prepare dynamic HTML Containers
+                const summaryContainer = document.getElementById('dynamicSummaryCards');
+                const theadContainer = document.getElementById('dynamicTableHeader');
+                const tbodyContainer = document.getElementById('reportTableBody');
                 
-                let totalCollections = 0;
-                let totalWeight = 0;
-                let uniqueCollectors = new Set();
-                let recordsArray = []; // Using an array so we can sort them chronologically!
+                let recordsArray = [];
+                let tableHTML = "";
 
-                // 2. Loop through all data
-                querySnapshot.forEach((docSnap) => {
-                    const reqData = docSnap.data();
+                // ----------------------------------------------------
+                // LOGIC A: IF THEY SELECT 'COLLECTION SUMMARY'
+                // ----------------------------------------------------
+                if (reportType === "Collection Summary") {
                     
-                    totalCollections++; 
-                    totalWeight += Number(reqData.weight) || 0; 
-                    
-                    if (reqData.collectorId) {
-                        uniqueCollectors.add(reqData.collectorId);
-                    }
+                    // Setup UI for Collections
+                    summaryContainer.innerHTML = `
+                        <div class="card"><h3>Total Collections</h3><p class="card-value" id="totalCollections">0</p></div>
+                        <div class="card"><h3>Total Weight Collected</h3><p class="card-value" id="totalWeight">0 kg</p></div>
+                        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="activeCollectors">0</p></div>
+                    `;
+                    theadContainer.innerHTML = `<tr><th>Date</th><th>Item Type</th><th>Weight (kg)</th><th>Address</th><th>Status</th></tr>`;
 
-                    // --- BULLETPROOF DATE CHECKER ---
-                    let sortValue = 0;
-                    let displayDate = "N/A";
-                    let rawDate = reqData.createdAt;
+                    // Fetch data
+                    const querySnapshot = await getDocs(collection(window.db, "request"));
+                    let totalCollections = 0;
+                    let totalWeight = 0;
+                    let uniqueCollectors = new Set();
 
-                    if (rawDate) {
-                        if (rawDate.toDate) { 
-                            sortValue = rawDate.toDate().getTime(); // For Sorting
-                            displayDate = rawDate.toDate().toLocaleDateString(); // For Display
-                        } else { 
-                            sortValue = new Date(rawDate).getTime();
-                            displayDate = String(rawDate).substring(0, 10);
+                    querySnapshot.forEach((docSnap) => {
+                        const reqData = docSnap.data();
+                        
+                        // Extract Date
+                        let sortValue = 0;
+                        let displayDate = "N/A";
+                        let rawDate = reqData.createdAt;
+
+                        if (rawDate) {
+                            if (rawDate.toDate) { 
+                                sortValue = rawDate.toDate().getTime(); 
+                                displayDate = rawDate.toDate().toLocaleDateString(); 
+                            } else { 
+                                sortValue = new Date(rawDate).getTime();
+                                displayDate = String(rawDate).substring(0, 10);
+                            }
                         }
-                    }
 
-                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                    
-                    // --- COLOR CODED STATUS BADGES ---
-                    let badgeStyles = "padding: 5px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; ";
-                    let displayStatus = "Pending";
-                    
-                    if (status === "pending") {
-                        badgeStyles += "background-color: #fff3cd; color: #856404;"; // Yellow
-                    } else if (status === "accepted") {
-                        displayStatus = "In Progress";
-                        badgeStyles += "background-color: #cce5ff; color: #004085;"; // Blue
-                    } else if (status === "completed") {
-                        displayStatus = "Completed";
-                        badgeStyles += "background-color: #d4edda; color: #155724;"; // Green
-                    }
+                        // ** THE FILTER: If this record is older than the selected timeframe, skip it! **
+                        if (startTime > 0 && sortValue < startTime) return;
 
-                    // Push to our sorting array
-                    recordsArray.push({
-                        timestamp: sortValue,
-                        html: `
-                            <tr>
-                                <td>${displayDate}</td>
-                                <td><span style="text-transform: capitalize;">${reqData.category || '-'}</span></td>
-                                <td>${reqData.weight || '0'} kg</td>
-                                <td>${reqData.pickupAddress || reqData.address || '-'}</td>
-                                <td><span style="${badgeStyles}">${displayStatus}</span></td>
-                            </tr>
-                        `
+                        totalCollections++; 
+                        totalWeight += Number(reqData.weight) || 0; 
+                        if (reqData.collectorId) uniqueCollectors.add(reqData.collectorId);
+
+                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                        let badgeStyles = "padding: 5px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; ";
+                        let displayStatus = "Pending";
+                        
+                        if (status === "pending") {
+                            badgeStyles += "background-color: #fff3cd; color: #856404;"; // Yellow
+                        } else if (status === "accepted") {
+                            displayStatus = "In Progress";
+                            badgeStyles += "background-color: #cce5ff; color: #004085;"; // Blue
+                        } else if (status === "completed") {
+                            displayStatus = "Completed";
+                            badgeStyles += "background-color: #d4edda; color: #155724;"; // Green
+                        }
+
+                        recordsArray.push({
+                            timestamp: sortValue,
+                            html: `
+                                <tr>
+                                    <td>${displayDate}</td>
+                                    <td><span style="text-transform: capitalize;">${reqData.category || '-'}</span></td>
+                                    <td>${reqData.weight || '0'} kg</td>
+                                    <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                                    <td><span style="${badgeStyles}">${displayStatus}</span></td>
+                                </tr>
+                            `
+                        });
                     });
-                });
 
-                // 3. Sort the array (Newest dates at the top)
+                    // Update UI Numbers
+                    document.getElementById('totalCollections').innerText = totalCollections;
+                    document.getElementById('totalWeight').innerText = Math.round(totalWeight * 100) / 100 + " kg";
+                    document.getElementById('activeCollectors').innerText = uniqueCollectors.size;
+                } 
+
+                // ----------------------------------------------------
+                // LOGIC B: IF THEY SELECT 'USER SUMMARY'
+                // ----------------------------------------------------
+                else if (reportType === "User Summary") {
+                    
+                    // Setup UI for Users
+                    summaryContainer.innerHTML = `
+                        <div class="card"><h3>Total Accounts</h3><p class="card-value" id="totalAccounts">0</p></div>
+                        <div class="card"><h3>Normal Users</h3><p class="card-value" id="totalNormalUsers">0</p></div>
+                        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="totalCollectors">0</p></div>
+                    `;
+                    theadContainer.innerHTML = `<tr><th>Account ID</th><th>Full Name</th><th>Role</th><th>Email Address</th><th>Phone</th></tr>`;
+
+                    // Fetch Users
+                    const querySnapshot = await getDocs(collection(window.db, "users"));
+                    let totalAccounts = 0;
+                    let totalNormalUsers = 0;
+                    let totalCollectors = 0;
+
+                    querySnapshot.forEach((docSnap) => {
+                        const userData = docSnap.data();
+                        
+                        // Extract Date
+                        let sortValue = 0;
+                        if (userData.createdAt) {
+                            if (userData.createdAt.toDate) { 
+                                sortValue = userData.createdAt.toDate().getTime(); 
+                            } else { 
+                                sortValue = new Date(userData.createdAt).getTime();
+                            }
+                        }
+
+                        // ** THE FILTER: If we don't have a date for an old user, but the Admin selected "Today", skip them! **
+                        if (startTime > 0 && sortValue < startTime) return;
+
+                        totalAccounts++;
+                        const role = userData.role ? userData.role.toLowerCase() : "user";
+                        
+                        let badgeClass = "background-color: #007bff; color: white;";
+                        let displayRole = "User";
+                        
+                        if (role === "admin") {
+                            displayRole = "Admin";
+                            badgeClass = "background-color: #333; color: white;";
+                        } else if (role === "collector") {
+                            displayRole = "Collector";
+                            badgeClass = "background-color: #008040; color: white;";
+                            totalCollectors++;
+                        } else {
+                            totalNormalUsers++;
+                        }
+
+                        const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase();
+
+                        recordsArray.push({
+                            timestamp: sortValue,
+                            html: `
+                                <tr>
+                                    <td style="font-weight: bold; color: #555;">${shortId}</td>
+                                    <td>${userData.fullName || 'N/A'}</td>
+                                    <td><span style="padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; ${badgeClass}">${displayRole}</span></td>
+                                    <td>${userData.email || 'N/A'}</td>
+                                    <td>${userData.phone || 'N/A'}</td>
+                                </tr>
+                            `
+                        });
+                    });
+
+                    // Update UI Numbers
+                    document.getElementById('totalAccounts').innerText = totalAccounts;
+                    document.getElementById('totalNormalUsers').innerText = totalNormalUsers;
+                    document.getElementById('totalCollectors').innerText = totalCollectors;
+                }
+
+                // --- FINAL RENDER PROCESS ---
+                // Sort the array (Newest dates at the top)
                 recordsArray.sort((a, b) => b.timestamp - a.timestamp);
 
                 // Combine array back into one long HTML string
-                let tableHTML = "";
                 recordsArray.forEach(record => {
                     tableHTML += record.html;
                 });
-
-                // 4. Inject the calculated numbers into the HTML cards
-                document.getElementById('totalCollections').innerText = totalCollections;
-                document.getElementById('totalWeight').innerText = totalWeight + " kg";
-                document.getElementById('activeCollectors').innerText = uniqueCollectors.size;
                 
-                // 5. Inject the rows into the table
-                document.getElementById('reportTableBody').innerHTML = tableHTML || "<tr><td colspan='5' style='text-align:center;'>No records found.</td></tr>";
+                // Inject the rows into the table
+                tbodyContainer.innerHTML = tableHTML || "<tr><td colspan='5' style='text-align:center; padding: 30px; color: #888;'>No records found for this timeframe.</td></tr>";
 
-                // 6. Reveal the report
+                // Reveal the report
                 document.getElementById('reportTitle').innerText = reportType + " Report (" + dateRange + ")";
                 document.getElementById('reportResult').style.display = 'block';
 
@@ -284,7 +378,6 @@
                 alert("Please generate a report first before exporting.");
                 return;
             }
-            // Basic print function works beautifully for generated reports
             window.print(); 
         };
 
@@ -294,7 +387,6 @@
         };
 
         window.onclick = function(event) {
-            // Updated to use .closest() to fix the click-away bug!
             if (!event.target.closest('.user-profile-top')) {
                 const dropdowns = document.getElementsByClassName("profile-dropdown");
                 for (let i = 0; i < dropdowns.length; i++) {
@@ -306,7 +398,7 @@
         };
 
         window.logoutUser = function(event) {
-            event.preventDefault(); // Prevents jumping to login page
+            event.preventDefault(); 
             const confirmLogout = confirm("Are you sure you want to log out?");
             
             if (confirmLogout) {
