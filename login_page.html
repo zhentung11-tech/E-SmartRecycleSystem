@@ -5,85 +5,178 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Smart Recycle - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="login_page.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            font-family: Arial, sans-serif;
+            background-color: #e0e0e0;
+        }
+
+        /* Side Navigation (Decorative for Login) */
+        .sidebar-left {
+            width: 250px;
+            background-color: #d9d9d9;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-nav-green {
+            background-color: #8CC63F; 
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            height: 60px;
+            gap: 15px;
+        }
+        .top-nav-green img { width: 40px; height: auto; }
+        .top-nav-green h1 { margin: 0; font-size: 20px; color: #000; }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Login Card */
+        .login-card {
+            background-color: white;
+            padding: 50px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header img {
+            width: 60px;
+            margin-bottom: 10px;
+        }
+        .login-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-family: 'Georgia', serif;
+        }
+        .login-header h2 span { color: #0d7a46; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+        }
+        .form-group input[type="email"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+        }
+
+        /* Forgot Password Link styling */
+        .forgot-password-link {
+            display: block;
+            text-align: right;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #0d7a46;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .forgot-password-link:hover { text-decoration: underline; }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background-color: #555;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        .btn-login:hover { background-color: #333; }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+        }
+        .signup-link a {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-    <header class="top-nav-green">
-        <div class="logo-section-top">
-        <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">            
-            <a href="login_page.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
-        </div>
-        <div class="user-profile-top">
-            <div class="profile-circle-gray">
-                <i class="fas fa-user"></i>
+    <div class="sidebar-left">
+        <header class="top-nav-green">
+            <img src="logo.png" alt="Logo">
+            <h1>E-Smart Recycle</h1>
+        </header>
+    </div>
+
+    <main class="main-content">
+        <div class="login-card">
+            
+            <div class="login-header">
+                <img src="logo.png" alt="Logo">
+                <h2>E-Smart Recycle<br><span>System</span></h2>
+                <h1 style="text-align: left; margin-top: 30px; font-family: Arial, sans-serif; font-size: 28px;">Login</h1>
             </div>
-        </div>
-    </header>
 
-    <div class="layout-container">
-        
-        <aside class="sidebar-left">
-            <ul class="sidebar-menu">
-                <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="#"><i class="fas fa-box"></i> Submit Item</a></li>
-                <li><a href="#"><i class="fas fa-history"></i> Request History</a></li>
-                <li><a href="#"><i class="fas fa-bell"></i> Notification</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="login-card">
-                
-                <div class="form-header">
-                <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto;">                    <h2>E-Smart Recycle<br><span>System</span></h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
                 </div>
 
-                <div class="login-title">Login</div>
-
-                <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="xxxx" required>
                     
-               <div class="input-group">
-                        <label>Email</label>
-                        <input type="email" id="loginEmail" placeholder="Email" required>
-                    </div>
+                    <a href="#" class="forgot-password-link" onclick="forgotPassword(event)">Forgot Password?</a>
+                </div>
 
-                    <div class="input-group">
-                        <label>Password</label>
-                        <input type="password" id="loginPassword" placeholder="xxxx" required>
-                    </div>
+                <button type="submit" class="btn-login" id="loginBtn">Login</button>
 
-                    <div class="options-row">
-                        <div class="remember-me">
-                            <input type="checkbox" id="remember">
-                            <label for="remember">Remember me</label>
-                        </div>
-                        
-                        <div class="role-selector">
-                            <label><input type="radio" name="userRole" value="user" required checked> User</label>
-                            <label><input type="radio" name="userRole" value="collector"> Collector</label>
-                        </div>
-                    </div>
+                <div class="signup-link">
+                    Don't have an account? <a href="signup.html">Sign up</a>
+                </div>
+            </form>
 
-                    <button type="submit" class="btn-login">Login</button>
-                    
-                    <div class="signup-link">
-                        Don't have an account? <a href="signup.html">Sign up</a>
-                    </div>
-                </form>
-            </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        // 1. Import Auth AND signOut
-        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        // 2. Import Firestore to check the user's role
+        
+        // 1. IMPORT sendPasswordResetEmail HERE
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your Firebase config
+        // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
@@ -97,69 +190,71 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // This runs when the user clicks Login
-        window.handleLogin = async function(event) {
-            event.preventDefault(); 
+        // --- NEW FORGOT PASSWORD FUNCTION ---
+        window.forgotPassword = function(event) {
+            event.preventDefault(); // Stop page from jumping
+
+            const emailInput = document.getElementById('email').value;
+
+            // Check if they typed an email first
+            if (!emailInput) {
+                alert("Please type your Email address into the box first, then click 'Forgot Password?'.");
+                return;
+            }
+
+            // Send the Firebase Reset Email
+            sendPasswordResetEmail(auth, emailInput)
+                .then(() => {
+                    alert("Password reset email sent! Please check your inbox (and spam folder) for the link.");
+                })
+                .catch((error) => {
+                    alert("Error: " + error.message);
+                });
+        };
+
+        // --- STANDARD LOGIN FUNCTION ---
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            // Find out which radio button is currently clicked
-            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            loginBtn.innerText = "Logging in...";
+            loginBtn.disabled = true;
 
             try {
-                // 1. Securely log them in
+                // 1. Sign in with Firebase Authentication
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 2. Open their profile in Firestore to see what role they registered as
+                // 2. Fetch the user's role from Firestore
                 const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
+                const docSnap = await getDoc(userRef);
 
-                if (userSnap.exists()) {
-                    const actualRole = userSnap.data().role; 
-                    
-                    // Fallback just in case they don't have a role
-                    if (!actualRole) {
-                        alert("Database Error: This account doesn't have a role assigned.");
-                        signOut(auth);
-                        return;
-                    }
+                if (docSnap.exists()) {
+                    const role = docSnap.data().role;
 
-                    // 🌟 NEW: SECRET ADMIN ROUTING 🌟
-                    // If the database says they are an admin, ignore the radio buttons and send them to the admin dashboard!
-                    if (actualRole === "admin") {
-                        alert("Welcome back, Admin!");
+                    // 3. Redirect them to the correct dashboard automatically!
+                    if (role === 'admin') {
                         window.location.href = "admin_dashboard.html";
-                        return; // Stop the script here
-                    }
-
-                    // 3. SECURITY CHECK for standard Users and Collectors
-                    if (selectedRole !== actualRole) {
-                        alert("Login Failed: You selected " + selectedRole + " on the screen, but you are registered as a " + actualRole + " in the database.");
-                        signOut(auth); 
-                        return; 
-                    }
-
-                    // 4. SUCCESS! Route them to the correct dashboard
-                    alert("Login Successful!");
-                    if (actualRole === "collector") {
+                    } else if (role === 'collector') {
                         window.location.href = "collector_dashboard.html";
                     } else {
-                        window.location.href = "dashboard.html";
+                        window.location.href = "dashboard.html"; // Normal User
                     }
-
                 } else {
-                    alert("Error: User profile not found in database. Please sign up again.");
-                    signOut(auth);
+                    alert("User profile not found in database.");
+                    loginBtn.innerText = "Login";
+                    loginBtn.disabled = false;
                 }
 
             } catch (error) {
                 alert("Login Failed: " + error.message);
-                console.error("Detailed error:", error);
+                loginBtn.innerText = "Login";
+                loginBtn.disabled = false;
             }
-        };
+        });
     </script>
-    
 </body>
 </html>
