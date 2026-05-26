@@ -7,36 +7,6 @@
     <link rel="stylesheet" href="user_profile.css"> 
     <link rel="stylesheet" href="collector_history.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* Specific button for completing a task */
-        .btn-complete-task {
-            background-color: #00B050; 
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 13px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-complete-task:hover { background-color: #008f40; }
-        
-        /* Standard green badge for already completed tasks */
-        .badge-completed {
-            background-color: #eef7f2;
-            color: #00B050;
-            border: 1px solid #00B050;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 13px;
-            display: inline-block;
-        }
-    </style>
 </head>
 <body style="background-color: #C4C4C4; margin: 0; display: flex; flex-direction: column; height: 100vh;">
 
@@ -69,7 +39,7 @@
         </aside>
 
         <main class="main-content">
-            <div class="submit-card" style="width: 100%; max-width: 950px; background-color: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div class="submit-card" style="width: 100%; max-width: 1050px; background-color: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 <h2 style="font-family: 'Georgia', serif; font-size: 24px; margin-top: 0; margin-bottom: 25px;">My Tasks & History</h2>
                 
                 <div style="background-color: #D9D9D9; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-family: 'Georgia', serif; font-size: 16px; margin-bottom: 20px;">
@@ -78,19 +48,20 @@
                 </div>
 
                 <div class="collector-table-container">
-                    <table class="collector-table" style="width: 100%; border-collapse: collapse;">
+                    <table class="collector-table">
                         <thead>
-                            <tr style="border-bottom: 2px solid #ccc; text-align: left;">
-                                <th style="padding: 15px 10px;">Date</th>
-                                <th style="padding: 15px 10px;">Item Type</th>
-                                <th style="padding: 15px 10px;">Weight</th>
-                                <th style="padding: 15px 10px;">Pickup Address</th>
-                                <th style="padding: 15px 10px;">Status / Action</th>
+                            <tr>
+                                <th>Date</th>
+                                <th>Item Type</th>
+                                <th>Weight</th>
+                                <th>Pickup Address</th>
+                                <th>Status</th>
+                                <th>User Feedback</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 20px;">Loading your tasks...</td>
+                                <td colspan="6" style="text-align: center; padding: 20px;">Loading your tasks...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -108,7 +79,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Your Firebase config
         const firebaseConfig = {
@@ -126,7 +97,6 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // 1. GET COLLECTOR NAME
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
 
@@ -138,9 +108,7 @@
                     document.getElementById('userNameDisplay').innerText = userSnap.data().fullName || "Collector";
                 }
 
-                // 2. LOAD TASKS FOR THIS SPECIFIC COLLECTOR
                 window.loadMyTasks(user.uid);
-
             } else {
                 window.location.href = "login_page.html";
             }
@@ -151,7 +119,6 @@
             const tableBody = document.getElementById('historyTableBody');
             
             try {
-                // Query: Find requests where collectorId matches the logged-in collector
                 const q = query(collection(db, "request"), where("collectorId", "==", collectorId));
                 const querySnapshot = await getDocs(q);
 
@@ -165,73 +132,65 @@
                     
                     const displayDate = reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : "Recent";
                     
-                    let actionHTML = "";
+                    let statusHTML = "";
+                    let feedbackHTML = "-";
 
-                    // If the job is "accepted", show the Complete button!
+                    // 1. If accepted, show waiting badge
                     if (status === "accepted") {
-                        actionHTML = `
-                            <button class="btn-complete-task" onclick="markJobComplete('${docSnap.id}')">
-                                <i class="fas fa-box-open"></i> Mark Completed
-                            </button>
-                        `;
+                        statusHTML = `<span class="badge-accepted"><i class="fas fa-hourglass-half"></i> Waiting for User</span>`;
+                        feedbackHTML = `<span style="color: #888; font-size: 12px;">Pending completion</span>`;
                     } 
-                    // If the job is already "completed", just show a green badge
+                    // 2. If completed, show completed badge AND check for feedback
                     else if (status === "completed") {
-                        actionHTML = `<span class="badge-completed"><i class="fas fa-check"></i> Completed</span>`;
+                        statusHTML = `<span class="badge-completed"><i class="fas fa-check"></i> Completed</span>`;
+                        
+                        // Check if the user left a rating or text feedback in the database
+                        const rating = reqData.rating || "No rating";
+                        const feedbackText = reqData.feedback || "No written feedback provided.";
+
+                        if (reqData.rating || reqData.feedback) {
+                            // Creates a safe string for the alert popup
+                            const safeFeedback = feedbackText.replace(/'/g, "\\'"); 
+                            feedbackHTML = `
+                                <button class="btn-view-feedback" onclick="viewFeedback('${rating}', '${safeFeedback}')">
+                                    <i class="fas fa-star"></i> View Feedback
+                                </button>
+                            `;
+                        } else {
+                            feedbackHTML = `<span style="color: #888; font-size: 12px;">No feedback left</span>`;
+                        }
                     }
 
-                    // Build the row (only show accepted or completed)
+                    // Build the row (only show accepted or completed jobs)
                     if (status === "accepted" || status === "completed") {
                         tableHTML += `
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 15px 10px;">${displayDate}</td>
-                                <td style="padding: 15px 10px;">${reqData.category || '-'}</td>
-                                <td style="padding: 15px 10px; font-weight: bold;">${reqData.weight || '0'} Kg</td>
-                                <td style="padding: 15px 10px; max-width: 250px; word-wrap: break-word;">${reqData.pickupAddress || reqData.address || '-'}</td>
-                                <td style="padding: 15px 10px;">${actionHTML}</td>
+                            <tr>
+                                <td>${displayDate}</td>
+                                <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
+                                <td style="font-weight: bold;">${reqData.weight || '0'} Kg</td>
+                                <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                                <td>${statusHTML}</td>
+                                <td>${feedbackHTML}</td>
                             </tr>
                         `;
                     }
                 });
 
                 if (!hasTasks || tableHTML === "") {
-                    tableBody.innerHTML = "<tr><td colspan='5' style='text-align: center; padding: 20px; color: #666;'>You have not accepted any tasks yet. Go to 'Available Requests' to find jobs!</td></tr>";
+                    tableBody.innerHTML = "<tr><td colspan='6' style='text-align: center; padding: 20px; color: #666;'>You have not accepted any tasks yet. Go to 'Available Requests' to find jobs!</td></tr>";
                 } else {
                     tableBody.innerHTML = tableHTML;
                 }
 
             } catch (error) {
                 console.error("Error loading tasks:", error);
-                tableBody.innerHTML = "<tr><td colspan='5' style='text-align: center; color: red;'>Error loading data.</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='6' style='text-align: center; color: red;'>Error loading data.</td></tr>";
             }
         };
 
-        // 3. THE MAGIC COMPLETION FUNCTION
-        window.markJobComplete = async function(requestId) {
-            const confirmComplete = confirm("Have you successfully collected this item from the user's location?");
-            
-            if (confirmComplete) {
-                try {
-                    const requestRef = doc(db, "request", requestId);
-                    
-                    // Update Firestore status to 'completed'
-                    await updateDoc(requestRef, {
-                        status: "completed",
-                        updatedAt: new Date().toLocaleString()
-                    });
-
-                    alert("Job marked as Completed! Your dashboard stats will now update.");
-                    
-                    // Reload the table instantly to change the button into a Badge
-                    const user = auth.currentUser;
-                    if (user) {
-                        window.loadMyTasks(user.uid);
-                    }
-
-                } catch (error) {
-                    alert("Error updating job: " + error.message);
-                }
-            }
+        // --- VIEW FEEDBACK FUNCTION ---
+        window.viewFeedback = function(rating, feedbackText) {
+            alert(`User Rating: ${rating} \n\nUser Comment: "${feedbackText}"`);
         };
 
         // --- DROPDOWN & LOGOUT FUNCTIONS ---
