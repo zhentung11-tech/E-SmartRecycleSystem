@@ -49,16 +49,17 @@
 
                 <div class="collector-table-container">
                     <table class="collector-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Item Type</th>
-                                <th>Weight</th>
-                                <th>Pickup Address</th>
-                                <th>Status</th>
-                                <th>User Feedback</th>
-                            </tr>
-                        </thead>
+<thead>
+    <tr>
+        <th>Date</th>
+        <th>Item Type</th>
+        <th>Weight</th>
+        <th>User</th> 
+        <th>Pickup Address</th>
+        <th>Status</th>
+        <th>User Feedback</th>
+    </tr>
+</thead>
                         <tbody id="historyTableBody">
                             <tr>
                                 <td colspan="6" style="text-align: center; padding: 20px;">Loading your tasks...</td>
@@ -161,20 +162,38 @@
                         }
                     }
 
-                    // Build the row (only show accepted or completed jobs)
-                    if (status === "accepted" || status === "completed") {
-                        tableHTML += `
-                            <tr>
-                                <td>${displayDate}</td>
-                                <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
-                                <td style="font-weight: bold;">${reqData.weight || '0'} Kg</td>
-                                <td>${reqData.pickupAddress || reqData.address || '-'}</td>
-                                <td>${statusHTML}</td>
-                                <td>${feedbackHTML}</td>
-                            </tr>
-                        `;
-                    }
-                });
+// Inside your loadMyTasks function, replace the loop with this:
+querySnapshot.forEach(async (docSnap) => {
+    hasTasks = true;
+    const reqData = docSnap.data();
+    
+    // 1. Fetch User Name based on userId in the request
+    let userName = "Loading...";
+    try {
+        const userDoc = await getDoc(doc(db, "users", reqData.userId));
+        userName = userDoc.exists() ? userDoc.data().fullName : "Unknown";
+    } catch (e) {
+        userName = "Error";
+    }
+
+    const status = reqData.status ? reqData.status.toLowerCase() : "unknown";
+    const displayDate = reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : "Recent";
+    
+    // ... (keep your existing statusHTML and feedbackHTML logic) ...
+
+    if (status === "accepted" || status === "completed") {
+        tableHTML += `
+            <tr>
+                <td>${displayDate}</td>
+                <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
+                <td style="font-weight: bold;">${reqData.weight || '0'} Kg</td>
+                <td>${userName}</td> <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                <td>${statusHTML}</td>
+                <td>${feedbackHTML}</td>
+            </tr>
+        `;
+    }
+});
 
                 if (!hasTasks || tableHTML === "") {
                     tableBody.innerHTML = "<tr><td colspan='6' style='text-align: center; padding: 20px; color: #666;'>You have not accepted any tasks yet. Go to 'Available Requests' to find jobs!</td></tr>";
