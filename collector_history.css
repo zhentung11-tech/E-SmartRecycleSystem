@@ -5,7 +5,7 @@
 /* Main layout wrapper */
 .submit-container {
     padding: 40px 20px;
-    background-color: #C4C4C4; /* Light gray background to match Dashboard */
+    background-color: #C4C4C4; 
     min-height: calc(100vh - 115px);
 }
 
@@ -44,7 +44,7 @@
 .collector-table-container {
     background-color: #D9D9D9;
     padding: 25px;
-    overflow-x: auto; /* Prevents layout breaking on small screens */
+    overflow-x: auto; 
 }
 
 /* History Table Styling */
@@ -57,47 +57,65 @@
 .collector-table th {
     text-align: left;
     padding: 15px 10px;
-    font-weight: normal;
+    font-weight: bold;
     font-size: 15px;
     color: #000;
-    border-bottom: 2px solid rgba(0,0,0,0.1); /* Gives the header a solid line */
+    border-bottom: 2px solid rgba(0,0,0,0.1); 
 }
 
 .collector-table td {
     padding: 15px 10px;
     font-size: 14px;
-    color: #000;
+    color: #333;
     vertical-align: middle;
-    border-bottom: 1px solid rgba(0,0,0,0.05); /* Faint separator line between rows */
+    border-bottom: 1px solid rgba(0,0,0,0.05); 
 }
 
-/* Make sure the pickup address has enough room and doesn't stretch the table */
-.collector-table td:nth-child(5) {
+.collector-table td:nth-child(4) {
     max-width: 220px;
     word-wrap: break-word;
     line-height: 1.4;
 }
 
-/* View-Only Status Badges */
-.status-label {
+/* --- Status Badges --- */
+.badge-accepted {
+    background-color: #cce5ff;
+    color: #004085;
+    border: 1px solid #b8daff;
     padding: 6px 12px;
     border-radius: 4px;
-    color: white;
-    font-family: 'Georgia', serif;
     font-weight: bold;
-    font-size: 13px;
+    font-size: 12px;
     display: inline-block;
-    text-align: center;
-    min-width: 80px;
-    cursor: default; /* Keeps the regular mouse pointer */
 }
 
-/* Color specifically for Accepted rows */
-.status-accept {
-    background-color: #00B050; 
+.badge-completed {
+    background-color: #eef7f2;
+    color: #00B050;
+    border: 1px solid #00B050;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    display: inline-block;
 }
 
-/* Color specifically for Rejected rows */
-.status-reject {
-    background-color: #C00000; 
+/* --- Feedback Button --- */
+.btn-view-feedback {
+    background-color: #f59e0b; 
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-view-feedback:hover {
+    background-color: #d97706;
 }
