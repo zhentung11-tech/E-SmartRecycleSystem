@@ -58,11 +58,6 @@
                 <div class="controls">
                     <input type="text" class="search-box" id="searchInput" onkeyup="filterTable()" placeholder="Search by Collector, Location, or Item...">
                     
-                    <select class="dropdown" id="statusFilter" onchange="filterTable()">
-                        <option value="all" selected>Filter by Status: All</option>
-                        <option value="completed">Completed</option>
-                        <option value="pending">In Progress (Accepted)</option>
-                    </select>
                 </div>
 
                 <div class="table-wrapper">
@@ -164,23 +159,27 @@
     }
 
     // Improved filter logic
-    window.filterTable = () => {
-        const search = document.getElementById("searchInput").value.toLowerCase();
-        const filter = document.getElementById("statusFilter").value;
-        const rows = document.getElementById("recordTableBody").getElementsByTagName("tr");
+// Replace your existing filterTable function with this simplified version
+window.filterTable = function() {
+    const searchText = document.getElementById("searchInput").value.toLowerCase();
+    const tableBody = document.getElementById("recordTableBody");
+    const tr = tableBody.getElementsByTagName("tr");
+
+    for (let i = 0; i < tr.length; i++) {
+        // Skip the "Loading..." row if it exists
+        if (tr[i].getElementsByTagName("td").length <= 1) continue;
         
-        for (let row of rows) {
-            const text = row.textContent.toLowerCase();
-            const badge = row.querySelector('.badge')?.innerText.toLowerCase() || "";
-            
-            const matchSearch = text.includes(search);
-            const matchStatus = (filter === "all") || 
-                                (filter === "completed" && badge.includes("completed")) ||
-                                (filter === "pending" && (badge.includes("pending") || badge.includes("progress")));
-            
-            row.style.display = (matchSearch && matchStatus) ? "" : "none";
+        // Get the entire text content of the row
+        const rowText = tr[i].textContent.toLowerCase();
+
+        // Check if the search text matches the row text
+        if (rowText.includes(searchText)) {
+            tr[i].style.display = ""; 
+        } else {
+            tr[i].style.display = "none"; 
         }
-    };
+    }
+};
     
             // --- DROPDOWN & LOGOUT FUNCTIONS ---
         window.toggleProfileMenu = function() {
