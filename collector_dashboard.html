@@ -77,15 +77,58 @@
         </main>
 
     <script type="module">
-        // ... (Keep your existing imports) ...
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // ... (Keep your existing Firebase config and onAuthStateChanged guard) ...
-        
-        // EFFICIENT STATS LOADING
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "login_page.html";
+                return;
+            }
+
+            try {
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    
+                    if (userData.role !== "collector") {
+                        await signOut(auth);
+                        window.location.href = "login_page.html";
+                        return;
+                    }
+                    
+                    document.getElementById('userNameDisplay').innerText = userData.fullName || "Collector";
+                    document.getElementById('welcomeName').innerText = userData.fullName || "Collector";
+                    
+                    // CALL THE FUNCTION HERE
+                    await loadDashboardStats(user.uid);
+                }
+            } catch (error) {
+                console.error("Auth Guard Error:", error);
+            }
+        });
+
         async function loadDashboardStats(collectorId) {
+            const pendingEl = document.getElementById('pendingTasks');
+            const completedEl = document.getElementById('completedTasks');
+            const weightEl = document.getElementById('totalWeight');
+
             try {
                 const q = query(collection(db, "request"), where("collectorId", "==", collectorId));
                 const querySnapshot = await getDocs(q);
@@ -94,23 +137,31 @@
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (data.status === "accepted") pending++;
-                    if (data.status === "completed") {
+                    const status = data.status ? data.status.toLowerCase() : "";
+
+                    if (status === "accepted") pending++;
+                    if (status === "completed") {
                         completed++;
                         totalKg += parseFloat(data.weight) || 0;
                     }
                 });
 
-                // Updated to match the new ID structure
-                document.getElementById('pendingTasks').innerText = `${pending} Active`;
-                document.getElementById('completedTasks').innerText = `${completed} Tasks`;
-                document.getElementById('totalWeight').innerText = `${totalKg.toFixed(2)} Kg`;
+                // Update UI elements only if they exist
+                if(pendingEl) pendingEl.innerText = `${pending} Active`;
+                if(completedEl) completedEl.innerText = `${completed} Tasks`;
+                if(weightEl) weightEl.innerText = `${totalKg.toFixed(2)} Kg`;
+                
             } catch (err) {
                 console.error("Stats Loading Error:", err);
             }
         }
 
-        // ... (Keep your existing toggleProfileMenu and logoutUser functions) ...
+        window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        window.logoutUser = async (event) => {
+            event.preventDefault();
+            await signOut(auth);
+            window.location.href = "login_page.html";
+        };
     </script>
 </body>
 </html>
