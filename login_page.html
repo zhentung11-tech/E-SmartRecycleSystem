@@ -115,52 +115,62 @@
                 .catch((error) => alert("Error: " + error.message));
         };
 
-        // SECURE LOGIN FUNCTION
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('loginBtn');
-            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+// SECURE LOGIN FUNCTION
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const loginBtn = document.getElementById('loginBtn');
+    
+    // Get the selected radio button (User or Collector)
+    const selectedRole = document.querySelector('input[name="role"]:checked').value;
 
-            loginBtn.innerText = "Logging in...";
-            loginBtn.disabled = true;
+    loginBtn.innerText = "Logging in...";
+    loginBtn.disabled = true;
 
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-                const userRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(userRef);
+        const userRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userRef);
 
-                if (docSnap.exists()) {
-                    const dbRole = docSnap.data().role;
+        if (docSnap.exists()) {
+            const dbRole = docSnap.data().role;
 
-                  if (dbRole === selectedRole || (dbRole === 'admin' && selectedRole === 'user')) {
-    // Roles match, or user selected 'User' and the account is an Admin
-    if (dbRole === 'admin') window.location.href = "admin_dashboard.html";
-    else if (dbRole === 'collector') window.location.href = "collector_dashboard.html";
-    else window.location.href = "dashboard.html";
-}
-                    } else {
-                        // Role mismatch: Sign out and show custom alert
-                        await signOut(auth);
-                        alert("Access Denied: The account you logged into does not have '" + selectedRole + "' permissions. Please select the correct login type.");
-                        loginBtn.innerText = "Login";
-                        loginBtn.disabled = false;
-                    }
+            // IMPROVED LOGIC:
+            // 1. If it's an Admin, allow direct login regardless of radio button
+            // 2. Otherwise, enforce the User/Collector role check
+            if (dbRole === 'admin') {
+                window.location.href = "admin_dashboard.html";
+            } 
+            else if (dbRole === selectedRole) {
+                // Success: Redirect standard users/collectors
+                if (dbRole === 'collector') {
+                    window.location.href = "collector_dashboard.html";
                 } else {
-                    alert("User profile not found in database.");
-                    loginBtn.innerText = "Login";
-                    loginBtn.disabled = false;
+                    window.location.href = "dashboard.html";
                 }
-            } catch (error) {
-                alert("Login Failed: " + error.message);
+            } else {
+                // Role mismatch for non-admins
+                await signOut(auth);
+                alert("Access Denied: You are not authorized to log in as a " + selectedRole + ".");
                 loginBtn.innerText = "Login";
                 loginBtn.disabled = false;
             }
-        });
+        } else {
+            alert("User profile not found in database.");
+            loginBtn.innerText = "Login";
+            loginBtn.disabled = false;
+        }
+
+    } catch (error) {
+        alert("Login Failed: " + error.message);
+        loginBtn.innerText = "Login";
+        loginBtn.disabled = false;
+    }
+});
     </script>
 </body>
 </html>
