@@ -95,78 +95,51 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
-
+        // ... (Keep your firebaseConfig) ...
+        const firebaseConfig = { /* ... your config ... */ };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // 1. Verify Admin Status
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists()) {
-                    if (userSnap.data().role !== "admin") {
-                        alert("Access Denied: You do not have administrator privileges.");
-                        window.location.href = "index.html"; 
-                        return;
-                    }
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                }
-
-                // 2. Fetch the records!
+            if (!user) { window.location.href = "index.html"; return; }
+            
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (userSnap.exists() && userSnap.data().role === "admin") {
+                document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
                 loadCollectorRecords();
-
             } else {
-                window.location.href = "index.html"; 
+                alert("Access Denied.");
+                window.location.href = "index.html";
             }
         });
 
         async function loadCollectorRecords() {
             const tableBody = document.getElementById('recordTableBody');
-            
             try {
-                // Dictionary for user/collector names
-                const usersSnap = await getDocs(collection(db, "users"));
+                const [usersSnap, requestSnap] = await Promise.all([
+                    getDocs(collection(db, "users")),
+                    getDocs(collection(db, "request"))
+                ]);
+
                 const userDictionary = {};
-                usersSnap.forEach(doc => {
-                    userDictionary[doc.id] = doc.data().fullName || "Unknown";
-                });
+                usersSnap.forEach(doc => userDictionary[doc.id] = doc.data().fullName || "Unknown");
 
-                const requestSnap = await getDocs(collection(db, "request"));
                 let tableHTML = "";
-
                 requestSnap.forEach((docSnap) => {
                     const reqData = docSnap.data();
-                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                    const status = (reqData.status || "pending").toLowerCase();
                     
-                    // NEW LOGIC: Include all statuses (pending, accepted, completed)
-                    // If you want to exclude 'cancelled' tasks, you can add && status !== 'cancelled'
+                    // Map Statuses to Display
+                    const statusMap = {
+                        "pending": { class: "pending", text: "Pending" },
+                        "accepted": { class: "accepted", text: "In Progress" },
+                        "completed": { class: "completed", text: "Completed" }
+                    };
                     
-                    const displayDate = reqData.updatedAt || reqData.createdAt || "Recent";
+                    const badge = statusMap[status] || { class: "pending", text: status };
                     const collectorName = userDictionary[reqData.collectorId] || "Not Assigned";
-                    
-                    // Set Badge Styles
-                    let badgeClass = "pending"; 
-                    let displayStatus = "Pending";
-                    
-                    if (status === "accepted") {
-                        badgeClass = "accepted"; // Make sure to define this in CSS
-                        displayStatus = "In Progress";
-                    } else if (status === "completed") {
-                        badgeClass = "completed";
-                        displayStatus = "Completed";
-                    }
+                    const displayDate = reqData.updatedAt || reqData.createdAt || "Recent";
 
                     tableHTML += `
                         <tr>
@@ -175,76 +148,37 @@
                             <td>${reqData.pickupAddress || reqData.address || '-'}</td>
                             <td>${reqData.category || '-'}</td>
                             <td>${reqData.weight || '0'}</td>
-                            <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
+                            <td><span class="badge ${badge.class}">${badge.text}</span></td>
                             <td><button class="btn-view" onclick="alert('Details for: ${docSnap.id}')">View</button></td>
                         </tr>
                     `;
                 });
-
-                tableBody.innerHTML = tableHTML || "<tr><td colspan='7' style='text-align: center; padding: 20px;'>No records found.</td></tr>";
-
+                tableBody.innerHTML = tableHTML || "<tr><td colspan='7' style='text-align: center;'>No records found.</td></tr>";
             } catch (error) {
-                console.error("Error loading records:", error);
-                tableBody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: red;'>Error loading records.</td></tr>";
+                console.error(error);
             }
         }
 
-        // --- LIVE SEARCH AND FILTER FUNCTION ---
+        // IMPROVED FILTER: Now handles "Pending", "In Progress", and "Completed"
         window.filterTable = function() {
             const searchText = document.getElementById("searchInput").value.toLowerCase();
-            const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
-            const tableBody = document.getElementById("recordTableBody");
-            const tr = tableBody.getElementsByTagName("tr");
+            const statusFilter = document.getElementById("statusFilter").value;
+            const tr = document.getElementById("recordTableBody").getElementsByTagName("tr");
 
             for (let i = 0; i < tr.length; i++) {
-                if (tr[i].getElementsByTagName("td").length === 1) continue; // Skip loading row
+                const rowText = tr[i].textContent.toLowerCase();
+                const statusBadge = tr[i].querySelector('.badge');
+                if (!statusBadge) continue;
                 
-                const rowText = tr[i].textContent || tr[i].innerText;
-                const badgeText = tr[i].querySelector('.badge').innerText.toLowerCase();
-
-                // Check if it matches search text
-                const matchesSearch = rowText.toLowerCase().includes(searchText);
+                const badgeText = statusBadge.innerText.toLowerCase();
                 
-                // Check if it matches status dropdown (In Progress = pending)
-                let matchesStatus = false;
-                if (statusFilter === "all") {
-                    matchesStatus = true;
-                } else if (statusFilter === "completed" && badgeText === "completed") {
-                    matchesStatus = true;
-                } else if (statusFilter === "pending" && badgeText === "in progress") {
-                    matchesStatus = true;
-                }
+                const matchesSearch = rowText.includes(searchText);
+                const matchesStatus = (statusFilter === "all") || 
+                                      (statusFilter === "completed" && badgeText.includes("completed")) ||
+                                      (statusFilter === "pending" && (badgeText.includes("pending") || badgeText.includes("progress")));
 
-                // Show or hide row
-                if (matchesSearch && matchesStatus) {
-                    tr[i].style.display = ""; 
-                } else {
-                    tr[i].style.display = "none"; 
-                }
+                tr[i].style.display = (matchesSearch && matchesStatus) ? "" : "none";
             }
-        };
-
-        // --- DROPDOWN & LOGOUT FUNCTIONS ---
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.user-section')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = "login_page.html";
-            });
         };
     </script>
 </body>
