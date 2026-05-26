@@ -137,11 +137,12 @@
                 if (docSnap.exists()) {
                     const dbRole = docSnap.data().role;
 
-                    if (dbRole === selectedRole) {
-                        // Success: Redirect based on role
-                        if (dbRole === 'admin') window.location.href = "admin_dashboard.html";
-                        else if (dbRole === 'collector') window.location.href = "collector_dashboard.html";
-                        else window.location.href = "dashboard.html";
+                  if (dbRole === selectedRole || (dbRole === 'admin' && selectedRole === 'user')) {
+    // Roles match, or user selected 'User' and the account is an Admin
+    if (dbRole === 'admin') window.location.href = "admin_dashboard.html";
+    else if (dbRole === 'collector') window.location.href = "collector_dashboard.html";
+    else window.location.href = "dashboard.html";
+}
                     } else {
                         // Role mismatch: Sign out and show custom alert
                         await signOut(auth);
