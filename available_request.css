@@ -73,3 +73,55 @@
 }
 
 
+/* Base button styling */
+.btn-accept, .btn-reject {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    color: white;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+/* Green for Accept */
+.btn-accept {
+    background-color: #00B050;
+}
+
+/* Red for Reject */
+.btn-reject {
+    background-color: #C00000;
+}
+
+.btn-accept:hover, .btn-reject:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+}
+
+/* Status label style after clicking */
+.status-confirmed {
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 4px;
+    color: white;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+}
+
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+}
