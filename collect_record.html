@@ -134,12 +134,38 @@
             return;
         }
 
-        let tableHTML = "";
+       let tableHTML = "";
         requestSnap.forEach((docSnap) => {
             const reqData = docSnap.data();
-            console.log("Document Data:", reqData); // Debug line 3
-            // ... (rest of your build table code)
+            console.log("Processing:", reqData); // Debugging
+
+            const status = (reqData.status || "pending").toLowerCase();
+            const collectorName = userDictionary[reqData.collectorId] || "Not Assigned";
+            const displayDate = reqData.updatedAt || reqData.createdAt || "Recent";
+
+            // Map Statuses for the UI
+            const statusMap = {
+                "pending": { class: "pending", text: "Pending" },
+                "accepted": { class: "accepted", text: "In Progress" },
+                "completed": { class: "completed", text: "Completed" }
+            };
+            const badge = statusMap[status] || { class: "pending", text: status };
+
+            // BUILD THE ROW
+            tableHTML += `
+                <tr>
+                    <td>${displayDate.toString().substring(0, 10)}</td>
+                    <td>${collectorName}</td>
+                    <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                    <td>${reqData.category || '-'}</td>
+                    <td>${reqData.weight || '0'}</td>
+                    <td><span class="badge ${badge.class}">${badge.text}</span></td>
+                    <td><button class="btn-view" onclick="alert('ID: ${docSnap.id}')">View</button></td>
+                </tr>
+            `;
         });
+
+        tableBody.innerHTML = tableHTML || "<tr><td colspan='7' style='text-align: center;'>No records found.</td></tr>";
 
         tableBody.innerHTML = tableHTML;
 
