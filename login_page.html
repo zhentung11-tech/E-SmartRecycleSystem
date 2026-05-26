@@ -126,48 +126,60 @@
         };
 
         // --- SECURE LOGIN FUNCTION ---
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('loginBtn');
+       document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const loginBtn = document.getElementById('loginBtn');
+    
+    // 1. Get the role selected by the user on the page
+    const selectedRole = document.querySelector('input[name="role"]:checked').value;
 
-            loginBtn.innerText = "Logging in...";
-            loginBtn.disabled = true;
+    loginBtn.innerText = "Logging in...";
+    loginBtn.disabled = true;
 
-            try {
-                // 1. Authenticate with Firebase
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+    try {
+        // 2. Authenticate with Firebase
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-                // 2. Fetch the user's role securely from Firestore
-                const userRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(userRef);
+        // 3. Fetch the user's role securely from Firestore
+        const userRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userRef);
 
-                if (docSnap.exists()) {
-                    const dbRole = docSnap.data().role;
+        if (docSnap.exists()) {
+            const dbRole = docSnap.data().role; // This is the role stored in your DB
 
-                    // 3. Auto-Redirect based on true database role
-                    if (dbRole === 'admin') {
-                        window.location.href = "admin_dashboard.html";
-                    } else if (dbRole === 'collector') {
-                        window.location.href = "collector_dashboard.html";
-                    } else {
-                        window.location.href = "dashboard.html"; // Normal User
-                    }
+            // 4. ROLE VALIDATION: Compare DB role with selected radio button
+            if (dbRole === selectedRole) {
+                // Roles match: Redirect to the correct portal
+                if (dbRole === 'admin') {
+                    window.location.href = "admin_dashboard.html";
+                } else if (dbRole === 'collector') {
+                    window.location.href = "collector_dashboard.html";
                 } else {
-                    alert("User profile not found in database.");
-                    loginBtn.innerText = "Login";
-                    loginBtn.disabled = false;
+                    window.location.href = "dashboard.html"; // Normal User
                 }
-
-            } catch (error) {
-                alert("Login Failed: " + error.message);
+            } else {
+                // Role mismatch: Sign them out immediately for security
+                await signOut(auth);
+                alert("Login Failed: You are not authorized to log in as a " + selectedRole + ".");
                 loginBtn.innerText = "Login";
                 loginBtn.disabled = false;
             }
-        });
+        } else {
+            alert("User profile not found in database.");
+            loginBtn.innerText = "Login";
+            loginBtn.disabled = false;
+        }
+
+    } catch (error) {
+        alert("Login Failed: " + error.message);
+        loginBtn.innerText = "Login";
+        loginBtn.disabled = false;
+    }
+});
     </script>
 </body>
 </html>
