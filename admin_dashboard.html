@@ -254,44 +254,88 @@
     </main>
 
     <script type="module">
-        // ... (Keep your existing imports) ...
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // ... (Keep your firebaseConfig and auth guard) ...
-        
-        // REVISED STATS LOADING LOGIC
-        async function loadAdminStats() {
-            try {
-                // Get Total Users
-                const usersSnap = await getDocs(collection(db, "users"));
-                document.getElementById('statUsers').innerText = usersSnap.size + " Total";
+    const firebaseConfig = {
+        apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+        authDomain: "e-smartrecyclesystem.firebaseapp.com",
+        projectId: "e-smartrecyclesystem",
+        storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+        messagingSenderId: "212695525607",
+        appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+    };
 
-                // Get Request Stats
-                const reqSnap = await getDocs(collection(db, "request"));
-                let totalTasks = 0;
-                let totalWeight = 0;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-                reqSnap.forEach(doc => {
-                    const data = doc.data();
-                    totalTasks++; // Count all tasks
-                    if (data.status === "completed") {
-                        totalWeight += Number(data.weight) || 0;
-                    }
-                });
-
-                document.getElementById('statTasks').innerText = totalTasks + " Tasks";
-                document.getElementById('statWeight').innerText = totalWeight.toFixed(2) + " Kg";
-
-            } catch (error) {
-                console.error("Error loading stats:", error);
-            }
+    // 1. Authentication Guard
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = "login_page.html";
+            return;
         }
 
-        // Call the function inside your onAuthStateChanged block
-        // ... inside onAuthStateChanged, after successful auth ...
-        await loadAdminStats();
-    </script>
+        try {
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (userSnap.exists() && userSnap.data().role === "admin") {
+                document.getElementById('userNameDisplay').innerText = userSnap.data().fullName || "Admin";
+                // Load data only after authentication is confirmed
+                await loadAdminStats();
+            } else {
+                alert("Access Denied: Administrator privileges required.");
+                window.location.href = "login_page.html";
+            }
+        } catch (error) {
+            console.error("Auth Error:", error);
+        }
+    });
+
+    // 2. Optimized Statistics Fetcher
+    async function loadAdminStats() {
+        try {
+            // Using Promise.all to fetch both collections in parallel (faster)
+            const [usersSnap, reqSnap] = await Promise.all([
+                getDocs(collection(db, "users")),
+                getDocs(collection(db, "request"))
+            ]);
+
+            document.getElementById('statUsers').innerText = `${usersSnap.size} Total`;
+
+            let totalTasks = 0, totalWeight = 0;
+            reqSnap.forEach(doc => {
+                const data = doc.data();
+                totalTasks++;
+                if (data.status?.toLowerCase() === "completed") {
+                    totalWeight += Number(data.weight) || 0;
+                }
+            });
+
+            document.getElementById('statTasks').innerText = `${totalTasks} Tasks`;
+            document.getElementById('statWeight').innerText = `${totalWeight.toFixed(2)} Kg`;
+        } catch (error) {
+            console.error("Stats Error:", error);
+        }
+    }
+
+    // 3. UI Helper Functions
+    window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+    
+    window.logoutUser = async (event) => {
+        event.preventDefault();
+        await signOut(auth);
+        window.location.href = "login_page.html";
+    };
+
+    // Close dropdown when clicking outside
+    window.onclick = (event) => {
+        if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-shield')) {
+            const dropdown = document.getElementById("profileDropdown");
+            if (dropdown.classList.contains('show-dropdown')) dropdown.classList.remove('show-dropdown');
+        }
+    };
+</script>
 </body>
 </html>
