@@ -82,7 +82,6 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
@@ -100,7 +99,6 @@
             if (user) {
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
-
                 if (userSnap.exists()) {
                     if (userSnap.data().role !== "collector") {
                         window.location.href = "login_page.html";
@@ -108,14 +106,13 @@
                     }
                     document.getElementById('userNameDisplay').innerText = userSnap.data().fullName || "Collector";
                 }
-
                 window.loadMyTasks(user.uid);
             } else {
                 window.location.href = "login_page.html";
             }
         });
 
-        // Function to build the table
+        // IMPROVED: Async task loader with correct looping
         window.loadMyTasks = async function(collectorId) {
             const tableBody = document.getElementById('historyTableBody');
             
@@ -123,117 +120,67 @@
                 const q = query(collection(db, "request"), where("collectorId", "==", collectorId));
                 const querySnapshot = await getDocs(q);
 
-                let tableHTML = "";
-                let hasTasks = false;
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = "<tr><td colspan='7' style='text-align: center; padding: 20px;'>No tasks found.</td></tr>";
+                    return;
+                }
 
-                querySnapshot.forEach((docSnap) => {
-                    hasTasks = true;
+                let tableHTML = "";
+
+                // Use 'for...of' instead of 'forEach' to properly wait for async calls
+                for (const docSnap of querySnapshot.docs) {
                     const reqData = docSnap.data();
-                    const status = reqData.status ? reqData.status.toLowerCase() : "unknown";
                     
+                    // 1. Fetch User Name
+                    let userName = "Unknown";
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", reqData.userId));
+                        if (userDoc.exists()) userName = userDoc.data().fullName;
+                    } catch (e) { console.error("Error fetching user:", e); }
+
+                    // 2. Prepare Display Data
+                    const status = reqData.status ? reqData.status.toLowerCase() : "unknown";
                     const displayDate = reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : "Recent";
                     
-                    let statusHTML = "";
+                    let statusHTML = status === "accepted" 
+                        ? `<span class="badge-accepted"><i class="fas fa-hourglass-half"></i> Waiting</span>` 
+                        : `<span class="badge-completed"><i class="fas fa-check"></i> Completed</span>`;
+                    
                     let feedbackHTML = "-";
-
-                    // 1. If accepted, show waiting badge
-                    if (status === "accepted") {
-                        statusHTML = `<span class="badge-accepted"><i class="fas fa-hourglass-half"></i> Waiting for User</span>`;
-                        feedbackHTML = `<span style="color: #888; font-size: 12px;">Pending completion</span>`;
-                    } 
-                    // 2. If completed, show completed badge AND check for feedback
-                    else if (status === "completed") {
-                        statusHTML = `<span class="badge-completed"><i class="fas fa-check"></i> Completed</span>`;
-                        
-                        // Check if the user left a rating or text feedback in the database
-                        const rating = reqData.rating || "No rating";
-                        const feedbackText = reqData.feedback || "No written feedback provided.";
-
+                    if (status === "completed") {
                         if (reqData.rating || reqData.feedback) {
-                            // Creates a safe string for the alert popup
-                            const safeFeedback = feedbackText.replace(/'/g, "\\'"); 
-                            feedbackHTML = `
-                                <button class="btn-view-feedback" onclick="viewFeedback('${rating}', '${safeFeedback}')">
-                                    <i class="fas fa-star"></i> View Feedback
-                                </button>
-                            `;
+                            const safeFeedback = (reqData.feedback || "").replace(/'/g, "\\'");
+                            feedbackHTML = `<button class="btn-view-feedback" onclick="viewFeedback('${reqData.rating || 'N/A'}', '${safeFeedback}')">
+                                            <i class="fas fa-star"></i> View Feedback</button>`;
                         } else {
                             feedbackHTML = `<span style="color: #888; font-size: 12px;">No feedback left</span>`;
                         }
                     }
 
-// Inside your loadMyTasks function, replace the loop with this:
-querySnapshot.forEach(async (docSnap) => {
-    hasTasks = true;
-    const reqData = docSnap.data();
-    
-    // 1. Fetch User Name based on userId in the request
-    let userName = "Loading...";
-    try {
-        const userDoc = await getDoc(doc(db, "users", reqData.userId));
-        userName = userDoc.exists() ? userDoc.data().fullName : "Unknown";
-    } catch (e) {
-        userName = "Error";
-    }
-
-    const status = reqData.status ? reqData.status.toLowerCase() : "unknown";
-    const displayDate = reqData.updatedAt ? reqData.updatedAt.substring(0, 10) : "Recent";
-    
-    // ... (keep your existing statusHTML and feedbackHTML logic) ...
-
-    if (status === "accepted" || status === "completed") {
-        tableHTML += `
-            <tr>
-                <td>${displayDate}</td>
-                <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
-                <td style="font-weight: bold;">${reqData.weight || '0'} Kg</td>
-                <td>${userName}</td> <td>${reqData.pickupAddress || reqData.address || '-'}</td>
-                <td>${statusHTML}</td>
-                <td>${feedbackHTML}</td>
-            </tr>
-        `;
-    }
-});
-
-                if (!hasTasks || tableHTML === "") {
-                    tableBody.innerHTML = "<tr><td colspan='6' style='text-align: center; padding: 20px; color: #666;'>You have not accepted any tasks yet. Go to 'Available Requests' to find jobs!</td></tr>";
-                } else {
-                    tableBody.innerHTML = tableHTML;
+                    tableHTML += `
+                        <tr>
+                            <td>${displayDate}</td>
+                            <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
+                            <td style="font-weight: bold;">${reqData.weight || '0'} Kg</td>
+                            <td>${userName}</td>
+                            <td>${reqData.pickupAddress || '-'}</td>
+                            <td>${statusHTML}</td>
+                            <td>${feedbackHTML}</td>
+                        </tr>
+                    `;
                 }
+
+                tableBody.innerHTML = tableHTML;
 
             } catch (error) {
                 console.error("Error loading tasks:", error);
-                tableBody.innerHTML = "<tr><td colspan='6' style='text-align: center; color: red;'>Error loading data.</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: red;'>Error loading data.</td></tr>";
             }
         };
 
-        // --- VIEW FEEDBACK FUNCTION ---
-        window.viewFeedback = function(rating, feedbackText) {
-            alert(`User Rating: ${rating} \n\nUser Comment: "${feedbackText}"`);
-        };
-
-        // --- DROPDOWN & LOGOUT FUNCTIONS ---
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-cog') && !event.target.matches('.profile-circle')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = "login_page.html";
-            });
-        };
+        window.viewFeedback = (r, f) => alert(`Rating: ${r} \nComment: "${f}"`);
+        window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        window.logoutUser = (e) => { e.preventDefault(); signOut(auth).then(() => window.location.href = "login_page.html"); };
     </script>
 </body>
 </html>
