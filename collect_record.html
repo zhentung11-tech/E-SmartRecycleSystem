@@ -114,50 +114,40 @@
             }
         });
 
-        async function loadCollectorRecords() {
-            const tableBody = document.getElementById('recordTableBody');
-            try {
-                const [usersSnap, requestSnap] = await Promise.all([
-                    getDocs(collection(db, "users")),
-                    getDocs(collection(db, "request"))
-                ]);
+       async function loadCollectorRecords() {
+    const tableBody = document.getElementById('recordTableBody');
+    console.log("Starting to fetch records..."); // Debug line 1
 
-                const userDictionary = {};
-                usersSnap.forEach(doc => userDictionary[doc.id] = doc.data().fullName || "Unknown");
+    try {
+        const usersSnap = await getDocs(collection(db, "users"));
+        const userDictionary = {};
+        usersSnap.forEach(doc => {
+            userDictionary[doc.id] = doc.data().fullName || "Unknown";
+        });
 
-                let tableHTML = "";
-                requestSnap.forEach((docSnap) => {
-                    const reqData = docSnap.data();
-                    const status = (reqData.status || "pending").toLowerCase();
-                    
-                    // Map Statuses to Display
-                    const statusMap = {
-                        "pending": { class: "pending", text: "Pending" },
-                        "accepted": { class: "accepted", text: "In Progress" },
-                        "completed": { class: "completed", text: "Completed" }
-                    };
-                    
-                    const badge = statusMap[status] || { class: "pending", text: status };
-                    const collectorName = userDictionary[reqData.collectorId] || "Not Assigned";
-                    const displayDate = reqData.updatedAt || reqData.createdAt || "Recent";
+        // Debug: Check if 'request' collection exists
+        const requestSnap = await getDocs(collection(db, "request"));
+        console.log("Number of documents found:", requestSnap.size); // Debug line 2
 
-                    tableHTML += `
-                        <tr>
-                            <td>${displayDate.substring(0, 10)}</td>
-                            <td>${collectorName}</td>
-                            <td>${reqData.pickupAddress || reqData.address || '-'}</td>
-                            <td>${reqData.category || '-'}</td>
-                            <td>${reqData.weight || '0'}</td>
-                            <td><span class="badge ${badge.class}">${badge.text}</span></td>
-                            <td><button class="btn-view" onclick="alert('Details for: ${docSnap.id}')">View</button></td>
-                        </tr>
-                    `;
-                });
-                tableBody.innerHTML = tableHTML || "<tr><td colspan='7' style='text-align: center;'>No records found.</td></tr>";
-            } catch (error) {
-                console.error(error);
-            }
+        if (requestSnap.empty) {
+            tableBody.innerHTML = "<tr><td colspan='7' style='text-align: center;'>No data found in 'request' collection.</td></tr>";
+            return;
         }
+
+        let tableHTML = "";
+        requestSnap.forEach((docSnap) => {
+            const reqData = docSnap.data();
+            console.log("Document Data:", reqData); // Debug line 3
+            // ... (rest of your build table code)
+        });
+
+        tableBody.innerHTML = tableHTML;
+
+    } catch (error) {
+        console.error("Critical Error:", error); // This will show in the F12 console
+        tableBody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: red;'>Error: " + error.message + "</td></tr>";
+    }
+}
 
         // IMPROVED FILTER: Now handles "Pending", "In Progress", and "Completed"
         window.filterTable = function() {
