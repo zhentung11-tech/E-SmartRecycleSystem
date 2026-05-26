@@ -148,126 +148,99 @@
     </main>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        // Added signOut here!
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+        authDomain: "e-smartrecyclesystem.firebaseapp.com",
+        projectId: "e-smartrecyclesystem",
+        storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+        messagingSenderId: "212695525607",
+        appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // Runs automatically when the dashboard loads
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // 1. FETCH USER NAME
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+    // IMPROVED: Role-based Authentication Guard
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            // No user logged in, send to login
+            window.location.href = "login_page.html";
+            return;
+        }
+
+        try {
+            // 1. Fetch user data from Firestore to verify role
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                
+                // SECURITY: If user is actually a collector, redirect them to their portal
+                if (userData.role === "collector") {
+                    alert("Unauthorized: Collectors must use the Collector Dashboard.");
+                    window.location.href = "collector_dashboard.html";
+                    return;
                 }
 
-                // 2. FETCH REQUESTS FOR THIS SPECIFIC USER
-                const q = query(collection(db, "request"), where("userId", "==", user.uid));
-                const querySnapshot = await getDocs(q);
-
-                let totalCount = 0;
-                let pendingCount = 0;
-                let completedCount = 0;
-                let tableHTML = "";
-
-                // 3. PROCESS REQUESTS
-                if (querySnapshot.empty) {
-                    tableHTML = "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No recent requests yet. Start recycling!</td></tr>";
-                } else {
-                    querySnapshot.forEach((docSnap) => {
-                        const reqData = docSnap.data();
-                        totalCount++;
-
-                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                        if (status === "pending" || status === "accepted") pendingCount++;
-                        if (status === "completed") completedCount++;
-
-                        const badgeClass = (status === "completed") ? "complete" : "pending";
-                        const displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
-
-                        // Ensure date exists
-                        const displayDate = reqData.scheduledDate ? reqData.scheduledDate.substring(0, 10) : "Recent";
-
-                        tableHTML += `
-                            <tr>
-                                <td>${displayDate}</td>
-                                <td>${reqData.category || '-'}</td>
-                                <td>${reqData.weight || '0'} Kg</td>
-                                <td><span class="status-badge ${badgeClass}">${displayStatus}</span></td>
-                            </tr>
-                        `;
-                    });
-                }
-
-                // 4. UPDATE HTML ON THE SCREEN
-                document.getElementById('total-requests').innerText = totalCount;
-                document.getElementById('pending-requests').innerText = pendingCount;
-                document.getElementById('completed-requests').innerText = completedCount;
-                document.getElementById('recentRequestsTableBody').innerHTML = tableHTML;
-
-            } else {
-                // SECURITY: Kick them to login if not authenticated
-                window.location.href = "login_page.html";
+                // If authorized as a normal user, render content
+                document.getElementById('userNameDisplay').innerText = userData.fullName || "User";
+                loadDashboardData(user.uid);
             }
+        } catch (error) {
+            console.error("Auth Guard Error:", error);
+            window.location.href = "login_page.html";
+        }
+    });
+
+    // 2. Separate logic for loading dashboard stats
+    async function loadDashboardData(userId) {
+        const q = query(collection(db, "request"), where("userId", "==", userId));
+        const querySnapshot = await getDocs(q);
+
+        let total = 0, pending = 0, completed = 0;
+        let tableHTML = "";
+
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            total++;
+            
+            const status = data.status ? data.status.toLowerCase() : "pending";
+            if (status === "pending" || status === "accepted") pending++;
+            if (status === "completed") completed++;
+
+            const displayDate = data.scheduledDate ? data.scheduledDate.substring(0, 10) : "Recent";
+            
+            tableHTML += `
+                <tr>
+                    <td>${displayDate}</td>
+                    <td>${data.category || '-'}</td>
+                    <td>${data.weight || '0'} Kg</td>
+                    <td><span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                </tr>
+            `;
         });
 
-        // --- DROPDOWN & LOGOUT FUNCTIONS ---
+        document.getElementById('total-requests').innerText = total;
+        document.getElementById('pending-requests').innerText = pending;
+        document.getElementById('completed-requests').innerText = completed;
+        document.getElementById('recentRequestsTableBody').innerHTML = tableHTML || "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No requests found.</td></tr>";
+    }
 
-        window.toggleDropdown = function() {
-            document.getElementById("profileDropdown").classList.toggle("show");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.profile-dropdown-container')) {
-                const dropdowns = document.getElementsByClassName("dropdown-menu");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault(); // STOPS the browser from instantly jumping to the login page!
-            
-            const confirmLogout = confirm("Are you sure you want to log out?");
-            
-            if (confirmLogout) {
-                signOut(auth).then(() => {
-                    // Session killed successfully, NOW we redirect safely
-                    window.location.href = "login_page.html"; 
-                }).catch((error) => {
-                    alert("Error logging out: " + error.message);
-                });
-            }
-        };
-
-        // Inside user_history.html, update the logic for the "Accepted" status:
-if (status === "accepted") {
-    // This button takes the user directly to the new feedback page
-    displayStatus = `<a href="user_feedback.html?id=${docSnap.id}" style="color: white; text-decoration: none; background-color: #00B050; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold;">
-        <i class="fas fa-box-open"></i> Finish & Rate
-    </a>`;
-    badgeStyles += "background-color: #10b981; cursor: pointer; transition: 0.2s;"; 
-}
-
-    </script>
+    // --- UTILS ---
+    window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
+    window.logoutUser = async (event) => {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            await signOut(auth);
+            window.location.href = "login_page.html";
+        }
+    };
+</script>
 </body>
 </html>
