@@ -132,6 +132,7 @@
                                     <td style="font-size: 13px;">${reqData.pickupAddress || '-'}</td>
                                     <td>
                                         <button class="btn-accept" onclick="acceptJob('${docSnap.id}')">Accept</button>
+                                        <button class="btn-reject" onclick="rejectJob('${docSnap.id}')">Reject</button>
                                     </td>
                                 </tr>
                             `;
@@ -164,7 +165,9 @@
                     alert("Success! You have accepted the job. It has been moved to your 'My Tasks' page.");
                     document.getElementById(`row-${docId}`).style.display = 'none';
                     
-                } 
+                } catch (error) {
+                    alert("Error accepting job: " + error.message);
+                }
             }
         };
 
