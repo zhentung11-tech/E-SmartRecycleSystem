@@ -82,14 +82,13 @@
         </main>
     </div>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         
-        // Imported sendPasswordResetEmail
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        // --- FIXED: Added 'signOut' to this import list ---
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
@@ -103,83 +102,64 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- NEW FORGOT PASSWORD FUNCTION ---
+        // FORGOT PASSWORD FUNCTION
         window.forgotPassword = function(event) {
-            event.preventDefault(); // Prevents page jumping
-
+            event.preventDefault();
             const emailInput = document.getElementById('email').value;
-
-            // Ensure they typed an email before clicking
             if (!emailInput) {
-                alert("Please type your Email address into the box first, then click 'Forgot Password?'.");
+                alert("Please enter your email address to reset your password.");
                 return;
             }
-
-            // Send the Firebase Reset Email
             sendPasswordResetEmail(auth, emailInput)
-                .then(() => {
-                    alert("Password reset email sent! Please check your inbox (and spam folder) for the link.");
-                })
-                .catch((error) => {
-                    alert("Error: " + error.message);
-                });
+                .then(() => alert("Password reset email sent!"))
+                .catch((error) => alert("Error: " + error.message));
         };
 
-        // --- SECURE LOGIN FUNCTION ---
-       document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const loginBtn = document.getElementById('loginBtn');
-    
-    // 1. Get the role selected by the user on the page
-    const selectedRole = document.querySelector('input[name="role"]:checked').value;
+        // SECURE LOGIN FUNCTION
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const selectedRole = document.querySelector('input[name="role"]:checked').value;
 
-    loginBtn.innerText = "Logging in...";
-    loginBtn.disabled = true;
+            loginBtn.innerText = "Logging in...";
+            loginBtn.disabled = true;
 
-    try {
-        // 2. Authenticate with Firebase
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
 
-        // 3. Fetch the user's role securely from Firestore
-        const userRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userRef);
+                const userRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(userRef);
 
-        if (docSnap.exists()) {
-            const dbRole = docSnap.data().role; // This is the role stored in your DB
+                if (docSnap.exists()) {
+                    const dbRole = docSnap.data().role;
 
-            // 4. ROLE VALIDATION: Compare DB role with selected radio button
-            if (dbRole === selectedRole) {
-                // Roles match: Redirect to the correct portal
-                if (dbRole === 'admin') {
-                    window.location.href = "admin_dashboard.html";
-                } else if (dbRole === 'collector') {
-                    window.location.href = "collector_dashboard.html";
+                    if (dbRole === selectedRole) {
+                        // Success: Redirect based on role
+                        if (dbRole === 'admin') window.location.href = "admin_dashboard.html";
+                        else if (dbRole === 'collector') window.location.href = "collector_dashboard.html";
+                        else window.location.href = "dashboard.html";
+                    } else {
+                        // Role mismatch: Sign out and show custom alert
+                        await signOut(auth);
+                        alert("Access Denied: The account you logged into does not have '" + selectedRole + "' permissions. Please select the correct login type.");
+                        loginBtn.innerText = "Login";
+                        loginBtn.disabled = false;
+                    }
                 } else {
-                    window.location.href = "dashboard.html"; // Normal User
+                    alert("User profile not found in database.");
+                    loginBtn.innerText = "Login";
+                    loginBtn.disabled = false;
                 }
-            } else {
-                // Role mismatch: Sign them out immediately for security
-                await signOut(auth);
-                alert("Login Failed: You are not authorized to log in as a " + selectedRole + ".");
+            } catch (error) {
+                alert("Login Failed: " + error.message);
                 loginBtn.innerText = "Login";
                 loginBtn.disabled = false;
             }
-        } else {
-            alert("User profile not found in database.");
-            loginBtn.innerText = "Login";
-            loginBtn.disabled = false;
-        }
-
-    } catch (error) {
-        alert("Login Failed: " + error.message);
-        loginBtn.innerText = "Login";
-        loginBtn.disabled = false;
-    }
-});
+        });
     </script>
 </body>
 </html>
