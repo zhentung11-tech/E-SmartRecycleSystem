@@ -136,59 +136,55 @@
             const tableBody = document.getElementById('recordTableBody');
             
             try {
-                // Download all users to create a dictionary (translates collectorId into real Name)
+                // Dictionary for user/collector names
                 const usersSnap = await getDocs(collection(db, "users"));
                 const userDictionary = {};
                 usersSnap.forEach(doc => {
-                    userDictionary[doc.id] = doc.data().fullName || "Unknown Collector";
+                    userDictionary[doc.id] = doc.data().fullName || "Unknown";
                 });
 
-                // Fetch all requests
                 const requestSnap = await getDocs(collection(db, "request"));
                 let tableHTML = "";
-                let recordCount = 0;
 
                 requestSnap.forEach((docSnap) => {
                     const reqData = docSnap.data();
                     const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-
-                    // ONLY show requests that have been accepted or completed
-                    if (status === "accepted" || status === "completed") {
-                        recordCount++;
-                        
-                        const displayDate = reqData.updatedAt || reqData.createdAt || "Recent";
-                        
-                        // Find the Collector's real name using our dictionary
-                        const collectorName = userDictionary[reqData.collectorId] || "Unknown Collector";
-
-                        // Set the Badge Color and text
-                        let badgeClass = "pending"; // You can use your yellow CSS for pending/in-progress
-                        let displayStatus = "In Progress";
-                        
-                        if (status === "completed") {
-                            badgeClass = "completed"; // Uses your green CSS class
-                            displayStatus = "Completed";
-                        }
-
-                        // Build table row
-                        tableHTML += `
-                            <tr>
-                                <td>${displayDate.substring(0, 10)}</td>
-                                <td>${collectorName}</td>
-                                <td>${reqData.pickupAddress || reqData.address || '-'}</td>
-                                <td>${reqData.category || '-'}</td>
-                                <td>${reqData.weight || '0'}</td>
-                                <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
-                                <td><button class="btn-view" onclick="alert('Viewing details for job ID: ${docSnap.id}')" style="padding: 5px 10px; background-color: #333; color: white; border: none; border-radius: 3px; cursor: pointer;">View</button></td>
-                            </tr>
-                        `;
+                    
+                    // NEW LOGIC: Include all statuses (pending, accepted, completed)
+                    // If you want to exclude 'cancelled' tasks, you can add && status !== 'cancelled'
+                    
+                    const displayDate = reqData.updatedAt || reqData.createdAt || "Recent";
+                    const collectorName = userDictionary[reqData.collectorId] || "Not Assigned";
+                    
+                    // Set Badge Styles
+                    let badgeClass = "pending"; 
+                    let displayStatus = "Pending";
+                    
+                    if (status === "accepted") {
+                        badgeClass = "accepted"; // Make sure to define this in CSS
+                        displayStatus = "In Progress";
+                    } else if (status === "completed") {
+                        badgeClass = "completed";
+                        displayStatus = "Completed";
                     }
+
+                    tableHTML += `
+                        <tr>
+                            <td>${displayDate.substring(0, 10)}</td>
+                            <td>${collectorName}</td>
+                            <td>${reqData.pickupAddress || reqData.address || '-'}</td>
+                            <td>${reqData.category || '-'}</td>
+                            <td>${reqData.weight || '0'}</td>
+                            <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
+                            <td><button class="btn-view" onclick="alert('Details for: ${docSnap.id}')">View</button></td>
+                        </tr>
+                    `;
                 });
 
-                tableBody.innerHTML = tableHTML || "<tr><td colspan='7' style='text-align: center; padding: 20px;'>No active collector records found.</td></tr>";
+                tableBody.innerHTML = tableHTML || "<tr><td colspan='7' style='text-align: center; padding: 20px;'>No records found.</td></tr>";
 
             } catch (error) {
-                console.error("Error fetching records:", error);
+                console.error("Error loading records:", error);
                 tableBody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: red;'>Error loading records.</td></tr>";
             }
         }
