@@ -225,142 +225,73 @@
             
             <h2 class="dashboard-title">Admin Dashboard</h2>
 
-            <div class="stats-container">
-                <div class="stat-box">
-                    <i class="fas fa-clipboard-list"></i>
+            <div class="stats-container" style="display: flex; gap: 20px; margin-bottom: 30px;">
+                <a href="collect_record.html" class="stat-box" style="text-decoration: none; color: inherit; flex: 1; background-color: #f9f9f9; border-left: 5px solid #1a8a4c; padding: 20px; display: flex; align-items: center; gap: 15px; border-radius: 2px;">
+                    <i class="fas fa-clipboard-list" style="font-size: 30px; color: #1a8a4c;"></i>
                     <div class="stat-text">
-                        <span class="label">Pending Requests</span>
-                        <span class="value" id="statPending">Loading...</span>
+                        <span class="label">Total Tasks</span>
+                        <span class="value" id="statTasks">Loading...</span>
                     </div>
-                </div>
+                </a>
                 
-                <div class="stat-box">
-                    <i class="fas fa-users"></i>
+                <a href="adminusermanagement.html" class="stat-box" style="text-decoration: none; color: inherit; flex: 1; background-color: #f9f9f9; border-left: 5px solid #1a8a4c; padding: 20px; display: flex; align-items: center; gap: 15px; border-radius: 2px;">
+                    <i class="fas fa-users" style="font-size: 30px; color: #1a8a4c;"></i>
                     <div class="stat-text">
                         <span class="label">Total Accounts</span>
                         <span class="value" id="statUsers">Loading...</span>
                     </div>
-                </div>
+                </a>
                 
-                <div class="stat-box">
-                    <i class="fas fa-weight"></i>
+                <div class="stat-box" style="flex: 1; background-color: #f9f9f9; border-left: 5px solid #1a8a4c; padding: 20px; display: flex; align-items: center; gap: 15px; border-radius: 2px;">
+                    <i class="fas fa-weight" style="font-size: 30px; color: #1a8a4c;"></i>
                     <div class="stat-text">
                         <span class="label">Total Weight Recycled</span>
                         <span class="value" id="statWeight">Loading...</span>
                     </div>
                 </div>
             </div>
-
-            <hr class="divider">
-
-            <h3 class="quick-actions-title">Quick Actions</h3>
-            <div class="actions-container">
-                <button class="btn-action btn-green" onclick="window.location.href='adminusermanagement.html'">
-                    <i class="fas fa-users-cog"></i> Manage Users
-                </button>
-                <button class="btn-action btn-grey" onclick="window.location.href='admin_report.html'">
-                    <i class="fas fa-file-alt"></i> View Report
-                </button>
-            </div>
-
         </div>
     </main>
 
     <script type="module">
+        // ... (Keep your existing imports) ...
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
+        // ... (Keep your firebaseConfig and auth guard) ...
+        
+        // REVISED STATS LOADING LOGIC
+        async function loadAdminStats() {
+            try {
+                // Get Total Users
+                const usersSnap = await getDocs(collection(db, "users"));
+                document.getElementById('statUsers').innerText = usersSnap.size + " Total";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+                // Get Request Stats
+                const reqSnap = await getDocs(collection(db, "request"));
+                let totalTasks = 0;
+                let totalWeight = 0;
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // 1. Verify Admin Status & Get Name
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists()) {
-                    if (userSnap.data().role !== "admin") {
-                        alert("Access Denied: You do not have administrator privileges.");
-                        window.location.href = "index.html"; 
-                        return;
+                reqSnap.forEach(doc => {
+                    const data = doc.data();
+                    totalTasks++; // Count all tasks
+                    if (data.status === "completed") {
+                        totalWeight += Number(data.weight) || 0;
                     }
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                }
+                });
 
-                // 2. Fetch System Statistics
-                try {
-                    // Get Total Users
-                    const usersSnap = await getDocs(collection(db, "users"));
-                    const totalUsers = usersSnap.size; // Total number of registered accounts
-                    
-                    document.getElementById('statUsers').innerText = totalUsers + " Total";
+                document.getElementById('statTasks').innerText = totalTasks + " Tasks";
+                document.getElementById('statWeight').innerText = totalWeight.toFixed(2) + " Kg";
 
-                    // Get Request Stats
-                    const reqSnap = await getDocs(collection(db, "request"));
-                    let pendingCount = 0;
-                    let totalWeight = 0;
-
-                    reqSnap.forEach(doc => {
-                        const data = doc.data();
-                        const status = data.status ? data.status.toLowerCase() : "pending";
-                        
-                        if (status === "pending") {
-                            pendingCount++;
-                        } else if (status === "completed") {
-                            totalWeight += Number(data.weight) || 0;
-                        }
-                    });
-
-                    document.getElementById('statPending').innerText = pendingCount + " Pending";
-                    document.getElementById('statWeight').innerText = totalWeight + " Kg";
-
-                } catch (error) {
-                    console.error("Error loading stats:", error);
-                    document.getElementById('statUsers').innerText = "Error";
-                    document.getElementById('statPending').innerText = "Error";
-                    document.getElementById('statWeight').innerText = "Error";
-                }
-
-            } else {
-                window.location.href = "index.html"; // Kick to login
+            } catch (error) {
+                console.error("Error loading stats:", error);
             }
-        });
+        }
 
-        // --- DROPDOWN & LOGOUT FUNCTIONS ---
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.profile-circle-gray') && !event.target.matches('.fa-user-shield') && !event.target.matches('.profile-circle')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = "login_page.html";
-            });
-        };
+        // Call the function inside your onAuthStateChanged block
+        // ... inside onAuthStateChanged, after successful auth ...
+        await loadAdminStats();
     </script>
 </body>
 </html>
