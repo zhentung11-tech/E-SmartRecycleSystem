@@ -156,297 +156,73 @@
             }
         });
 
-        // --- UPGRADED REAL-TIME REPORT GENERATION ---
         window.generateAdminReport = async function() {
-            const reportType = document.getElementById('reportTypeSelect').value;
-            const dateRange = document.getElementById('dateRangeSelect').value;
-            const generateBtn = document.getElementById('generateBtn');
+    const reportType = document.getElementById('reportTypeSelect').value;
+    const dateRange = document.getElementById('dateRangeSelect').value;
+    const generateBtn = document.getElementById('generateBtn');
+    const tbody = document.getElementById('reportTableBody');
+    const summaryContainer = document.getElementById('dynamicSummaryCards');
+    const thead = document.getElementById('dynamicTableHeader');
+    
+    if (!reportType) { alert("Please select a report type."); return; }
 
-            if (!reportType || !dateRange) {
-                alert("Please select both a Report Type and a Date Range.");
-                return; 
-            }
+    generateBtn.innerText = "Loading...";
+    generateBtn.disabled = true;
 
-            generateBtn.innerText = "Loading...";
-            generateBtn.disabled = true;
+    // Time Filter Setup
+    const now = new Date();
+    let startTime = 0;
+    if (dateRange === "Today") startTime = new Date(now.setHours(0,0,0,0)).getTime();
+    else if (dateRange === "Last 7 Days") startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
 
-           // 1. Setup the Time Filter Logic!
-const now = new Date();
-let startTime = 0; // Default to 0 (All Time)
+    try {
+        tbody.innerHTML = ""; summaryContainer.innerHTML = "";
+        const [usersSnap, reqSnap] = await Promise.all([
+            getDocs(collection(db, "users")), 
+            getDocs(collection(db, "request"))
+        ]);
 
-if (dateRange === "Today") {
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    startTime = today.getTime();
-} else if (dateRange === "Last 7 Days") {
-    startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
-} else if (dateRange === "Last 30 Days") {
-    startTime = now.getTime() - (30 * 24 * 60 * 60 * 1000);
-} else if (dateRange === "This Month") {
-    startTime = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-}
-// For "All Time", startTime remains 0, meaning it includes every record.
-
-            try {
-                // Prepare dynamic HTML Containers
-                const summaryContainer = document.getElementById('dynamicSummaryCards');
-                const theadContainer = document.getElementById('dynamicTableHeader');
-                const tbodyContainer = document.getElementById('reportTableBody');
-                
-                let recordsArray = [];
-                let tableHTML = "";
-
-                // ----------------------------------------------------
-                // LOGIC A: COLLECTION SUMMARY
-                // ----------------------------------------------------
-                if (reportType === "Collection Summary") {
-                    summaryContainer.innerHTML = `
-                        <div class="card"><h3>Total Collections</h3><p class="card-value" id="totalCollections">0</p></div>
-                        <div class="card"><h3>Total Weight Collected</h3><p class="card-value" id="totalWeight">0 kg</p></div>
-                        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="activeCollectors">0</p></div>
-                    `;
-                    theadContainer.innerHTML = `<tr><th>Date</th><th>Item Type</th><th>Weight (kg)</th><th>Address</th><th>Status</th></tr>`;
-
-                    const querySnapshot = await getDocs(collection(window.db, "request"));
-                    let totalCollections = 0;
-                    let totalWeight = 0;
-                    let uniqueCollectors = new Set();
-
-                    querySnapshot.forEach((docSnap) => {
-                        const reqData = docSnap.data();
-                        
-                        let sortValue = 0;
-                        let displayDate = "N/A";
-                        let rawDate = reqData.createdAt;
-
-                        if (rawDate) {
-                            if (rawDate.toDate) { 
-                                sortValue = rawDate.toDate().getTime(); 
-                                displayDate = rawDate.toDate().toLocaleDateString(); 
-                            } else { 
-                                sortValue = new Date(rawDate).getTime();
-                                displayDate = String(rawDate).substring(0, 10);
-                            }
-                        }
-
-                        // Time filter
-                        if (startTime > 0 && sortValue < startTime) return;
-
-                        totalCollections++; 
-                        totalWeight += Number(reqData.weight) || 0; 
-                        if (reqData.collectorId) uniqueCollectors.add(reqData.collectorId);
-
-                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                        let badgeStyles = "padding: 5px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; ";
-                        let displayStatus = "Pending";
-                        
-                        if (status === "pending") {
-                            badgeStyles += "background-color: #fff3cd; color: #856404;"; 
-                        } else if (status === "accepted") {
-                            displayStatus = "In Progress";
-                            badgeStyles += "background-color: #cce5ff; color: #004085;"; 
-                        } else if (status === "completed") {
-                            displayStatus = "Completed";
-                            badgeStyles += "background-color: #d4edda; color: #155724;"; 
-                        }
-
-                        recordsArray.push({
-                            timestamp: sortValue,
-                            html: `
-                                <tr>
-                                    <td>${displayDate}</td>
-                                    <td><span style="text-transform: capitalize;">${reqData.category || '-'}</span></td>
-                                    <td>${reqData.weight || '0'} kg</td>
-                                    <td>${reqData.pickupAddress || reqData.address || '-'}</td>
-                                    <td><span style="${badgeStyles}">${displayStatus}</span></td>
-                                </tr>
-                            `
-                        });
-                    });
-
-                    document.getElementById('totalCollections').innerText = totalCollections;
-                    document.getElementById('totalWeight').innerText = Math.round(totalWeight * 100) / 100 + " kg";
-                    document.getElementById('activeCollectors').innerText = uniqueCollectors.size;
-                } 
-
-                // ----------------------------------------------------
-                // LOGIC B: USER SUMMARY
-                // ----------------------------------------------------
-                else if (reportType === "User Summary") {
-                    summaryContainer.innerHTML = `
-                        <div class="card"><h3>Total Accounts</h3><p class="card-value" id="totalAccounts">0</p></div>
-                        <div class="card"><h3>Normal Users</h3><p class="card-value" id="totalNormalUsers">0</p></div>
-                        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="totalCollectors">0</p></div>
-                    `;
-                    theadContainer.innerHTML = `<tr><th>Account ID</th><th>Full Name</th><th>Role</th><th>Email Address</th><th>Phone</th></tr>`;
-
-                    const querySnapshot = await getDocs(collection(window.db, "users"));
-                    let totalAccounts = 0;
-                    let totalNormalUsers = 0;
-                    let totalCollectors = 0;
-
-                    querySnapshot.forEach((docSnap) => {
-                        const userData = docSnap.data();
-                        
-                        let sortValue = 0;
-                        if (userData.createdAt) {
-                            if (userData.createdAt.toDate) { sortValue = userData.createdAt.toDate().getTime(); } 
-                            else { sortValue = new Date(userData.createdAt).getTime(); }
-                        }
-
-                        // Time filter
-                        if (startTime > 0 && sortValue < startTime) return;
-
-                        totalAccounts++;
-                        const role = userData.role ? userData.role.toLowerCase() : "user";
-                        
-                        let badgeClass = "background-color: #007bff; color: white;";
-                        let displayRole = "User";
-                        
-                        if (role === "admin") {
-                            displayRole = "Admin";
-                            badgeClass = "background-color: #333; color: white;";
-                        } else if (role === "collector") {
-                            displayRole = "Collector";
-                            badgeClass = "background-color: #008040; color: white;";
-                            totalCollectors++;
-                        } else {
-                            totalNormalUsers++;
-                        }
-
-                        const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase();
-
-                        recordsArray.push({
-                            timestamp: sortValue,
-                            html: `
-                                <tr>
-                                    <td style="font-weight: bold; color: #555;">${shortId}</td>
-                                    <td>${userData.fullName || 'N/A'}</td>
-                                    <td><span style="padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; ${badgeClass}">${displayRole}</span></td>
-                                    <td>${userData.email || 'N/A'}</td>
-                                    <td>${userData.phone || 'N/A'}</td>
-                                </tr>
-                            `
-                        });
-                    });
-
-                    document.getElementById('totalAccounts').innerText = totalAccounts;
-                    document.getElementById('totalNormalUsers').innerText = totalNormalUsers;
-                    document.getElementById('totalCollectors').innerText = totalCollectors;
+        // 1. COLLECTION SUMMARY
+        if (reportType === "Collection Summary") {
+            thead.innerHTML = `<tr><th>Date</th><th>Item</th><th>Weight</th><th>Status</th></tr>`;
+            reqSnap.forEach(d => {
+                const data = d.data();
+                const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                if (startTime > 0 && time < startTime) return;
+                tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
+            });
+        } 
+        
+        // 2. USER SUMMARY (Registers as "user")
+        else if (reportType === "User Summary") {
+            thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
+            usersSnap.forEach(u => {
+                const d = u.data();
+                if (d.role?.toLowerCase() === "user") {
+                    tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
                 }
-
-                // ----------------------------------------------------
-                // LOGIC C: COLLECTOR PERFORMANCE SUMMARY
-                // ----------------------------------------------------
-                else if (reportType === "Collector Performance") {
-                    summaryContainer.innerHTML = `
-                        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="perfActiveCollectors">0</p></div>
-                        <div class="card"><h3>Total Jobs Done</h3><p class="card-value" id="perfTotalJobs">0</p></div>
-                        <div class="card"><h3>Total Weight Collected</h3><p class="card-value" id="perfTotalWeight">0 kg</p></div>
-                    `;
-                    theadContainer.innerHTML = `<tr><th>Collector Name</th><th>Phone Number</th><th>Status</th><th>Jobs Completed</th><th>Weight Collected</th></tr>`;
-
-                    // First: Get all the Collectors
-                    const usersSnap = await getDocs(collection(window.db, "users"));
-                    let collectorsMap = {};
-                    
-                    usersSnap.forEach(doc => {
-                        const data = doc.data();
-                        if(data.role === "collector") {
-                            collectorsMap[doc.id] = {
-                                name: data.fullName || "Unknown",
-                                phone: data.phone || "N/A",
-                                jobs: 0,
-                                weight: 0,
-                                lastActive: 0
-                            };
-                        }
-                    });
-
-                    // Second: Get all requests and match them to the collectors
-                    const reqSnap = await getDocs(collection(window.db, "request"));
-                    let totalJobs = 0;
-                    let totalWeight = 0;
-                    let activeCount = 0;
-
-                    reqSnap.forEach(docSnap => {
-                        const reqData = docSnap.data();
-                        
-                        // Extract Date
-                        let sortValue = 0;
-                        let rawDate = reqData.updatedAt || reqData.createdAt;
-                        if (rawDate) {
-                            if (rawDate.toDate) sortValue = rawDate.toDate().getTime(); 
-                            else sortValue = new Date(rawDate).getTime();
-                        }
-
-                        // Time Filter
-                        if (startTime > 0 && sortValue < startTime) return;
-
-                        const status = reqData.status ? reqData.status.toLowerCase() : "";
-                        const cId = reqData.collectorId;
-
-                        // Only count if it's COMPLETED and assigned to a known collector
-                        if (status === "completed" && cId && collectorsMap[cId]) {
-                            collectorsMap[cId].jobs += 1;
-                            collectorsMap[cId].weight += (Number(reqData.weight) || 0);
-                            if (sortValue > collectorsMap[cId].lastActive) {
-                                collectorsMap[cId].lastActive = sortValue;
-                            }
-                            
-                            totalJobs++;
-                            totalWeight += (Number(reqData.weight) || 0);
-                        }
-                    });
-
-                    // Third: Convert map data into table rows
-                    for (const [cId, cData] of Object.entries(collectorsMap)) {
-                        
-                        if (cData.jobs > 0) activeCount++;
-
-                        let badgeClass = cData.jobs > 0 ? "background-color: #d4edda; color: #155724;" : "background-color: #f8d7da; color: #721c24;";
-                        let statusText = cData.jobs > 0 ? "Active" : "Inactive";
-
-                        // We push ALL collectors to the array, but sort by whoever was active most recently
-                        recordsArray.push({
-                            timestamp: cData.lastActive,
-                            html: `
-                                <tr>
-                                    <td style="font-weight: bold; color: #333;">${cData.name}</td>
-                                    <td>${cData.phone}</td>
-                                    <td><span style="padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; ${badgeClass}">${statusText}</span></td>
-                                    <td>${cData.jobs} Tasks</td>
-                                    <td>${Math.round(cData.weight * 100) / 100} kg</td>
-                                </tr>
-                            `
-                        });
-                    }
-
-                    // Update UI Numbers
-                    document.getElementById('perfActiveCollectors').innerText = activeCount;
-                    document.getElementById('perfTotalJobs').innerText = totalJobs;
-                    document.getElementById('perfTotalWeight').innerText = Math.round(totalWeight * 100) / 100 + " kg";
+            });
+        }
+        
+        // 3. COLLECTOR PERFORMANCE (Registers as "collector")
+        else if (reportType === "Collector Performance") {
+            thead.innerHTML = `<tr><th>Collector Name</th><th>Phone</th><th>Tasks Done</th><th>Weight</th></tr>`;
+            usersSnap.forEach(u => {
+                const ud = u.data();
+                if (ud.role?.toLowerCase() === "collector") {
+                    const completed = reqSnap.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
+                    const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
+                    tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${ud.phone || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
                 }
+            });
+        }
 
-                // --- FINAL RENDER PROCESS ---
-                recordsArray.sort((a, b) => b.timestamp - a.timestamp);
-
-                recordsArray.forEach(record => {
-                    tableHTML += record.html;
-                });
-                
-                tbodyContainer.innerHTML = tableHTML || "<tr><td colspan='5' style='text-align:center; padding: 30px; color: #888;'>No records found for this timeframe.</td></tr>";
-
-                document.getElementById('reportTitle').innerText = reportType + " Report (" + dateRange + ")";
-                document.getElementById('reportResult').style.display = 'block';
-
-            } catch (error) {
-                console.error("Error loading report:", error);
-                alert("Failed to load report data. Please try again.");
-            }
-
-            generateBtn.innerText = "Generate Report";
-            generateBtn.disabled = false;
-        };
+        document.getElementById('reportResult').style.display = 'block';
+    } catch (e) { console.error(e); alert("Error loading report data."); }
+    
+    generateBtn.innerText = "Generate Report";
+    generateBtn.disabled = false;
+};
 
         window.exportPDF = function() {
             const reportResult = document.getElementById('reportResult');
