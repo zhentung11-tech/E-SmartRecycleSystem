@@ -29,9 +29,12 @@
         <div id="userNameDisplay">Loading...</div>
     </header>
 
-    <nav class="navbar">
-        <a href="admin_dashboard.html" class="nav-link">Dashboard</a>
-        <a href="admin_report.html" class="nav-link active">Reports</a>
+   <nav class="navbar">
+        <a href="admin_dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="adminusermanagement.html" class="nav-link"><i class="fa-regular fa-user"></i> Account</a>
+        <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
+        <a href="admin_report.html" class="nav-link active"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+        <a href="admin_notification" class="nav-link"><i class="fa-regular fa-bell"></i> Notification</a>
     </nav>
 
     <main>
@@ -121,45 +124,62 @@
                         }
                     });
                 } else if (type === "Account Summary") {
-    // 1. Setup headers
     thead.innerHTML = `<tr><th colspan="4" style="background:#ddd;">REGISTERED USERS</th></tr>
                        <tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined Date</th></tr>`;
 
-    // 2. Add Users (Filtered by Date)
+    // 1. Add Users
     users.forEach(u => {
         const d = u.data();
-        const time = d.createdAt?.toDate ? d.createdAt.toDate().getTime() : new Date(d.createdAt).getTime();
+        
+        // SAFE DATE CONVERSION: Handles Firestore Timestamp, Strings, and Missing Data
+        let time = 0;
+        if (d.createdAt) {
+            time = d.createdAt.toDate ? d.createdAt.toDate().getTime() : new Date(d.createdAt).getTime();
+        }
 
-        // Check if date is within range (if not All Time)
+        // Logic: If range is All Time, OR date matches
         if (range === "All Time" || (time >= startTime && time <= endTime)) {
             if (d.role?.toLowerCase() === "user") {
-                tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td><td>${new Date(time).toLocaleDateString()}</td></tr>`;
+                tbody.innerHTML += `<tr>
+                    <td>${d.fullName || 'N/A'}</td>
+                    <td>${d.email || 'N/A'}</td>
+                    <td>${d.phone || 'N/A'}</td>
+                    <td>${time ? new Date(time).toLocaleDateString() : 'N/A'}</td>
+                </tr>`;
             }
         }
     });
 
-    // 3. Add Separator
-    tbody.innerHTML += `<tr><td colspan="4" style="background:#f8f9fa; font-weight:bold;">COLLECTOR PERFORMANCE</td></tr>`;
-    tbody.innerHTML += `<tr><th>Name</th><th>Phone</th><th>Tasks</th><th>Total Weight</th></tr>`;
+    // 2. Add Separator
+    tbody.innerHTML += `<tr><td colspan="4" style="background:#f8f9fa; font-weight:bold;">COLLECTOR PERFORMANCE</td></tr>
+                        <tr><th>Name</th><th>Phone</th><th>Tasks</th><th>Total Weight</th></tr>`;
 
-    // 4. Add Collectors (Filtered by Date of tasks)
+    // 3. Add Collectors
     users.forEach(u => {
         const ud = u.data();
         if (ud.role?.toLowerCase() === "collector") {
-            // Filter tasks for this collector within the date range
+            // SAFE FILTERING
             const completed = reqs.docs.filter(r => {
                 const rData = r.data();
-                const rTime = rData.createdAt?.toDate ? rData.createdAt.toDate().getTime() : new Date(rData.createdAt).getTime();
+                if (!rData.collectorId) return false;
+                
+                const rTime = rData.createdAt ? (rData.createdAt.toDate ? rData.createdAt.toDate().getTime() : new Date(rData.createdAt).getTime()) : 0;
+                
                 return rData.collectorId === u.id && 
                        rData.status?.toLowerCase() === "completed" &&
                        (range === "All Time" || (rTime >= startTime && rTime <= endTime));
             });
             
-            const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
+            const totalW = completed.reduce((sum, r) => sum + (Number(r.data().weight) || 0), 0);
             
-            // Only show if they performed tasks in that range
+            // Only show if tasks exist in that period
             if (completed.length > 0 || range === "All Time") {
-                tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${ud.phone || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
+                tbody.innerHTML += `<tr>
+                    <td>${ud.fullName || 'N/A'}</td>
+                    <td>${ud.phone || 'N/A'}</td>
+                    <td>${completed.length}</td>
+                    <td>${totalW.toFixed(2)} kg</td>
+                </tr>`;
             }
         }
     });
