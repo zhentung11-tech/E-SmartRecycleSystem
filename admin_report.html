@@ -41,8 +41,7 @@
                 <select id="reportTypeSelect">
                     <option value="" disabled selected>Select Report Type</option>
                     <option value="Collection Summary">Collection Summary</option>
-                    <option value="User Summary">User Data Summary</option>
-                    <option value="Collector Performance">Collector Performance</option>
+                    <option value="User Summary">Account Summary</option>
                 </select>
                 <select id="dateRangeSelect">
                     <option value="All Time">All Time</option>
@@ -121,24 +120,50 @@
                             tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
                         }
                     });
-                } else if (type === "User Summary") {
-                    thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
-                    users.forEach(u => {
-                        const d = u.data();
-                        if(d.role?.toLowerCase() === "user") {
-                            tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
-                        }
-                    });
-                } else if (type === "Collector Performance") {
-                    thead.innerHTML = `<tr><th>Name</th><th>Tasks</th><th>Total Weight</th></tr>`;
-                    users.forEach(u => {
-                        const ud = u.data();
-                        if (ud.role?.toLowerCase() === "collector") {
-                            const completed = reqs.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
-                            const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
-                            tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
-                        }
-                    });
+                } else if (type === "Account Summary") {
+    // 1. Setup headers
+    thead.innerHTML = `<tr><th colspan="4" style="background:#ddd;">REGISTERED USERS</th></tr>
+                       <tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined Date</th></tr>`;
+
+    // 2. Add Users (Filtered by Date)
+    users.forEach(u => {
+        const d = u.data();
+        const time = d.createdAt?.toDate ? d.createdAt.toDate().getTime() : new Date(d.createdAt).getTime();
+
+        // Check if date is within range (if not All Time)
+        if (range === "All Time" || (time >= startTime && time <= endTime)) {
+            if (d.role?.toLowerCase() === "user") {
+                tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td><td>${new Date(time).toLocaleDateString()}</td></tr>`;
+            }
+        }
+    });
+
+    // 3. Add Separator
+    tbody.innerHTML += `<tr><td colspan="4" style="background:#f8f9fa; font-weight:bold;">COLLECTOR PERFORMANCE</td></tr>`;
+    tbody.innerHTML += `<tr><th>Name</th><th>Phone</th><th>Tasks</th><th>Total Weight</th></tr>`;
+
+    // 4. Add Collectors (Filtered by Date of tasks)
+    users.forEach(u => {
+        const ud = u.data();
+        if (ud.role?.toLowerCase() === "collector") {
+            // Filter tasks for this collector within the date range
+            const completed = reqs.docs.filter(r => {
+                const rData = r.data();
+                const rTime = rData.createdAt?.toDate ? rData.createdAt.toDate().getTime() : new Date(rData.createdAt).getTime();
+                return rData.collectorId === u.id && 
+                       rData.status?.toLowerCase() === "completed" &&
+                       (range === "All Time" || (rTime >= startTime && rTime <= endTime));
+            });
+            
+            const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
+            
+            // Only show if they performed tasks in that range
+            if (completed.length > 0 || range === "All Time") {
+                tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${ud.phone || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
+            }
+        }
+    });
+}
                 }
                 document.getElementById('reportResult').style.display = 'block';
             } catch (e) { console.error(e); alert("Error loading data."); }
