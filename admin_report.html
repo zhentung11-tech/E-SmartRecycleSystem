@@ -9,7 +9,6 @@
     <style>
         .top-nav-green { background-color: #8CC63F; display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; height: 60px; }
         .logo-section-top { display: flex; align-items: center; gap: 15px; }
-        .logo-section-top img { width: 50px; }
         .user-profile-top { position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .profile-dropdown { display: none; position: absolute; top: 55px; right: 0; background-color: white; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; z-index: 1000; flex-direction: column; }
         .show-dropdown { display: flex !important; }
@@ -19,11 +18,10 @@
     </style>
 </head>
 <body>
-
-    <div class="app-container" style="max-width: 100%;">
+    <div class="app-container">
         <header class="top-nav-green">
             <div class="logo-section-top">
-                <img src="logo.png" alt="Logo">
+                <img src="logo.png" style="width: 50px;">
                 <a href="admin_dashboard.html" style="text-decoration: none; color: black;"><h1>E-Smart Recycle</h1></a>
             </div>
             <div class="user-profile-top" onclick="toggleProfileMenu()">
@@ -37,10 +35,10 @@
         </header>
 
         <nav class="navbar" style="background-color: #0f7a45; display: flex; padding: 10px;">
-            <a href="admin_dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="adminusermanagement.html" class="nav-link"><i class="fa-regular fa-user"></i> Account</a>
-            <a href="collect_record.html" class="nav-link"><i class="fa-solid fa-clipboard-list"></i> Collector Records</a>
-            <a href="admin_report.html" class="nav-link active"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+            <a href="admin_dashboard.html" class="nav-link">Dashboard</a>
+            <a href="adminusermanagement.html" class="nav-link">Account</a>
+            <a href="collect_record.html" class="nav-link">Collector Records</a>
+            <a href="admin_report.html" class="nav-link active">Reports</a>
         </nav>
 
         <main class="main-content" style="padding: 40px; display: flex; justify-content: center;">
@@ -68,12 +66,10 @@
                 <div id="reportResult" style="display: none;">
                     <h2 id="reportTitle">Report</h2>
                     <div class="summary-cards" id="dynamicSummaryCards"></div>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead id="dynamicTableHeader"></thead>
-                            <tbody id="reportTableBody"></tbody>
-                        </table>
-                    </div>
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead id="dynamicTableHeader"></thead>
+                        <tbody id="reportTableBody"></tbody>
+                    </table>
                 </div>
             </div>
         </main>
@@ -93,187 +89,68 @@
             appId: "1:212695525607:web:61d0df7011aa8baf265a42"
         }));
 
-        onAuthStateChanged(getAuth(), async (user) => {
-            if (!user) { window.location.href = "login_page.html"; return; }
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if (snap.exists() && snap.data().role === "admin") {
-                document.getElementById('userNameDisplay').innerText = snap.data().fullName;
-            } else { window.location.href = "login_page.html"; }
-        });
-
-        // Helper: Consistent date conversion
-        const getTimestamp = (val) => val?.toDate ? val.toDate().getTime() : new Date(val).getTime();
-
         window.generateAdminReport = async function() {
-    const reportType = document.getElementById('reportTypeSelect').value;
-    const dateRange = document.getElementById('dateRangeSelect').value;
-    const generateBtn = document.getElementById('generateBtn');
-
-    if (!reportType || !dateRange) { alert("Please select both a Report Type and a Date Range."); return; }
-
-    generateBtn.innerText = "Generating...";
-    generateBtn.disabled = true;
-
-    // --- DATE RANGE CALCULATIONS ---
-    const now = new Date();
-    let startTime = 0;
-    let endTime = new Date().getTime(); // Defaults to "now"
-
-    if (dateRange === "Today") {
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-        startTime = startOfToday.getTime();
-        // endTime is already "now"
-    } else if (dateRange === "Last 7 Days") {
-        startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
-    } else if (dateRange === "Last 30 Days") {
-        startTime = now.getTime() - (30 * 24 * 60 * 60 * 1000);
-    } else if (dateRange === "This Month") {
-        startTime = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    } else {
-        // "All Time"
-        startTime = 0;
-        endTime = Infinity; 
-    }
-
-    try {
-        const tbody = document.getElementById('reportTableBody');
-        const summaryContainer = document.getElementById('dynamicSummaryCards');
-        tbody.innerHTML = ""; 
-        summaryContainer.innerHTML = "";
-
-        // Fetch Data
-        const requestSnap = await getDocs(collection(db, "request"));
-        let tableHTML = "";
-        let totalCount = 0;
-        let totalWeight = 0;
-
-        requestSnap.forEach((docSnap) => {
-            const data = docSnap.data();
+            const reportType = document.getElementById('reportTypeSelect').value;
+            const dateRange = document.getElementById('dateRangeSelect').value;
+            const tbody = document.getElementById('reportTableBody');
+            const summaryContainer = document.getElementById('dynamicSummaryCards');
+            const thead = document.getElementById('dynamicTableHeader');
             
-            // Convert Firestore Timestamp or String Date to number
-            const recordTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt || data.updatedAt).getTime();
-            
-            // Filter: Only include if within range
-            if (recordTime >= startTime && recordTime <= endTime) {
-                totalCount++;
-                totalWeight += Number(data.weight) || 0;
-                
-                tableHTML += `
-                    <tr>
-                        <td>${new Date(recordTime).toLocaleDateString()}</td>
-                        <td>${data.category || '-'}</td>
-                        <td>${data.weight || '0'} kg</td>
-                        <td><span class="badge ${data.status}">${data.status || 'pending'}</span></td>
-                    </tr>
-                `;
-            }
-        });
+            if (!reportType) { alert("Select a report type."); return; }
 
-        tbody.innerHTML = tableHTML || "<tr><td colspan='4' style='text-align:center;'>No records found for this range.</td></tr>";
-        
-        // Update Summary
-        if (reportType === "Collection Summary") {
-            summaryContainer.innerHTML = `
-                <div class="card"><h3>Total Tasks</h3><p class="card-value">${totalCount}</p></div>
-                <div class="card"><h3>Total Weight</h3><p class="card-value">${totalWeight.toFixed(2)} kg</p></div>
-            `;
-        }
+            // Date Range setup
+            const now = new Date();
+            let startTime = 0;
+            if (dateRange === "Today") startTime = new Date(now.setHours(0,0,0,0)).getTime();
+            else if (dateRange === "Last 7 Days") startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+            else if (dateRange === "Last 30 Days") startTime = now.getTime() - (30 * 24 * 60 * 60 * 1000);
 
-        document.getElementById('reportResult').style.display = 'block';
-    } catch (err) {
-        console.error("Report Error:", err);
-        alert("Failed to generate report.");
-    }
+            tbody.innerHTML = ""; summaryContainer.innerHTML = "";
 
-    generateBtn.innerText = "Generate Report";
-    generateBtn.disabled = false;
-};
+            try {
+                // 1. Collection Summary
+                if (reportType === "Collection Summary") {
+                    thead.innerHTML = `<tr><th>Date</th><th>Item</th><th>Weight</th><th>Status</th></tr>`;
+                    const reqs = await getDocs(collection(db, "request"));
+                    let totalC = 0, totalW = 0;
+                    reqs.forEach(d => {
+                        const data = d.data();
+                        const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                        if (startTime > 0 && time < startTime) return;
+                        totalC++; totalW += Number(data.weight) || 0;
+                        tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category}</td><td>${data.weight}kg</td><td>${data.status}</td></tr>`;
+                    });
+                    summaryContainer.innerHTML = `<div class="card"><h3>Total Tasks</h3><p class="card-value">${totalC}</p></div><div class="card"><h3>Total Weight</h3><p class="card-value">${totalW.toFixed(2)}kg</p></div>`;
+                } 
+                // 2. User Summary
+                else if (reportType === "User Summary") {
+                    thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
+                    const users = await getDocs(collection(db, "users"));
+                    users.forEach(u => {
+                        const d = u.data();
+                        if(d.role === "user") {
+                            tbody.innerHTML += `<tr><td>${d.fullName}</td><td>${d.email}</td><td>${d.phone}</td></tr>`;
+                        }
+                    });
+                }
+                // 3. Collector Performance
+                else if (reportType === "Collector Performance") {
+                    thead.innerHTML = `<tr><th>Name</th><th>Phone</th><th>Tasks Done</th><th>Total Weight</th></tr>`;
+                    const users = await getDocs(collection(db, "users"));
+                    const reqs = await getDocs(collection(db, "request"));
+                    users.forEach(u => {
+                        const ud = u.data();
+                        if(ud.role === "collector") {
+                            const completed = reqs.docs.filter(r => r.data().collectorId === u.id && r.data().status === "completed");
+                            const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
+                            tbody.innerHTML += `<tr><td>${ud.fullName}</td><td>${ud.phone}</td><td>${completed.length}</td><td>${totalW.toFixed(2)}kg</td></tr>`;
+                        }
+                    });
+                }
+                document.getElementById('reportResult').style.display = 'block';
+            } catch (e) { console.error(e); alert("Error loading report."); }
+        };
 
-// Add this logic into your generateAdminReport function
-
-// ----------------------------------------------------
-// LOGIC B: USER SUMMARY (Only shows users with role "user")
-// ----------------------------------------------------
-else if (reportType === "User Summary") {
-    summaryContainer.innerHTML = `
-        <div class="card"><h3>Total Users</h3><p class="card-value" id="totalUsers">0</p></div>
-    `;
-    theadContainer.innerHTML = `<tr><th>User ID</th><th>Full Name</th><th>Email</th><th>Phone</th></tr>`;
-
-    const querySnapshot = await getDocs(collection(window.db, "users"));
-    let userCount = 0;
-
-    querySnapshot.forEach((docSnap) => {
-        const userData = docSnap.data();
-        // Only include those where role is 'user' (not admin or collector)
-        if (userData.role === "user") {
-            userCount++;
-            const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase();
-            
-            tableHTML += `
-                <tr>
-                    <td style="font-weight: bold; color: #555;">${shortId}</td>
-                    <td>${userData.fullName || 'N/A'}</td>
-                    <td>${userData.email || 'N/A'}</td>
-                    <td>${userData.phone || 'N/A'}</td>
-                </tr>
-            `;
-        }
-    });
-    document.getElementById('totalUsers').innerText = userCount;
-    tbodyContainer.innerHTML = tableHTML;
-}
-
-// ----------------------------------------------------
-// LOGIC C: COLLECTOR PERFORMANCE (Only shows users with role "collector")
-// ----------------------------------------------------
-else if (reportType === "Collector Performance") {
-    summaryContainer.innerHTML = `
-        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="perfActiveCollectors">0</p></div>
-        <div class="card"><h3>Total Tasks Completed</h3><p class="card-value" id="perfTotalJobs">0</p></div>
-    `;
-    theadContainer.innerHTML = `<tr><th>Collector Name</th><th>Phone</th><th>Jobs Completed</th><th>Total Weight</th></tr>`;
-
-    // 1. Get all collectors
-    const usersSnap = await getDocs(collection(window.db, "users"));
-    const collectors = [];
-    
-    usersSnap.forEach(doc => {
-        const data = doc.data();
-        if(data.role === "collector") {
-            collectors.push({ id: doc.id, name: data.fullName, phone: data.phone, jobs: 0, weight: 0 });
-        }
-    });
-
-    // 2. Get all requests and match them
-    const reqSnap = await getDocs(collection(window.db, "request"));
-    reqSnap.forEach(docSnap => {
-        const reqData = docSnap.data();
-        const collector = collectors.find(c => c.id === reqData.collectorId);
-        
-        if (collector && reqData.status === "completed") {
-            collector.jobs += 1;
-            collector.weight += Number(reqData.weight) || 0;
-        }
-    });
-
-    // 3. Build Table
-    collectors.forEach(c => {
-        tableHTML += `
-            <tr>
-                <td>${c.name}</td>
-                <td>${c.phone}</td>
-                <td>${c.jobs}</td>
-                <td>${c.weight.toFixed(2)} kg</td>
-            </tr>
-        `;
-    });
-    
-    document.getElementById('perfActiveCollectors').innerText = collectors.length;
-    document.getElementById('perfTotalJobs').innerText = collectors.reduce((sum, c) => sum + c.jobs, 0);
-    tbodyContainer.innerHTML = tableHTML;
-}
-        
         window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
         window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
     </script>
