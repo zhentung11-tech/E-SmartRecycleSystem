@@ -189,6 +189,91 @@
     generateBtn.disabled = false;
 };
 
+// Add this logic into your generateAdminReport function
+
+// ----------------------------------------------------
+// LOGIC B: USER SUMMARY (Only shows users with role "user")
+// ----------------------------------------------------
+else if (reportType === "User Summary") {
+    summaryContainer.innerHTML = `
+        <div class="card"><h3>Total Users</h3><p class="card-value" id="totalUsers">0</p></div>
+    `;
+    theadContainer.innerHTML = `<tr><th>User ID</th><th>Full Name</th><th>Email</th><th>Phone</th></tr>`;
+
+    const querySnapshot = await getDocs(collection(window.db, "users"));
+    let userCount = 0;
+
+    querySnapshot.forEach((docSnap) => {
+        const userData = docSnap.data();
+        // Only include those where role is 'user' (not admin or collector)
+        if (userData.role === "user") {
+            userCount++;
+            const shortId = "#" + docSnap.id.substring(0, 6).toUpperCase();
+            
+            tableHTML += `
+                <tr>
+                    <td style="font-weight: bold; color: #555;">${shortId}</td>
+                    <td>${userData.fullName || 'N/A'}</td>
+                    <td>${userData.email || 'N/A'}</td>
+                    <td>${userData.phone || 'N/A'}</td>
+                </tr>
+            `;
+        }
+    });
+    document.getElementById('totalUsers').innerText = userCount;
+    tbodyContainer.innerHTML = tableHTML;
+}
+
+// ----------------------------------------------------
+// LOGIC C: COLLECTOR PERFORMANCE (Only shows users with role "collector")
+// ----------------------------------------------------
+else if (reportType === "Collector Performance") {
+    summaryContainer.innerHTML = `
+        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="perfActiveCollectors">0</p></div>
+        <div class="card"><h3>Total Tasks Completed</h3><p class="card-value" id="perfTotalJobs">0</p></div>
+    `;
+    theadContainer.innerHTML = `<tr><th>Collector Name</th><th>Phone</th><th>Jobs Completed</th><th>Total Weight</th></tr>`;
+
+    // 1. Get all collectors
+    const usersSnap = await getDocs(collection(window.db, "users"));
+    const collectors = [];
+    
+    usersSnap.forEach(doc => {
+        const data = doc.data();
+        if(data.role === "collector") {
+            collectors.push({ id: doc.id, name: data.fullName, phone: data.phone, jobs: 0, weight: 0 });
+        }
+    });
+
+    // 2. Get all requests and match them
+    const reqSnap = await getDocs(collection(window.db, "request"));
+    reqSnap.forEach(docSnap => {
+        const reqData = docSnap.data();
+        const collector = collectors.find(c => c.id === reqData.collectorId);
+        
+        if (collector && reqData.status === "completed") {
+            collector.jobs += 1;
+            collector.weight += Number(reqData.weight) || 0;
+        }
+    });
+
+    // 3. Build Table
+    collectors.forEach(c => {
+        tableHTML += `
+            <tr>
+                <td>${c.name}</td>
+                <td>${c.phone}</td>
+                <td>${c.jobs}</td>
+                <td>${c.weight.toFixed(2)} kg</td>
+            </tr>
+        `;
+    });
+    
+    document.getElementById('perfActiveCollectors').innerText = collectors.length;
+    document.getElementById('perfTotalJobs').innerText = collectors.reduce((sum, c) => sum + c.jobs, 0);
+    tbodyContainer.innerHTML = tableHTML;
+}
+        
         window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
         window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
     </script>
