@@ -83,7 +83,6 @@
                         <option value="Today">Today</option>
                         <option value="Last 7 Days">Last 7 Days</option>
                         <option value="Last 30 Days">Last 30 Days</option>
-                        <option value="This Month">This Month</option>
                         <option value="All Time">All Time</option>
                     </select>
 
@@ -118,149 +117,79 @@
         </main>
     </div>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
-        const firebaseConfig = {
+        const db = getFirestore(initializeApp({ 
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
             authDomain: "e-smartrecyclesystem.firebaseapp.com",
             projectId: "e-smartrecyclesystem",
             storageBucket: "e-smartrecyclesystem.firebasestorage.app",
             messagingSenderId: "212695525607",
             appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
+        }));
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app); 
-        window.db = db; 
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists()) {
-                    if (userSnap.data().role !== "admin") {
-                        alert("Access Denied: You do not have administrator privileges.");
-                        window.location.href = "index.html"; 
-                        return;
-                    }
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                }
-            } else {
-                window.location.href = "index.html";
-            }
+        onAuthStateChanged(getAuth(), async (user) => {
+            if (!user) { window.location.href = "login_page.html"; return; }
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if (snap.exists() && snap.data().role?.toLowerCase() === "admin") {
+                document.getElementById('userNameDisplay').innerText = snap.data().fullName || "Admin";
+            } else { window.location.href = "login_page.html"; }
         });
 
         window.generateAdminReport = async function() {
-    const reportType = document.getElementById('reportTypeSelect').value;
-    const dateRange = document.getElementById('dateRangeSelect').value;
-    const generateBtn = document.getElementById('generateBtn');
-    const tbody = document.getElementById('reportTableBody');
-    const summaryContainer = document.getElementById('dynamicSummaryCards');
-    const thead = document.getElementById('dynamicTableHeader');
-    
-    if (!reportType) { alert("Please select a report type."); return; }
+            const type = document.getElementById('reportTypeSelect').value;
+            const range = document.getElementById('dateRangeSelect').value;
+            const tbody = document.getElementById('reportTableBody');
+            const thead = document.getElementById('dynamicTableHeader');
+            const btn = document.getElementById('generateBtn');
 
-    generateBtn.innerText = "Loading...";
-    generateBtn.disabled = true;
+            if (!type) { alert("Please select a report type."); return; }
+            btn.innerText = "Loading..."; btn.disabled = true;
 
-    // Time Filter Setup
-    const now = new Date();
-    let startTime = 0;
-    if (dateRange === "Today") startTime = new Date(now.setHours(0,0,0,0)).getTime();
-    else if (dateRange === "Last 7 Days") startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+            const now = new Date();
+            let startTime = 0;
+            if (range === "Today") startTime = new Date(now.setHours(0,0,0,0)).getTime();
+            else if (range === "Last 7 Days") startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
 
-    try {
-        tbody.innerHTML = ""; summaryContainer.innerHTML = "";
-        const [usersSnap, reqSnap] = await Promise.all([
-            getDocs(collection(db, "users")), 
-            getDocs(collection(db, "request"))
-        ]);
+            try {
+                tbody.innerHTML = "";
+                const [users, reqs] = await Promise.all([getDocs(collection(db, "users")), getDocs(collection(db, "request"))]);
 
-        // 1. COLLECTION SUMMARY
-        if (reportType === "Collection Summary") {
-            thead.innerHTML = `<tr><th>Date</th><th>Item</th><th>Weight</th><th>Status</th></tr>`;
-            reqSnap.forEach(d => {
-                const data = d.data();
-                const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-                if (startTime > 0 && time < startTime) return;
-                tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
-            });
-        } 
-        
-        // 2. USER SUMMARY (Registers as "user")
-        else if (reportType === "User Summary") {
-            thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
-            usersSnap.forEach(u => {
-                const d = u.data();
-                if (d.role?.toLowerCase() === "user") {
-                    tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
+                if (type === "Collection Summary") {
+                    thead.innerHTML = `<tr><th>Date</th><th>Item</th><th>Weight</th><th>Status</th></tr>`;
+                    reqs.forEach(d => {
+                        const data = d.data();
+                        const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                        if (startTime > 0 && time < startTime) return;
+                        tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
+                    });
+                } else if (type === "User Summary") {
+                    thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
+                    users.forEach(u => {
+                        if (u.data().role?.toLowerCase() === "user") {
+                            const d = u.data();
+                            tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
+                        }
+                    });
+                } else if (type === "Collector Performance") {
+                    thead.innerHTML = `<tr><th>Collector Name</th><th>Tasks Done</th><th>Total Weight</th></tr>`;
+                    users.forEach(u => {
+                        const ud = u.data();
+                        if (ud.role?.toLowerCase() === "collector") {
+                            const completed = reqs.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
+                            const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
+                            tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
+                        }
+                    });
                 }
-            });
-        }
-        
-        // 3. COLLECTOR PERFORMANCE (Registers as "collector")
-        else if (reportType === "Collector Performance") {
-            thead.innerHTML = `<tr><th>Collector Name</th><th>Phone</th><th>Tasks Done</th><th>Weight</th></tr>`;
-            usersSnap.forEach(u => {
-                const ud = u.data();
-                if (ud.role?.toLowerCase() === "collector") {
-                    const completed = reqSnap.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
-                    const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
-                    tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${ud.phone || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
-                }
-            });
-        }
-
-        document.getElementById('reportResult').style.display = 'block';
-    } catch (e) { console.error(e); alert("Error loading report data."); }
-    
-    generateBtn.innerText = "Generate Report";
-    generateBtn.disabled = false;
-};
-
-        window.exportPDF = function() {
-            const reportResult = document.getElementById('reportResult');
-            if (reportResult.style.display === 'none') {
-                alert("Please generate a report first before exporting.");
-                return;
-            }
-            window.print(); 
+                document.getElementById('reportResult').style.display = 'block';
+            } catch (e) { console.error(e); alert("Error loading data."); }
+            btn.innerText = "Generate Report"; btn.disabled = false;
         };
-
-        // --- FIXED DROPDOWN & LOGOUT FUNCTIONS ---
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.user-profile-top')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault(); 
-            const confirmLogout = confirm("Are you sure you want to log out?");
-            
-            if (confirmLogout) {
-                signOut(auth).then(() => {
-                    window.location.href = "login_page.html";
-                }).catch((error) => {
-                    alert("Error logging out: " + error.message);
-                });
-            }
-        };
+        window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
     </script>
 </body>
 </html>
