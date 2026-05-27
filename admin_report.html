@@ -7,135 +7,97 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background-color: #C4C4C4; }
-        .top-nav-green { background-color: #8CC63F; display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; height: 60px; }
-        .navbar { background-color: #0f7a45; display: flex; padding: 10px; }
-        .nav-link { color: white; text-decoration: none; padding: 10px 20px; }
-        .content-card { background: white; padding: 30px; width: 90%; max-width: 1100px; margin: 20px auto; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; }
+        .content-card { background: white; padding: 30px; width: 90%; max-width: 1000px; margin: 40px auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
+        select, button { padding: 10px 15px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer; }
+        .btn-generate { background-color: #8CC63F; color: white; border: none; }
+        .btn-export { background-color: #333; color: white; border: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        th { background-color: #f8f9fa; }
     </style>
 </head>
 <body>
 
-    <header class="top-nav-green">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <img src="logo.png" style="width: 50px;">
-            <h1 style="margin:0; font-size: 22px;">E-Smart Recycle</h1>
-        </div>
-        <div id="userNameDisplay">Loading...</div>
-    </header>
+<div class="content-card">
+    <h1>System Reports</h1>
+    <div class="controls">
+        <select id="reportType">
+            <option value="collection">Collection Summary</option>
+            <option value="account">Account Summary</option>
+        </select>
+        <select id="dateRange">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+        </select>
+        <button class="btn-generate" onclick="generateReport()">Generate Report</button>
+        <button class="btn-export" onclick="exportPDF()"><i class="fa-solid fa-download"></i> Export PDF</button>
+    </div>
 
-    <nav class="navbar">
-        <a href="admin_dashboard.html" class="nav-link">Dashboard</a>
-        <a href="admin_report.html" class="nav-link active">Reports</a>
-    </nav>
+    <div id="reportContent">
+        <h2 id="reportHeader">Select a report to begin</h2>
+        <table id="reportTable">
+            <thead><tr id="tableHead"></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
 
-    <main>
-        <div class="content-card">
-            <h1>System Reports</h1>
-            <div class="controls">
-                <select id="reportTypeSelect">
-                    <option value="" disabled selected>Select Report Type</option>
-                    <option value="Collection Summary">Collection Summary</option>
-                    <option value="User Summary">User Data Summary</option>
-                    <option value="Collector Performance">Collector Performance</option>
-                </select>
-                <select id="dateRangeSelect">
-                    <option value="All Time">All Time</option>
-                    <option value="Today">Today</option>
-                    <option value="Last 7 Days">Last 7 Days</option>
-                </select>
-                <button id="generateBtn" onclick="generateAdminReport()">Generate Report</button>
-                <button onclick="exportPDF()">Export PDF</button>
-            </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-            <div id="reportResult" style="display: none; margin-top: 20px;">
-                <h2 id="reportTitle">Report</h2>
-                <table>
-                    <thead id="dynamicTableHeader"></thead>
-                    <tbody id="reportTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+    // Initialize your Firebase
+    const firebaseConfig = { /* YOUR CONFIG HERE */ };
+    const db = getFirestore(initializeApp(firebaseConfig));
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    window.generateReport = async function() {
+        const type = document.getElementById('reportType').value;
+        const range = document.getElementById('dateRange').value;
+        const tableBody = document.getElementById('tableBody');
+        const tableHead = document.getElementById('tableHead');
+        
+        tableBody.innerHTML = "Loading...";
 
-        const db = getFirestore(initializeApp({ 
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        }));
+        // 1. Calculate Date Filter
+        const now = new Date();
+        let filterDate = new Date(0); // Default All Time
+        if (range === 'today') filterDate = new Date(now.setHours(0,0,0,0));
+        else if (range === '7') filterDate = new Date(now.setDate(now.getDate() - 7));
+        else if (range === '30') filterDate = new Date(now.setDate(now.getDate() - 30));
 
-        window.generateAdminReport = async function() {
-            const type = document.getElementById('reportTypeSelect').value;
-            const range = document.getElementById('dateRangeSelect').value;
-            const tbody = document.getElementById('reportTableBody');
-            const thead = document.getElementById('dynamicTableHeader');
-            const btn = document.getElementById('generateBtn');
-
-            if (!type) { alert("Select a report type."); return; }
-            btn.innerText = "Loading..."; btn.disabled = true;
-
-            const now = new Date();
-            let startTime = 0;
-            let endTime = Infinity;
-
-            if (range === "Today") startTime = new Date(now.setHours(0,0,0,0)).getTime();
-            else if (range === "Last 7 Days") startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
-
-            try {
-                tbody.innerHTML = "";
-                const [users, reqs] = await Promise.all([getDocs(collection(db, "users")), getDocs(collection(db, "request"))]);
-
-                if (type === "Collection Summary") {
-                    thead.innerHTML = `<tr><th>Date</th><th>Item</th><th>Weight</th><th>Status</th></tr>`;
-                    reqs.forEach(d => {
-                        const data = d.data();
-                        const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-                        if (time >= startTime && time <= endTime) {
-                            tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
-                        }
-                    });
-                } else if (type === "User Summary") {
-                    thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
-                    users.forEach(u => {
-                        const d = u.data();
-                        if(d.role?.toLowerCase() === "user") {
-                            tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
-                        }
-                    });
-                } else if (type === "Collector Performance") {
-                    thead.innerHTML = `<tr><th>Name</th><th>Tasks Completed</th><th>Total Weight</th></tr>`;
-                    users.forEach(u => {
-                        const ud = u.data();
-                        if (ud.role?.toLowerCase() === "collector") {
-                            const completed = reqs.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
-                            const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
-                            tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
-                        }
-                    });
+        // 2. Fetch Data
+        if (type === 'collection') {
+            document.getElementById('reportHeader').innerText = "Collection Summary";
+            tableHead.innerHTML = "<th>Date</th><th>Collector</th><th>Weight (kg)</th><th>Status</th>";
+            const snap = await getDocs(collection(db, "request"));
+            tableBody.innerHTML = "";
+            snap.forEach(doc => {
+                const data = doc.data();
+                const d = data.createdAt?.toDate();
+                if (d >= filterDate || range === 'all') {
+                    tableBody.innerHTML += `<tr><td>${d?.toLocaleDateString()}</td><td>${data.collectorId}</td><td>${data.weight}</td><td>${data.status}</td></tr>`;
                 }
-                document.getElementById('reportResult').style.display = 'block';
-            } catch (e) { 
-                console.error(e); 
-                alert("Error loading data. Check console."); 
-            }
-            btn.innerText = "Generate Report"; btn.disabled = false;
-        };
+            });
+        } else {
+            document.getElementById('reportHeader').innerText = "Account Summary";
+            tableHead.innerHTML = "<th>Name</th><th>Role</th><th>Email</th>";
+            const snap = await getDocs(collection(db, "users"));
+            tableBody.innerHTML = "";
+            snap.forEach(doc => {
+                const data = doc.data();
+                tableBody.innerHTML += `<tr><td>${data.fullName}</td><td>${data.role}</td><td>${data.email}</td></tr>`;
+            });
+        }
+    };
 
-        window.exportPDF = function() {
-            const element = document.getElementById('reportResult');
-            if (element.style.display === 'none') { alert("Generate report first!"); return; }
-            html2pdf().from(element).save();
-        };
-    </script>
+    window.exportPDF = function() {
+        const element = document.getElementById('reportContent');
+        html2pdf().from(element).save();
+    };
+</script>
 </body>
 </html>
