@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Smart Recycle - Admin Reports</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background-color: #C4C4C4; }
         .top-nav-green { background-color: #8CC63F; display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; height: 60px; }
@@ -147,6 +148,30 @@
             btn.innerText = "Generate Report"; btn.disabled = false;
         };
         window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
+
+        window.exportPDF = function() {
+    const reportResult = document.getElementById('reportResult');
+    if (reportResult.style.display === 'none') {
+        alert("Please generate a report first before exporting.");
+        return;
+    }
+
+    // Get the element you want to export
+    const element = document.getElementById('reportResult');
+
+    // Configure PDF options
+    const opt = {
+        margin:       1,
+        filename:     'E-Smart_Recycle_Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    // Trigger the export
+    html2pdf().set(opt).from(element).save();
+};
+    
     </script>
 </body>
 </html>
