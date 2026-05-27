@@ -90,104 +90,63 @@
             appId: "1:212695525607:web:61d0df7011aa8baf265a42"
         }));
 
-        onAuthStateChanged(getAuth(), async (user) => {
-            if (!user) { window.location.href = "login_page.html"; return; }
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if (snap.exists() && snap.data().role?.toLowerCase() === "admin") {
-                document.getElementById('userNameDisplay').innerText = snap.data().fullName || "Admin";
-            } else { window.location.href = "login_page.html"; }
-        });
-
         window.generateAdminReport = async function() {
             const type = document.getElementById('reportTypeSelect').value;
-            const range = document.getElementById('dateRangeSelect').value;
             const tbody = document.getElementById('reportTableBody');
             const thead = document.getElementById('dynamicTableHeader');
-            const summary = document.getElementById('dynamicSummaryCards');
-            const btn = document.getElementById('generateBtn');
-
-            if (!type) { alert("Please select a report type."); return; }
-            btn.innerText = "Loading..."; btn.disabled = true;
-
-            const now = new Date();
-            let startTime = 0;
-            if (range === "Today") startTime = new Date(now.setHours(0,0,0,0)).getTime();
-            else if (range === "Last 7 Days") startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+            
+            if (!type) { alert("Select a report type."); return; }
 
             try {
-                tbody.innerHTML = ""; summary.innerHTML = "";
-                const [users, reqs] = await Promise.all([getDocs(collection(db, "users")), getDocs(collection(db, "request"))]);
+                tbody.innerHTML = "Loading data...";
+                const [usersSnap, reqSnap] = await Promise.all([
+                    getDocs(collection(db, "users")), 
+                    getDocs(collection(db, "request"))
+                ]);
+
+                tbody.innerHTML = ""; // Clear loader
 
                 if (type === "Collection Summary") {
                     thead.innerHTML = `<tr><th>Date</th><th>Item</th><th>Weight</th><th>Status</th></tr>`;
-                    reqs.forEach(d => {
+                    reqSnap.forEach(d => {
                         const data = d.data();
-                        const time = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime()) : 0;
-                        if (startTime > 0 && time < startTime) return;
-                        tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
+                        const date = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toLocaleDateString() : data.createdAt) : "N/A";
+                        tbody.innerHTML += `<tr><td>${date}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
                     });
                 } 
                 else if (type === "User Summary") {
                     thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
-                    users.forEach(u => {
+                    usersSnap.forEach(u => {
                         const d = u.data();
-                        if(d.role?.toLowerCase() === "user") {
+                        if (d.role?.toLowerCase() === "user") {
                             tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
                         }
                     });
-                } 
+                }
                 else if (type === "Collector Performance") {
-                    thead.innerHTML = `<tr><th>Name</th><th>Tasks Completed</th><th>Total Weight</th></tr>`;
-                    users.forEach(u => {
+                    thead.innerHTML = `<tr><th>Name</th><th>Tasks</th><th>Total Weight</th></tr>`;
+                    usersSnap.forEach(u => {
                         const ud = u.data();
                         if (ud.role?.toLowerCase() === "collector") {
-                            const completed = reqs.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
-                            const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
+                            const completed = reqSnap.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
+                            const totalW = completed.reduce((sum, r) => sum + (Number(r.data().weight) || 0), 0);
                             tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
                         }
                     });
                 }
                 document.getElementById('reportResult').style.display = 'block';
-            } } catch (e) { 
-                console.error("DEBUG ERROR:", e); // This shows exactly what is wrong in the F12 Console
-                alert("Error loading data: " + e.message); // This shows you the specific error
+            } catch (e) { 
+                console.error("Firestore Error:", e);
+                alert("Error loading data. Check console for details."); 
             }
-            btn.innerText = "Generate Report"; btn.disabled = false;
         };
 
-        window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
-        
-        // Ensure exportPDF is globally available
-        window.exportPDF = function() {
+        window.exportPDF = () => {
             const element = document.getElementById('reportResult');
-            if (element.style.display === 'none') { alert("Generate a report first."); return; }
-            html2pdf().from(element).save('E-Smart_Recycle_Report.pdf');
+            if(element.style.display === 'none') return alert("Generate report first!");
+            html2pdf().from(element).save();
         };
-
-        window.exportPDF = function() {
-    const reportResult = document.getElementById('reportResult');
-    if (reportResult.style.display === 'none') {
-        alert("Please generate a report first before exporting.");
-        return;
-    }
-
-    // Get the element you want to export
-    const element = document.getElementById('reportResult');
-
-    // Configure PDF options
-    const opt = {
-        margin:       1,
-        filename:     'E-Smart_Recycle_Report.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    // Trigger the export
-    html2pdf().set(opt).from(element).save();
-};
-    
+        window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
     </script>
 </body>
 </html>
