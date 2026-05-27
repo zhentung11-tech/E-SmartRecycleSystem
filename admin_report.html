@@ -380,7 +380,7 @@ window.generateAdminReport = async function() {
                             const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
                             tbody.innerHTML += `<tr><td>${ud.fullName || 'N/A'}</td><td>${completed.length}</td><td>${totalW.toFixed(2)} kg</td></tr>`;
                         }
-                    })
+                    });
                 }
 document.getElementById('reportResult').style.display = 'block';
         } catch (e) { console.error(e); alert("Error loading data."); }
@@ -400,20 +400,4 @@ document.getElementById('reportResult').style.display = 'block';
 </body>
 </html>
 
-document.getElementById('reportResult').style.display = 'block';
-        } catch (e) { console.error(e); alert("Error loading data."); }
-        btn.innerText = "Generate Report"; btn.disabled = false;
-    };
 
-        window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
-        
-        // Ensure exportPDF is globally available
-        window.exportPDF = function() {
-            const element = document.getElementById('reportResult');
-            if (element.style.display === 'none') { alert("Generate a report first."); return; }
-            html2pdf().from(element).save('E-Smart_Recycle_Report.pdf');
-        };
-    </script>
-</body>
-</html>
