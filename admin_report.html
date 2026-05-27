@@ -184,10 +184,6 @@ window.generateAdminReport = async function() {
                     thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
                     users.forEach(u => {
                         const d = u.data();
-                          const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-                    // NEW: Filter against both bounds
-                    if (time >= startTime && time <= endTime) {
-                        tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
                         if(d.role?.toLowerCase() === "user") {
                             tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
                         }
@@ -197,10 +193,6 @@ window.generateAdminReport = async function() {
                     thead.innerHTML = `<tr><th>Name</th><th>Tasks Completed</th><th>Total Weight</th></tr>`;
                     users.forEach(u => {
                         const ud = u.data();
-                          const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-                    // NEW: Filter against both bounds
-                    if (time >= startTime && time <= endTime) {
-                        tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
                         if (ud.role?.toLowerCase() === "collector") {
                             const completed = reqs.docs.filter(r => r.data().collectorId === u.id && r.data().status?.toLowerCase() === "completed");
                             const totalW = completed.reduce((sum, r) => sum + Number(r.data().weight || 0), 0);
