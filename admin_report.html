@@ -122,7 +122,7 @@
                     thead.innerHTML = `<tr><th>Date</th><th>Item</th><th>Weight</th><th>Status</th></tr>`;
                     reqs.forEach(d => {
                         const data = d.data();
-                        const time = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                        const time = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime()) : 0;
                         if (startTime > 0 && time < startTime) return;
                         tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
                     });
@@ -148,7 +148,10 @@
                     });
                 }
                 document.getElementById('reportResult').style.display = 'block';
-            } catch (e) { console.error(e); alert("Error loading data."); }
+            } } catch (e) { 
+                console.error("DEBUG ERROR:", e); // This shows exactly what is wrong in the F12 Console
+                alert("Error loading data: " + e.message); // This shows you the specific error
+            }
             btn.innerText = "Generate Report"; btn.disabled = false;
         };
 
