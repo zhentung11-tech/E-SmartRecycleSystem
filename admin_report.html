@@ -125,69 +125,7 @@
                         if (startTime > 0 && time < startTime) return;
                         tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
                     });
-                } // --- 2. USER SUMMARY (Refined Logic) ---
-else if (reportType === "User Summary") {
-    summaryContainer.innerHTML = `
-        <div class="card"><h3>Total Registered Users</h3><p class="card-value" id="totalUsers">0</p></div>
-    `;
-    thead.innerHTML = `<tr><th>User ID</th><th>Full Name</th><th>Email</th><th>Phone</th></tr>`;
-    
-    let userCount = 0;
-    users.forEach(u => {
-        const d = u.data();
-        // Case-insensitive role check
-        if (d.role?.toLowerCase() === "user") {
-            userCount++;
-            tbody.innerHTML += `
-                <tr>
-                    <td>#${u.id.substring(0, 6).toUpperCase()}</td>
-                    <td>${d.fullName || 'N/A'}</td>
-                    <td>${d.email || 'N/A'}</td>
-                    <td>${d.phone || 'N/A'}</td>
-                </tr>`;
-        }
-    });
-    document.getElementById('totalUsers').innerText = userCount;
-}
-
-// --- 3. COLLECTOR PERFORMANCE (Refined Logic) ---
-else if (reportType === "Collector Performance") {
-    summaryContainer.innerHTML = `
-        <div class="card"><h3>Active Collectors</h3><p class="card-value" id="perfActiveCollectors">0</p></div>
-        <div class="card"><h3>Tasks Completed</h3><p class="card-value" id="perfTotalJobs">0</p></div>
-        <div class="card"><h3>Total Weight Collected</h3><p class="card-value" id="perfTotalWeight">0 kg</p></div>
-    `;
-    thead.innerHTML = `<tr><th>Collector Name</th><th>Phone</th><th>Tasks Completed</th><th>Total Weight</th></tr>`;
-
-    let activeCollectors = 0;
-    let totalCompletedJobs = 0;
-    let totalSystemWeight = 0;
-
-    users.forEach(u => {
-        const ud = u.data();
-        if (ud.role?.toLowerCase() === "collector") {
-            // Filter requests specifically for this collector AND only "completed" ones
-            const completedJobs = reqs.docs.filter(r => 
-                r.data().collectorId === u.id && 
-                r.data().status?.toLowerCase() === "completed"
-            );
-            
-            const weightForThisCollector = completedJobs.reduce((sum, r) => sum + (Number(r.data().weight) || 0), 0);
-            
-            if (completedJobs.length > 0) {
-                activeCollectors++;
-                totalCompletedJobs += completedJobs.length;
-                totalSystemWeight += weightForThisCollector;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${ud.fullName || 'N/A'}</td>
-                        <td>${ud.phone || 'N/A'}</td>
-                        <td>${completedJobs.length}</td>
-                        <td>${weightForThisCollector.toFixed(2)} kg</td>
-                    </tr>`;
-            }
-        }
+                } OFES-011
     });
 
     document.getElementById('perfActiveCollectors').innerText = activeCollectors;
