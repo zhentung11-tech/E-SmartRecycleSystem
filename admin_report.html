@@ -9,36 +9,45 @@
         body { font-family: Arial, sans-serif; margin: 0; background-color: #C4C4C4; }
         .top-nav-green { background-color: #8CC63F; display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; height: 60px; }
         .logo-section-top { display: flex; align-items: center; gap: 15px; }
-        .user-profile-top { position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .profile-dropdown { display: none; position: absolute; top: 50px; right: 0; background-color: white; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; z-index: 1000; flex-direction: column; }
-        .show-dropdown { display: flex !important; }
-        .content-card { background: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .navbar { background-color: #0f7a45; display: flex; padding: 10px; }
+        .nav-link { color: white; text-decoration: none; padding: 10px 20px; }
+        .nav-link.active { background-color: #149c57; }
+        .content-card { background: white; padding: 30px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 1100px; margin: 20px auto; }
         .controls { margin-bottom: 20px; display: flex; gap: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #f2f2f2; }
+        .user-profile-top { position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .profile-dropdown { display: none; position: absolute; top: 50px; right: 0; background-color: white; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; flex-direction: column; }
+        .show-dropdown { display: flex !important; }
     </style>
 </head>
 <body>
+
     <header class="top-nav-green">
         <div class="logo-section-top">
             <img src="logo.png" style="width: 50px;">
             <a href="admin_dashboard.html" style="text-decoration: none; color: black;"><h1>E-Smart Recycle</h1></a>
         </div>
-        <div class="user-profile-top" onclick="toggleProfileMenu()">
+        <div class="user-profile-top" onclick="document.getElementById('profileDropdown').classList.toggle('show-dropdown')">
             <span id="userNameDisplay">Loading...</span>
-            <div class="profile-circle-gray" style="background:#555; color:white; width:35px; height:35px; border-radius:50%; display:flex; justify-content:center; align-items:center;">
-                <i class="fas fa-user-shield"></i>
-            </div>
             <div id="profileDropdown" class="profile-dropdown">
-                <a href="admin_profile.html">Profile</a>
-                <a href="#" onclick="logoutUser(event)">Logout</a>
+                <a href="admin_profile.html" style="padding: 10px; text-decoration: none; color: #333;">Profile</a>
+                <a href="#" onclick="logoutUser(event)" style="padding: 10px; text-decoration: none; color: #333;">Logout</a>
             </div>
         </div>
     </header>
 
-    <main style="padding: 40px; display: flex; justify-content: center;">
-        <div class="content-card" style="width: 100%; max-width: 1100px;">
+    <nav class="navbar">
+        <a href="admin_dashboard.html" class="nav-link">Dashboard</a>
+        <a href="adminusermanagement.html" class="nav-link">Account</a>
+        <a href="collect_record.html" class="nav-link">Collector Records</a>
+        <a href="admin_report.html" class="nav-link active">Reports</a>
+        <a href="admin_notification.html" class="nav-link">Notification</a>
+    </nav>
+
+    <main>
+        <div class="content-card">
             <h1>System Reports</h1>
             <div class="controls">
                 <select id="reportTypeSelect">
@@ -92,8 +101,10 @@
             const range = document.getElementById('dateRangeSelect').value;
             const tbody = document.getElementById('reportTableBody');
             const thead = document.getElementById('dynamicTableHeader');
-            
-            if (!type) { alert("Select a report type."); return; }
+            const btn = document.getElementById('generateBtn');
+
+            if (!type) { alert("Please select a report type."); return; }
+            btn.innerText = "Loading..."; btn.disabled = true;
 
             const now = new Date();
             let startTime = 0;
@@ -115,13 +126,13 @@
                 } else if (type === "User Summary") {
                     thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
                     users.forEach(u => {
-                        const d = u.data();
-                        if (d.role?.toLowerCase() === "user") {
+                        if (u.data().role?.toLowerCase() === "user") {
+                            const d = u.data();
                             tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
                         }
                     });
                 } else if (type === "Collector Performance") {
-                    thead.innerHTML = `<tr><th>Name</th><th>Tasks Completed</th><th>Total Weight</th></tr>`;
+                    thead.innerHTML = `<tr><th>Collector Name</th><th>Tasks Done</th><th>Total Weight</th></tr>`;
                     users.forEach(u => {
                         const ud = u.data();
                         if (ud.role?.toLowerCase() === "collector") {
@@ -132,10 +143,9 @@
                     });
                 }
                 document.getElementById('reportResult').style.display = 'block';
-            } catch (e) { console.error(e); alert("Error loading report."); }
+            } catch (e) { console.error(e); alert("Error loading data."); }
+            btn.innerText = "Generate Report"; btn.disabled = false;
         };
-
-        window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
         window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
     </script>
 </body>
