@@ -144,6 +144,7 @@
             const range = document.getElementById('dateRangeSelect').value;
             const tbody = document.getElementById('reportTableBody');
             const thead = document.getElementById('dynamicTableHeader');
+            const summary = document.getElementById('dynamicSummaryCards');
             const btn = document.getElementById('generateBtn');
 
             if (!type) { alert("Please select a report type."); return; }
@@ -155,7 +156,7 @@
             else if (range === "Last 7 Days") startTime = now.getTime() - (7 * 24 * 60 * 60 * 1000);
 
             try {
-                tbody.innerHTML = "";
+                tbody.innerHTML = ""; summary.innerHTML = "";
                 const [users, reqs] = await Promise.all([getDocs(collection(db, "users")), getDocs(collection(db, "request"))]);
 
                 if (type === "Collection Summary") {
@@ -166,16 +167,18 @@
                         if (startTime > 0 && time < startTime) return;
                         tbody.innerHTML += `<tr><td>${new Date(time).toLocaleDateString()}</td><td>${data.category || '-'}</td><td>${data.weight || 0} kg</td><td>${data.status || '-'}</td></tr>`;
                     });
-                } else if (type === "User Summary") {
+                } 
+                else if (type === "User Summary") {
                     thead.innerHTML = `<tr><th>Name</th><th>Email</th><th>Phone</th></tr>`;
                     users.forEach(u => {
-                        if (u.data().role?.toLowerCase() === "user") {
-                            const d = u.data();
+                        const d = u.data();
+                        if(d.role?.toLowerCase() === "user") {
                             tbody.innerHTML += `<tr><td>${d.fullName || 'N/A'}</td><td>${d.email || 'N/A'}</td><td>${d.phone || 'N/A'}</td></tr>`;
                         }
                     });
-                } else if (type === "Collector Performance") {
-                    thead.innerHTML = `<tr><th>Collector Name</th><th>Tasks Done</th><th>Total Weight</th></tr>`;
+                } 
+                else if (type === "Collector Performance") {
+                    thead.innerHTML = `<tr><th>Name</th><th>Tasks Completed</th><th>Total Weight</th></tr>`;
                     users.forEach(u => {
                         const ud = u.data();
                         if (ud.role?.toLowerCase() === "collector") {
@@ -189,7 +192,16 @@
             } catch (e) { console.error(e); alert("Error loading data."); }
             btn.innerText = "Generate Report"; btn.disabled = false;
         };
+
+        window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
         window.logoutUser = (e) => { e.preventDefault(); signOut(getAuth()).then(() => window.location.href = "login_page.html"); };
+        
+        // Ensure exportPDF is globally available
+        window.exportPDF = function() {
+            const element = document.getElementById('reportResult');
+            if (element.style.display === 'none') { alert("Generate a report first."); return; }
+            html2pdf().from(element).save('E-Smart_Recycle_Report.pdf');
+        };
     </script>
 </body>
 </html>
