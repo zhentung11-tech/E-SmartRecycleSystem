@@ -5,67 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Smart Recycle - User Notifications</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="user_notification.css">
-    <link rel="stylesheet" href="style.css"> <style>
-        /* Exact Dropdown Styling from your History Page */
-        .profile-dropdown-container {
-            position: relative;
-            display: inline-block;
-        }
-        
+    <link rel="stylesheet" href="style.css"> 
+    
+    <style>
+        /* --- Dropdown Styling --- */
+        .profile-dropdown-container { position: relative; display: inline-block; }
         .dropdown-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 55px;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
-            border-radius: 4px;
-            z-index: 1000;
-            overflow: hidden;
-            flex-direction: column;
+            display: none; position: absolute; right: 0; top: 55px;
+            background-color: white; min-width: 160px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15); border-radius: 4px;
+            z-index: 1000; overflow: hidden; flex-direction: column;
         }
-
-        .dropdown-menu.show {
-            display: flex;
-        }
-
+        .dropdown-menu.show { display: flex; }
         .dropdown-menu a {
-            color: #333;
-            padding: 12px 20px;
-            text-decoration: none;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: Arial, sans-serif;
+            color: #333; padding: 12px 20px; text-decoration: none; font-size: 14px;
+            display: flex; align-items: center; gap: 10px; font-family: Arial, sans-serif;
             transition: background-color 0.2s;
         }
-
-        .dropdown-menu a:hover {
-            background-color: #f5f5f5;
-        }
-
-        .dropdown-menu hr {
-            margin: 0;
-            border: none;
-            border-top: 1px solid #eee;
-        }
-
-        /* Gray Profile Circle */
+        .dropdown-menu a:hover { background-color: #f5f5f5; }
+        .dropdown-menu hr { margin: 0; border: none; border-top: 1px solid #eee; }
         .profile-circle-gray {
-            background-color: #666;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            cursor: pointer;
+            background-color: #666; color: white; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; justify-content: center;
+            align-items: center; font-size: 20px; cursor: pointer;
         }
+
+        /* --- Notification Card Styling --- */
+        .notif-item {
+            padding: 20px; background-color: #f9f9f9; border-left: 4px solid #ccc;
+            border-radius: 4px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-family: Arial, sans-serif; transition: opacity 0.3s;
+        }
+        .status-card { border-left-color: #0d7a46; background-color: #eef7f2; }
+        .alert-card { border-left-color: #ef4444; background-color: #fff5f5; display: flex; justify-content: space-between; align-items: center; }
+        
+        .btn-reorder {
+            background: #ef4444; color: white; padding: 8px 15px;
+            text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: bold;
+        }
+        .btn-reorder:hover { background: #dc2626; }
     </style>
 </head>
 <body style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; background-color: #C4C4C4;">
@@ -75,17 +53,13 @@
             <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto; background-color: white; padding: 5px;">
             <a href="dashboard.html" style="text-decoration: none;"><h1 style="margin: 0; font-size: 22px; color: #000; font-family: Arial, sans-serif;">E-Smart Recycle</h1></a>
         </div>
-
-<div id="notificationContainer" class="notification-area"></div>
         
         <div style="display: flex; align-items: center; gap: 15px; font-family: Arial, sans-serif;">
             <span id="userNameDisplay">Loading...</span>
-            
             <div class="profile-dropdown-container">
                 <div class="profile-circle-gray" onclick="toggleDropdown()">
                     <i class="fas fa-user"></i>
                 </div>
-                
                 <div class="dropdown-menu" id="profileDropdown">
                     <a href="user_profile.html"><i class="fas fa-user-circle"></i> Profile</a>
                     <hr>
@@ -97,17 +71,15 @@
 
     <div style="display: flex; flex: 1; overflow: hidden;">
         
-<aside style="width: 250px; background-color: #E0E0E0; padding-top: 20px;">
-    <ul style="list-style: none; padding: 0; margin: 0; font-family: Arial, sans-serif;">
-        <li><a href="dashboard.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-home" style="width: 20px;"></i> Dashboard</a></li>
-        <li><a href="selectpickup.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-box" style="width: 20px;"></i> Submit Item</a></li>
-        <li><a href="user_history.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-history" style="width: 20px;"></i> Request History</a></li>
-        
-        <li><a href="user_feedback.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-star" style="width: 20px;"></i> Rate Service</a></li>
-        
-        <li style="background-color: #C4C4C4;"><a href="user_notification.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333; font-weight: bold;"><i class="fas fa-bell" style="width: 20px;"></i> Notification</a></li>
-    </ul>
-</aside>
+        <aside style="width: 250px; background-color: #E0E0E0; padding-top: 20px;">
+            <ul style="list-style: none; padding: 0; margin: 0; font-family: Arial, sans-serif;">
+                <li><a href="dashboard.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-home" style="width: 20px;"></i> Dashboard</a></li>
+                <li><a href="selectpickup.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-box" style="width: 20px;"></i> Submit Item</a></li>
+                <li><a href="user_history.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-history" style="width: 20px;"></i> Request History</a></li>
+                <li><a href="user_feedback.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-star" style="width: 20px;"></i> Rate Service</a></li>
+                <li style="background-color: #C4C4C4;"><a href="user_notification.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333; font-weight: bold;"><i class="fas fa-bell" style="width: 20px;"></i> Notification</a></li>
+            </ul>
+        </aside>
 
         <main style="flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start;">
             <div style="background-color: white; width: 100%; max-width: 900px; padding: 40px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
@@ -121,73 +93,122 @@
                     </button>
                 </div>
 
-                <div class="notification-list" id="notifList" style="display: flex; flex-direction: column; gap: 15px;">
+                <div id="notificationContainer"></div>
+                
+                <div id="notifList">
                     <p style="text-align: center; color: #888; padding: 30px;">Loading notifications...</p>
                 </div>
+
             </div>
         </main>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-        authDomain: "e-smartrecyclesystem.firebaseapp.com",
-        projectId: "e-smartrecyclesystem",
-        storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-        messagingSenderId: "212695525607",
-        appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+            authDomain: "e-smartrecyclesystem.firebaseapp.com",
+            projectId: "e-smartrecyclesystem",
+            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+            messagingSenderId: "212695525607",
+            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) { window.location.href = "login_page.html"; return; }
-        
-        // 1. Fetch User
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists()) document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "login_page.html"; return; }
+            
+            // 1. Fetch User Name
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (userSnap.exists()) {
+                document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+            }
 
-        // 2. Fetch Requests
-        const q = query(collection(db, "request"), where("userId", "==", user.uid));
-        const snapshot = await getDocs(q);
-        
-        const notificationContainer = document.getElementById('notificationContainer');
-        const notifList = document.getElementById('notifList');
-        
-        const now = new Date().getTime();
-        // Set this to 2*60*1000 for testing, or 3*24*60*60*1000 for production
-        const EXPIRY_LIMIT = 2 * 60 * 1000; 
-        
-        // Reset HTML
-        notificationContainer.innerHTML = "";
-        notifList.innerHTML = `
-            <div class="user-notif-item" style="padding: 20px; background-color: #f9f9f9; border-left: 4px solid #ccc; border-radius: 4px; margin-bottom:10px;">
-                <h3>Welcome to E-Smart Recycle</h3>
-                <p>Thank you for joining us! Start submitting items today.</p>
-            </div>`;
+            // 2. Setup Variables
+            const alertContainer = document.getElementById('notificationContainer');
+            const listContainer = document.getElementById('notifList');
+            const now = new Date().getTime();
+            
+            // TESTING: 2 Minutes = 2 * 60 * 1000
+            // PRODUCTION: 3 Days = 3 * 24 * 60 * 60 * 1000
+            const EXPIRY_LIMIT = 2 * 60 * 1000; 
 
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const status = data.status ? data.status.toLowerCase() : "pending";
-            const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+            // 3. Fetch User's Requests
+            const q = query(collection(db, "request"), where("userId", "==", user.uid));
+            const snapshot = await getDocs(q);
+            
+            // Reset containers
+            alertContainer.innerHTML = "";
+            listContainer.innerHTML = `
+                <div class="notif-item">
+                    <h3 style="margin: 0 0 5px 0;">Welcome to E-Smart Recycle</h3>
+                    <p style="margin: 0; color: #555;">Thank you for joining us! Start submitting items today.</p>
+                </div>`;
 
-            // A. Logic for EXPIRED
-            if (status === "pending" && (now - reqTime > EXPIRY_LIMIT)) {
-                notificationContainer.innerHTML += `
-                    <div class="alert-box" style="background:#fee2e2; border-left: 5px solid #ef4444; padding: 15px; margin-bottom: 10px; border-radius:4px;">
-                        <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right:10px;"></i>
-                        <strong>Request Expired:</strong> Your ${data.category} request was not collected.
-                        <a href="selectpickup.html" style="color: #b91c1c; font-weight:bold; float:right; text-decoration: underline;">Re-request</a>
-                    </div>`;
-            } 
-            // B. Logic for ACCEPTED/COMPLETED
-            else if (status === "accepted" ||
-</script>
+            // 4. Loop through Data
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const status = data.status ? data.status.toLowerCase() : "pending";
+                const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+
+                // Logic: EXPIRED
+                if (status === "pending" && (now - reqTime > EXPIRY_LIMIT)) {
+                    alertContainer.innerHTML += `
+                        <div class="notif-item alert-card">
+                            <div>
+                                <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right:10px;"></i>
+                                <strong>Request Expired:</strong> Your ${data.category} (${data.weight} Kg) request was not collected.
+                            </div>
+                            <a href="selectpickup.html" class="btn-reorder">Re-request</a>
+                        </div>`;
+                } 
+                // Logic: ACCEPTED or COMPLETED
+                else if (status === "accepted" || status === "completed") {
+                    listContainer.innerHTML += `
+                        <div class="notif-item status-card unread">
+                            <h3 style="margin: 0 0 5px 0;"><i class="fa-solid fa-check-circle" style="color:#0d7a46; margin-right:8px;"></i>Pickup ${status.charAt(0).toUpperCase() + status.slice(1)}!</h3>
+                            <p style="margin: 0; color: #333;">Your request for ${data.weight} Kg of ${data.category} has been ${status}.</p>
+                        </div>`;
+                }
+            });
+        });
+
+        // --- UI Interactions ---
+        window.markAllAsRead = () => {
+            document.querySelectorAll('.unread').forEach(el => {
+                el.style.backgroundColor = "#f9f9f9";
+                el.style.borderLeftColor = "#ccc";
+                el.classList.remove('unread');
+            });
+            const btn = document.getElementById('markReadBtn');
+            btn.innerHTML = "<i class='fas fa-check'></i> All caught up!";
+            btn.style.color = "#888";
+        };
+
+        window.toggleDropdown = () => {
+            document.getElementById("profileDropdown").classList.toggle("show");
+        };
+
+        window.onclick = (event) => {
+            if (!event.target.closest('.profile-dropdown-container')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+            }
+        };
+
+        window.logoutUser = (event) => {
+            event.preventDefault();
+            if (confirm("Are you sure you want to log out?")) {
+                signOut(auth).then(() => {
+                    window.location.href = "login_page.html"; 
+                }).catch(err => alert("Error: " + err.message));
+            }
+        };
+    </script>
 </body>
 </html>
