@@ -82,7 +82,7 @@
             const container = document.getElementById('notifList');
             container.innerHTML = ""; // Clear loader
             
-            const EXPIRY_LIMIT = 3 * 24 * 60 * 60 * 1000; // 3 Days
+            const EXPIRY_LIMIT = 2 * 60 * 1000; // 2 Min
             const now = new Date().getTime();
 
             const q = query(collection(db, "request"), where("userId", "==", user.uid));
