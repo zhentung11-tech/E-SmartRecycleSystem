@@ -3,64 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Smart Recycle - Available Requests</title>
-    
-    <link rel="stylesheet" href="available_request.css">
+    <title>Available Requests - Collector</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css"> 
+    <style>
+        /* --- Dropdown Styling --- */
+        .profile-dropdown-container { position: relative; display: inline-block; }
+        .dropdown-menu {
+            display: none; position: absolute; right: 0; top: 55px;
+            background-color: white; min-width: 160px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15); border-radius: 4px;
+            z-index: 1000; overflow: hidden; flex-direction: column;
+        }
+        .dropdown-menu.show { display: flex; }
+        .dropdown-menu a {
+            color: #333; padding: 12px 20px; text-decoration: none; font-size: 14px;
+            display: flex; align-items: center; gap: 10px; font-family: Arial, sans-serif;
+            transition: background-color 0.2s;
+        }
+        .dropdown-menu a:hover { background-color: #f5f5f5; }
+        .dropdown-menu hr { margin: 0; border: none; border-top: 1px solid #eee; }
+        .profile-circle-gray {
+            background-color: #666; color: white; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; justify-content: center;
+            align-items: center; font-size: 20px; cursor: pointer;
+        }
 
-    <header>
-        <div class="logo-section">
-            <img src="logo.png" alt="Logo">
-            <a href="collector_dashboard.html" style="text-decoration: none;"><h1>E-Smart Recycle</h1></a>
+        /* --- Request Cards Grid --- */
+        .requests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .request-card {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .request-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .request-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .weight-badge {
+            background-color: #8CC63F;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .request-details p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .btn-accept {
+            margin-top: 15px;
+            background-color: #00B050;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn-accept:hover {
+            background-color: #008a3e;
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; background-color: #C4C4C4;">
+
+    <header style="background-color: #8CC63F; display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; height: 60px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logo.png" alt="E-Smart Recycle Logo" style="width: 50px; height: auto; background-color: white; padding: 5px;">
+            <a href="collector_dashboard.html" style="text-decoration: none;"><h1 style="margin: 0; font-size: 22px; color: #000; font-family: Arial, sans-serif;">E-Smart Recycle (Collector)</h1></a>
         </div>
-        <div class="profile-container" id="profileContainer">
+        
+        <div style="display: flex; align-items: center; gap: 15px; font-family: Arial, sans-serif;">
             <span id="userNameDisplay">Loading...</span>
-            <div class="profile-circle" onclick="toggleMenu()"><i class="fas fa-user-cog"></i></div>
-            <div class="profile-dropdown" id="dropdownMenu">
-                <a href="collector_profile.html"><i class="far fa-id-badge"></i> Profile</a>
-                <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div class="profile-dropdown-container">
+                <div class="profile-circle-gray" onclick="toggleDropdown()">
+                    <i class="fas fa-truck"></i> </div>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="login_page.html" onclick="logoutUser(event)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
         </div>
     </header>
 
-    <div class="layout-wrapper">
-        <aside>
-            <ul>
-                <li><a href="collector_dashboard.html"><i class="fas fa-home" style="width: 20px;"></i> Dashboard</a></li>
-                <li class="active"><a href="available_requests.html"><i class="fas fa-list" style="width: 20px;"></i> Available Requests</a></li>
-                <li><a href="collector_history.html"><i class="fas fa-history" style="width: 20px;"></i> My Tasks</a></li>
-                <li><a href="collector_notification.html"><i class="fas fa-bell" style="width: 20px;"></i> Notification</a></li>
+    <div style="display: flex; flex: 1; overflow: hidden;">
+        
+        <aside style="width: 250px; background-color: #E0E0E0; padding-top: 20px;">
+            <ul style="list-style: none; padding: 0; margin: 0; font-family: Arial, sans-serif;">
+                <li><a href="collector_dashboard.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-home" style="width: 20px;"></i> Dashboard</a></li>
+                <li style="background-color: #C4C4C4;"><a href="available_requests.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333; font-weight: bold;"><i class="fas fa-list" style="width: 20px;"></i> Available Requests</a></li>
+                <li><a href="my_tasks.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-tasks" style="width: 20px;"></i> My Tasks</a></li>
             </ul>
         </aside>
 
-        <main>
-            <div class="content-card">
-                <h2 style="font-family: 'Georgia', serif; font-size: 28px; margin-top: 0; margin-bottom: 25px;">Available Pickup Requests</h2>
+        <main style="flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start;">
+            <div style="background-color: white; width: 100%; max-width: 1000px; padding: 40px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 
-                <div class="table-header-banner">
-                    <span>New Requests for Collection</span>
-                    <i class="fas fa-map-marker-alt"></i>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h2 style="font-family: 'Georgia', serif; font-size: 28px; margin: 0;">Available Requests</h2>
+                    <button onclick="loadAvailableRequests()" style="background: none; border: 1px solid #8CC63F; color: #8CC63F; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                
+                <div style="background-color: #D9D9D9; padding: 12px 20px; font-family: 'Georgia', serif; font-size: 16px;">
+                    <span>Requests waiting for collection in your area</span>
                 </div>
 
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Request ID</th>
-                                <th>Preferred Date & Time</th>
-                                <th>Item Type</th>
-                                <th>Quantity</th>
-                                <th>Pickup Address</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="requestsTableBody">
-                            <tr><td colspan="6" style="text-align: center; padding: 30px;">Checking for available jobs...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="requests-grid" id="requestsContainer">
+                    <p style="text-align: center; color: #888; grid-column: 1 / -1; padding: 30px;">Loading available requests...</p>
                 </div>
+
             </div>
         </main>
     </div>
@@ -68,7 +158,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
@@ -83,162 +173,135 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        let currentCollectorId = null;
+
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    // 1. COLLECTOR SECURITY GATEKEEPER
-                    const userRef = doc(db, "users", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    
-                    if (userSnap.exists()) {
-                        if (userSnap.data().role !== "collector") {
-                            alert("Security Alert: Only authorized Collectors can access the Available Requests board.");
-                            window.location.href = "login_page.html";
-                            return; 
-                        }
-                        document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                    }
-
-                    // 2. FETCH PENDING REQUESTS
-                    const querySnapshot = await getDocs(collection(db, "request"));
-                    let tableHTML = "";
-                    let jobCount = 0;
-
-                    querySnapshot.forEach((docSnap) => {
-                        const reqData = docSnap.data();
-                        const status = reqData.status ? reqData.status.toLowerCase() : "";
-
-                        // Only show jobs that no one has taken yet
-                        if (status === "pending") {
-                            jobCount++;
-                            const requestId = "#" + docSnap.id.substring(0, 6).toUpperCase();
-                            
-                            // --- DISPLAY THE USER'S PREFERRED SCHEDULED DATE ---
-                            let displayDateTime = "Not specified";
-                            if (reqData.scheduledDate) {
-                                const dateObj = new Date(reqData.scheduledDate);
-                                displayDateTime = dateObj.toLocaleString('en-MY', { 
-                                    year: 'numeric', month: 'short', day: 'numeric', 
-                                    hour: '2-digit', minute: '2-digit' 
-                                });
-                            }
-
-                            tableHTML += `
-                                <tr id="row-${docSnap.id}">
-                                    <td style="color: #666; font-weight: bold;">${requestId}</td>
-                                    <td style="color: #0d7a46; font-weight: bold;">${displayDateTime}</td>
-                                    <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
-                                    <td>${reqData.weight || '0'} Kg</td>
-                                    <td style="font-size: 13px;">${reqData.pickupAddress || '-'}</td>
-                                    <td>
-                                        <button class="btn-accept" onclick="acceptJob('${docSnap.id}')">Accept</button>
-                                    </td>
-                                </tr>
-                            `;
-                        }
-                    });
-
-                    document.getElementById('requestsTableBody').innerHTML = tableHTML || "<tr><td colspan='6' style='text-align: center; padding: 30px;'>No new requests available right now. Check back later!</td></tr>";
-
-                } catch (error) {
-                    console.error("Database Error:", error);
-                    document.getElementById('requestsTableBody').innerHTML = `<tr><td colspan='6' style='text-align: center; color: red;'>Error loading jobs: ${error.message}</td></tr>`;
-                }
-
-            } else {
-                window.location.href = "login_page.html"; // Kick to login
+            if (!user) { window.location.href = "login_page.html"; return; }
+            
+            // Fetch Collector Name
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (userSnap.exists()) {
+                document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+                currentCollectorId = user.uid;
+                
+                // Load data only after confirming user is logged in
+                window.loadAvailableRequests();
             }
         });
 
-        // --- ACCEPT JOB FUNCTION ---
-        window.acceptJob = async function(docId) {
-            const confirmAccept = confirm("Are you sure you want to accept this pickup job?");
-            if (confirmAccept) {
-                try {
-                    await updateDoc(doc(db, "request", docId), {
-                        status: "accepted",
-                        collectorId: auth.currentUser.uid, 
-                        updatedAt: new Date().toISOString()
-                    });
+        // Make function globally accessible so the Refresh button can use it
+        window.loadAvailableRequests = async function() {
+            const container = document.getElementById('requestsContainer');
+            container.innerHTML = '<p style="text-align: center; color: #888; grid-column: 1 / -1; padding: 30px;">Loading...</p>';
+
+            try {
+                // Fetch ONLY pending requests
+                const q = query(collection(db, "request"), where("status", "==", "pending"));
+                const snapshot = await getDocs(q);
+                
+                const now = new Date().getTime();
+                const EXPIRY_LIMIT = 2 * 60 * 1000; // Testing limit: 2 mins
+                
+                let html = "";
+                let count = 0;
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+
+                    // EXPIRATION FILTER: If the request is older than 2 mins, skip it!
+                    if (now - reqTime > EXPIRY_LIMIT) {
+                        return; // Do not show expired requests to collectors
+                    }
+
+                    count++;
+                    const displayDate = new Date(reqTime).toLocaleDateString();
                     
-                    alert("Success! You have accepted the job. It has been moved to your 'My Tasks' page.");
-                    document.getElementById(`row-${docId}`).style.display = 'none';
-                    
-                } catch (error) {
-                    alert("Error accepting job: " + error.message);
+                    html += `
+                        <div class="request-card">
+                            <div class="request-header">
+                                <h3><i class="fas fa-recycle" style="color:#8CC63F; margin-right:5px;"></i> ${data.category}</h3>
+                                <span class="weight-badge">${data.weight} Kg</span>
+                            </div>
+                            <div class="request-details">
+                                <p><i class="fas fa-calendar-alt" style="width:20px; color:#888;"></i> <strong>Date:</strong> ${displayDate}</p>
+                                <p><i class="fas fa-fingerprint" style="width:20px; color:#888;"></i> <strong>ID:</strong> #${docSnap.id.substring(0,6).toUpperCase()}</p>
+                            </div>
+                            <button class="btn-accept" onclick="acceptRequest('${docSnap.id}')">Accept Request</button>
+                        </div>
+                    `;
+                });
+
+                if (count === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #555; grid-column: 1 / -1; padding: 30px; font-size: 18px;">No available requests right now. Please check back later!</p>';
+                } else {
+                    container.innerHTML = html;
                 }
+
+            } catch (error) {
+                container.innerHTML = `<p style="text-align: center; color: red; grid-column: 1 / -1;">Error loading data: ${error.message}</p>`;
             }
         };
 
+        // --- THE "DOUBLE LOCK" ACCEPT FUNCTION ---
         window.acceptRequest = async function(requestId) {
-    const reqRef = doc(db, "request", requestId);
-    const reqSnap = await getDoc(reqRef);
-    const data = reqSnap.data();
-    
-    // Re-verify expiration
-    const TWO_MIN_IN_MS = 2 * 60 * 1000;
-    const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+            if (!confirm("Are you sure you want to accept this pickup request?")) return;
 
-    if (new Date().getTime() - requestTime > THREE_DAYS_IN_MS) {
-        alert("This request has expired and can no longer be accepted.");
-        // Optional: Update status to expired in database
-        await updateDoc(reqRef, { status: "expired" });
-        window.location.reload(); // Refresh the list
-        return;
-    }
+            try {
+                const reqRef = doc(db, "request", requestId);
+                const docSnap = await getDoc(reqRef);
 
-    // If not expired, proceed with accepting
-    await updateDoc(reqRef, { status: "accepted", collectorId: auth.currentUser.uid });
-    alert("Request accepted!");
-};
-
-        // --- UI MENUS & LOGOUT ---
-        window.toggleMenu = function() {
-            document.getElementById("dropdownMenu").classList.toggle("show");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('#profileContainer')) {
-                const dropdown = document.getElementById("dropdownMenu");
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
+                if (!docSnap.exists()) {
+                    alert("Error: Request no longer exists.");
+                    return window.loadAvailableRequests();
                 }
+
+                const data = docSnap.data();
+                const now = new Date().getTime();
+                const EXPIRY_LIMIT = 2 * 60 * 1000; // 2 Mins
+                const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+
+                // 1st Lock: Was it already accepted by another collector?
+                if (data.status !== "pending") {
+                    alert("Sorry! This request was already accepted by someone else or cancelled.");
+                    return window.loadAvailableRequests();
+                }
+
+                // 2nd Lock: Did it expire right before they clicked?
+                if (now - reqTime > EXPIRY_LIMIT) {
+                    alert("This request has just expired and can no longer be accepted.");
+                    return window.loadAvailableRequests();
+                }
+
+                // If safe, update the document
+                await updateDoc(reqRef, {
+                    status: "accepted",
+                    collectorId: currentCollectorId
+                });
+
+                alert("Success! You have accepted this request.");
+                window.location.href = "my_tasks.html"; // Redirect them to their task list
+
+            } catch (error) {
+                alert("Error accepting request: " + error.message);
             }
         };
 
-        window.logoutUser = function(event) {
+        // --- UI Interactions ---
+        window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
+        
+        window.onclick = (event) => {
+            if (!event.target.closest('.profile-dropdown-container')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+            }
+        };
+
+        window.logoutUser = (event) => {
             event.preventDefault();
             if (confirm("Are you sure you want to log out?")) {
-                signOut(auth).then(() => {
-                    window.location.href = "login_page.html";
-                });
+                signOut(auth).then(() => window.location.href = "login_page.html");
             }
         };
-
-        // 1. Define the threshold
-const TWO_MIN_IN_MS = 2 * 60 * 1000;
-const now = new Date().getTime();
-
-// 2. Inside your querySnapshot.forEach loop
-querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-
-    // 3. EXPIRATION CHECK: Skip if expired
-    if (data.status === "pending" && (now - requestTime > THREE_DAYS_IN_MS)) {
-        // Option A: Automatically hide expired requests from collectors
-        return; 
-    }
-
-    // 4. If NOT expired, display the request normally
-    availableRequestsContainer.innerHTML += `
-        <div class="request-card">
-            <p>Item: ${data.category}</p>
-            <p>Weight: ${data.weight} kg</p>
-            <button onclick="acceptRequest('${docSnap.id}')">Accept Request</button>
-        </div>
-    `;
-});
     </script>
 </body>
 </html>
