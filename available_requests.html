@@ -192,6 +192,31 @@
                 });
             }
         };
+
+        // 1. Define the threshold
+const TWO_MIN_IN_MS = 2 * 60 * 1000;
+const now = new Date().getTime();
+
+// 2. Inside your querySnapshot.forEach loop
+querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+
+    // 3. EXPIRATION CHECK: Skip if expired
+    if (data.status === "pending" && (now - requestTime > THREE_DAYS_IN_MS)) {
+        // Option A: Automatically hide expired requests from collectors
+        return; 
+    }
+
+    // 4. If NOT expired, display the request normally
+    availableRequestsContainer.innerHTML += `
+        <div class="request-card">
+            <p>Item: ${data.category}</p>
+            <p>Weight: ${data.weight} kg</p>
+            <button onclick="acceptRequest('${docSnap.id}')">Accept Request</button>
+        </div>
+    `;
+});
     </script>
 </body>
 </html>
