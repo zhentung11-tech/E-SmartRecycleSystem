@@ -171,11 +171,17 @@ body, html {
 .status-badge.pending { background-color: var(--badge-pending); }
 .status-badge.complete { background-color: var(--badge-complete); }
 
-CSS
-.status-badge.expired {
-    background-color: #ef4444; /* Red */
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
+/* Status Badge Styling */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 12px;
     font-weight: bold;
+    color: white;
+    text-transform: uppercase;
 }
+
+.bg-completed { background-color: #047857; } /* Dark Green */
+.bg-pending   { background-color: #f59e0b; } /* Amber */
+.bg-expired   { background-color: #ef4444; } /* Red */
+.bg-accepted  { background-color: #10b981; } /* Emerald */
