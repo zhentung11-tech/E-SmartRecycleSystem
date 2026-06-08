@@ -76,6 +76,8 @@
             <a href="dashboard.html" style="text-decoration: none;"><h1 style="margin: 0; font-size: 22px; color: #000; font-family: Arial, sans-serif;">E-Smart Recycle</h1></a>
         </div>
 
+<div id="notificationContainer" class="notification-area"></div>
+        
         <div style="display: flex; align-items: center; gap: 15px; font-family: Arial, sans-serif;">
             <span id="userNameDisplay">Loading...</span>
             
@@ -152,6 +154,8 @@
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) {
                     document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+
+                checkExpiredRequests(user.uid);
                 }
 
                 // 2. FETCH REQUESTS TO BUILD NOTIFICATIONS
@@ -273,6 +277,37 @@
                 });
             }
         };
+
+        // --- Add this to your <script> block ---
+
+async function checkExpiredRequests(userId) {
+    const container = document.getElementById('notificationContainer');
+    const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
+    const now = new Date().getTime();
+
+    // Query requests for this specific user
+    const q = query(collection(db, "request"), where("userId", "==", userId), where("status", "==", "pending"));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+
+        // Check if expired
+        if (now - requestTime > THREE_DAYS_IN_MS) {
+            const alertHtml = `
+                <div class="alert-box" style="background:#fee2e2; border-left: 5px solid #ef4444; padding: 15px; margin-bottom: 10px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
+                    <strong>Request Expired:</strong> Your request for <strong>${data.category}</strong> 
+                    placed on ${new Date(requestTime).toLocaleDateString()} was not collected.
+                    <br>
+                    <a href="user_request.html" style="color: #b91c1c; text-decoration: underline;">Click here to request again.</a>
+                </div>
+            `;
+            container.innerHTML += alertHtml;
+        }
+    });
+}
     </script>
 </body>
 </html>
