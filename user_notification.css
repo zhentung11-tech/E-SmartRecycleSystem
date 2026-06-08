@@ -1,343 +1,60 @@
-/* =========================================================
-   BASE LAYOUT (Header, Sidebar, Main Area)
-   ========================================================= */
 body {
-    margin: 0;
     font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
 }
 
-/* Top Header (Light Green) */
-.top-nav-green {
-    background-color: #8CC63F; 
+.notif-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 30px;
-    height: 60px;
-}
-
-.logo-section-top { display: flex; align-items: center; gap: 15px; }
-.logo-section-top i { font-size: 35px; color: #4A4A4A; }
-.logo-section-top h1 { margin: 0; font-size: 22px; color: #000; }
-
-.user-profile-top { display: flex; align-items: center; gap: 10px; font-size: 18px; }
-.profile-circle-gray {
-    background-color: #666; color: white; width: 40px; height: 40px;
-    border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;
-}
-
-/* Main Layout Setup */
-.layout-container {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-}
-
-/* Left Sidebar */
-.sidebar-left {
-    width: 250px;
-    background-color: #DDE2E2;
-    padding-top: 20px;
-    border-right: 1px solid #ccc;
-}
-
-.sidebar-menu { list-style: none; padding: 0; margin: 0; }
-.sidebar-menu li a {
-    display: flex; align-items: center; gap: 15px; padding: 15px 30px;
-    color: #333; text-decoration: none; font-size: 16px;
-}
-
-.sidebar-menu li a.active {
-    background-color: #C4C4C4;
-    font-weight: bold;
-    border-left: 5px solid #00B050;
-}
-
-.sidebar-menu li a i { font-size: 20px; width: 25px; text-align: center; }
-
-/* Main Content Area */
-.main-content {
-    flex: 1;
-    background-color: #C4C4C4;
-    padding: 40px;
-    overflow-y: auto;
-}
-
-/* White Card Container */
-.history-card {
-    background-color: white;
-    width: 100%;
-    max-width: 850px;
-    padding: 40px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    margin: 0 auto; 
-}
-
-.serif-heading-large {
-    font-family: 'Georgia', serif;
-    font-size: 28px;
-    font-weight: bold;
-    color: #000;
-    margin-top: 0;
-    margin-bottom: 25px;
-}
-
-.gray-header-bar {
-    background-color: #D9D9D9;
-    padding: 15px 20px;
-    font-family: 'Georgia', serif;
-    font-size: 18px;
-    color: #000;
     margin-bottom: 20px;
-    display: flex; 
-    justify-content: space-between; 
+}
+
+/* Card Styling */
+.notif-item {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    display: flex;
     align-items: center;
-}
-
-/* =========================================================
-   NOTIFICATION SPECIFIC STYLES
-   ========================================================= */
-.notification-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.user-notif-item {
-    display: flex;
-    align-items: flex-start;
     justify-content: space-between;
-    padding: 18px;
-    background-color: #f9f9f9;
-    border-radius: 6px;
-    border-left: 4px solid #ccc; 
-    transition: all 0.3s ease; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-left: 5px solid #ccc;
+    transition: transform 0.2s;
 }
 
-.user-notif-item.unread {
-    background-color: #eef7f2; 
-    border-left-color: #00B050; 
-}
+.notif-item:hover { transform: translateX(5px); }
 
-.user-notif-item:hover {
-    background-color: #f1f1f1;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
+/* Status-specific borders */
+.alert-card { border-left-color: #ef4444; background: #fff5f5; }
+.status-card { border-left-color: #0d7a46; background: #eef7f2; }
 
-.user-notif-item.unread:hover {
-    background-color: #e4f2eb;
-}
-
-.notif-content-wrapper {
-    display: flex;
-    align-items: flex-start;
-    flex-grow: 1;
-}
-
-.notif-icon-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Buttons & Text */
+.btn-reorder {
+    background: #ef4444;
     color: white;
-    margin-right: 15px;
-    flex-shrink: 0;
-    font-size: 16px;
-}
-
-.bg-green { background-color: #00B050; }
-.bg-orange { background-color: #f59e0b; }
-.bg-gray { background-color: #888; }
-
-.notif-content-area {
-    flex-grow: 1;
-    padding-right: 15px;
-}
-
-.notif-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    align-items: center;
-}
-
-.notif-header h3 {
-    margin: 0;
-    font-size: 16px;
-    font-family: 'Georgia', serif;
-    color: #000;
-}
-
-.notif-header span {
-    font-size: 12px;
-    color: #888;
-    font-family: Arial, sans-serif;
-}
-
-.notif-content-area p {
-    margin: 0;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 4px;
     font-size: 14px;
-    color: #444;
-    line-height: 1.4;
-    font-family: Arial, sans-serif;
+    font-weight: bold;
 }
 
-.dismiss-btn {
+.btn-reorder:hover { background: #dc2626; }
+
+#markReadBtn {
     background: none;
-    border: none;
-    color: #bbb;
-    font-size: 16px;
+    border: 1px solid #999;
+    padding: 5px 10px;
     cursor: pointer;
-    transition: color 0.2s;
-    margin-left: 15px;
-    padding: 5px;
+    border-radius: 4px;
 }
-
-.dismiss-btn:hover {
-    color: #C00000;
-}
-
-/* --- Profile Dropdown Fixes --- */
-.user-profile-top {
-    position: relative; /* This keeps the dropdown attached to the profile area */
-}
-
-.profile-dropdown {
-    display: none; /* HIDES the menu by default */
-    position: absolute;
-    top: 55px; /* Pushes it down below the gray circle */
-    right: 0;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Creates a nice shadow */
-    border-radius: 6px;
-    z-index: 1000;
-    flex-direction: column; /* Stacks Profile and Logout on top of each other */
-}
-
-.profile-dropdown a {
-    color: #333;
-    padding: 15px 20px;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 15px;
-    font-family: Arial, sans-serif;
-    border-bottom: 1px solid #f0f0f0; /* Line between options */
-}
-
-.profile-dropdown a:hover {
-    background-color: #f9f9f9;
-    color: #00B050; /* Turns green when you hover */
-}
-
-/* JavaScript uses this to make it appear! */
-.show-dropdown {
-    display: flex !important; 
-}
-
-.badge-pending { background-color: #f59e0b; } /* Orange */
-.badge-accepted { background-color: #00B050; } /* Green */
-.badge-rejected { background-color: #C00000; } /* Red */
-
-/* =========================================================
-   PROFILE DROPDOWN STYLES
-   ========================================================= */
-.profile-dropdown-container {
-    position: relative;
-    display: inline-block;
-}
-
-.profile-circle-gray {
-    transition: background-color 0.2s ease;
-}
-
-.profile-circle-gray:hover {
-    background-color: #555;
-    cursor: pointer;
-}
-
-.dropdown-menu {
-    display: none; 
-    position: absolute;
-    top: 50px; 
-    right: 0;
-    background-color: white;
-    min-width: 130px;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
-    border-radius: 6px;
-    z-index: 1000;
-    overflow: hidden;
-}
-
-.dropdown-menu.show {
-    display: block; 
-}
-
-.dropdown-menu a {
-    color: #333;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-    font-family: Arial, sans-serif;
-    transition: background-color 0.2s;
-}
-
-.dropdown-menu a:hover {
-    background-color: #f1f1f1;
-    color: #00B050; /* Changed hover color to match your E-Smart Recycle green */
-}
-
-/* Red hover specifically for the logout button */
-.dropdown-menu a[onclick="logout()"]:hover {
-    color: #C00000; 
-}
-    /* Card container base */
-    .notif-card {
-        padding: 20px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        font-family: Arial, sans-serif;
-    }
-
-    /* Expired Alert specific */
-    .alert-card {
-        background: #fff5f5;
-        border-left: 5px solid #ef4444;
-    }
-
-    /* General Notification specific */
-    .general-card {
-        background: #f9f9f9;
-        border-left: 5px solid #ccc;
-    }
-    
-    .status-card {
-        background: #eef7f2;
-        border-left: 5px solid #0d7a46;
-    }
-
-    .btn-reorder {
-        background: #ef4444;
-        color: white;
-        padding: 8px 15px;
-        text-decoration: none;
-        border-radius: 4px;
-        font-size: 14px;
-        white-space: nowrap;
-    }
-
