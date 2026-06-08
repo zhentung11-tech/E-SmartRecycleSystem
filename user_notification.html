@@ -148,6 +148,21 @@
         const db = getFirestore(app);
 
         onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "login_page.html"; return; }
+            
+            const container = document.getElementById('notificationContainer');
+            const EXPIRY_LIMIT = 3 * 24 * 60 * 60 * 1000; // 3 Days
+            const now = new Date().getTime();
+
+            const q = query(collection(db, "request"), where("userId", "==", user.uid));
+            const snapshot = await getDocs(q);
+
+            // Add Welcome Message
+            container.innerHTML += `
+                <div class="notif-item">
+                    <div><h3>Welcome to E-Smart Recycle</h3><p>Start recycling today for a cleaner environment!</p></div>
+                </div>`;
+            
             if (user) {
                 // 1. FETCH USER NAME FOR THE TOP RIGHT
                 const userRef = doc(db, "users", user.uid);
@@ -308,6 +323,23 @@ async function checkExpiredRequests(userId) {
         }
     });
 }
+
+        snapshot.forEach((doc) => {
+                const data = doc.data();
+                const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                const status = data.status?.toLowerCase();
+
+                // 1. Alert for Expired
+                if (status === "pending" && (now - reqTime > EXPIRY_LIMIT)) {
+                    container.innerHTML += `
+                        <div class="notif-item alert-card">
+                            <div>
+                                <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right: 10px;"></i>
+                                <strong>Request Expired:</strong> Your ${data.category} request was not collected.
+                            </div>
+                            <a href="selectpickup.html" class="btn-reorder">Re-request</a>
+                        </div>`;
+                }
     </script>
 </body>
 </html>
