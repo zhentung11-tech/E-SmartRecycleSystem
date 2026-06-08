@@ -2,21 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications - E-Smart Recycle</title>
     <link rel="stylesheet" href="user_notification.css">
     <style>
-        .alert-card {
-            background: #fff5f5;
-            border-left: 5px solid #ef4444;
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        .notif-container { max-width: 800px; margin: 40px auto; padding: 20px; }
+        
+        /* Unified Notification Item Style */
+        .notif-item {
+            background: white;
             padding: 20px;
             margin-bottom: 15px;
-            border-radius: 4px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid #ccc;
         }
+
+        .alert-card { border-left-color: #ef4444; background: #fff5f5; }
+        .status-card { border-left-color: #0d7a46; background: #eef7f2; }
+
         .btn-reorder {
             background: #ef4444;
             color: white;
@@ -24,104 +31,79 @@
             text-decoration: none;
             border-radius: 4px;
             font-size: 14px;
-        }
-        .user-notif-item {
-            margin-bottom: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <main style="max-width: 800px; margin: 40px auto; padding: 20px;">
+    <main class="notif-container">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2>Notifications</h2>
             <button id="markReadBtn" onclick="markAllAsRead()" style="cursor: pointer;">Mark all as read</button>
         </div>
-        
         <div id="notificationContainer"></div>
-        
-        <div id="notifList"></div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
+        const db = getFirestore(initializeApp({ /* YOUR CONFIG */ }));
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(getAuth(), async (user) => {
             if (!user) { window.location.href = "login_page.html"; return; }
             
-            // 1. Check for Expired Requests
-            await checkExpiredRequests(user.uid);
-
-            // 2. Fetch General Notifications
-            const q = query(collection(db, "request"), where("userId", "==", user.uid));
-            const querySnapshot = await getDocs(q);
-            let notifHTML = "";
-
-            // Welcome Message
-            notifHTML += `
-                <div class="user-notif-item" style="padding: 20px; background-color: #f9f9f9; border-left: 4px solid #ccc; border-radius: 4px; margin-bottom: 10px;">
-                    <h3>Welcome to E-Smart Recycle</h3>
-                    <p>Thank you for joining us! Start submitting your recyclable items today.</p>
-                </div>`;
-
-            querySnapshot.forEach((docSnap) => {
-                const reqData = docSnap.data();
-                const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                if (status === "accepted" || status === "completed") {
-                    notifHTML = `
-                        <div class="user-notif-item unread" style="padding: 20px; background-color: #eef7f2; border-left: 4px solid #0d7a46; border-radius: 4px; margin-bottom: 10px;">
-                            <h3>Pickup Request ${status.charAt(0).toUpperCase() + status.slice(1)}!</h3>
-                            <p>Your request for ${reqData.weight} Kg of ${reqData.category} has been ${status}.</p>
-                        </div>` + notifHTML;
-                }
-            });
-            document.getElementById('notifList').innerHTML = notifHTML;
-        });
-
-        async function checkExpiredRequests(userId) {
             const container = document.getElementById('notificationContainer');
-            // Testing: 2 minutes. Change back to: 3 * 24 * 60 * 60 * 1000
-            const EXPIRY_LIMIT = 2 * 60 * 1000; 
+            const EXPIRY_LIMIT = 2 * 60 * 1000; // Testing: 2 mins
             const now = new Date().getTime();
 
-            const q = query(collection(db, "request"), where("userId", "==", userId), where("status", "==", "pending"));
+            const q = query(collection(db, "request"), where("userId", "==", user.uid));
             const snapshot = await getDocs(q);
 
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+            // Sort by date (newest first)
+            let docs = [];
+            snapshot.forEach(d => docs.push(d.data()));
+            
+            // 1. Welcome Message
+            container.innerHTML += `
+                <div class="notif-item">
+                    <div><h3>Welcome to E-Smart Recycle</h3><p>Thank you for joining us!</p></div>
+                </div>`;
 
-                if (now - requestTime > EXPIRY_LIMIT) {
+            // 2. Process Requests
+            docs.forEach(data => {
+                const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                const status = data.status ? data.status.toLowerCase() : "pending";
+
+                if (status === "pending" && (now - reqTime > EXPIRY_LIMIT)) {
+                    // EXPIRED CARD
                     container.innerHTML += `
-                        <div class="alert-card">
+                        <div class="notif-item alert-card">
                             <div>
                                 <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right: 10px;"></i>
-                                <strong>Request Expired:</strong> Your request for <strong>${data.category}</strong> was not collected.
+                                <strong>Request Expired:</strong> ${data.category} (${data.weight}kg) was not collected.
                             </div>
                             <a href="selectpickup.html" class="btn-reorder">Re-request</a>
                         </div>`;
+                } else if (status === "accepted" || status === "completed") {
+                    // SUCCESS CARD
+                    container.innerHTML += `
+                        <div class="notif-item status-card">
+                            <div>
+                                <i class="fa-solid fa-check-circle" style="color:#0d7a46; margin-right: 10px;"></i>
+                                <strong>Pickup ${status.charAt(0).toUpperCase() + status.slice(1)}!</strong>
+                                <p style="margin:5px 0 0 0;">Your ${data.category} request has been ${status}.</p>
+                            </div>
+                        </div>`;
                 }
             });
-        }
+        });
 
         window.markAllAsRead = () => {
-            document.querySelectorAll('.unread').forEach(el => el.style.backgroundColor = "#f9f9f9");
-            alert("All marked as read.");
+            document.querySelectorAll('.notif-item').forEach(el => el.style.opacity = "0.6");
+            alert("All notifications marked as read.");
         };
     </script>
 </body>
