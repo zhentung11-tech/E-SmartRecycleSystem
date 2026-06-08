@@ -170,3 +170,12 @@ body, html {
 
 .status-badge.pending { background-color: var(--badge-pending); }
 .status-badge.complete { background-color: var(--badge-complete); }
+
+CSS
+.status-badge.expired {
+    background-color: #ef4444; /* Red */
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
