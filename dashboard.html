@@ -199,50 +199,54 @@
             });
         
             // 2. Separate logic for loading dashboard stats
-         async function loadDashboardData(userId) {
-    const q = query(collection(db, "request"), where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
-
-    let total = 0, pending = 0, completed = 0;
-    let tableHTML = "";
-    
-    // Set expiration threshold (2 mins for testing, change to 3 days later)
-    const EXPIRATION_LIMIT = 2 * 60 * 1000; 
-    const now = new Date().getTime();
-
-   querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    
-    // --- EXPIRATION LOGIC ---
-    const TWO_MINUTES_AGO = new Date().getTime() - (2 * 60 * 1000); 
-    const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-    
-    let status = data.status ? data.status.toLowerCase() : "pending";
-    
-    // If pending and expired, override status
-    if (status === "pending" && (new Date().getTime() - requestTime > TWO_MINUTES_AGO)) {
-        status = "expired";
-    }
-    // --- END LOGIC ---
-
-    const displayDate = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toLocaleDateString() : new Date(data.createdAt).toLocaleDateString()) : "Recent";
-    
-    // Add the status class based on the 'status' variable
-    tableHTML += `
-        <tr>
-            <td>${displayDate}</td>
-            <td>${data.category || '-'}</td>
-            <td>${data.weight || '0'} Kg</td>
-            <td><span class="status-badge bg-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
-        </tr>
-    `;
-});
-
-    document.getElementById('total-requests').innerText = total;
-    document.getElementById('pending-requests').innerText = pending;
-    document.getElementById('completed-requests').innerText = completed;
-    document.getElementById('recentRequestsTableBody').innerHTML = tableHTML || "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No requests found.</td></tr>";
-}
+            async function loadDashboardData(userId) {
+            const q = query(collection(db, "request"), where("userId", "==", userId));
+            const querySnapshot = await getDocs(q);
+        
+            let total = 0, pending = 0, completed = 0;
+            let tableHTML = "";
+            
+            // Threshold (2 mins for testing)
+            const EXPIRATION_LIMIT = 2 * 60 * 1000; 
+            const now = new Date().getTime();
+        
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                total++; // Increment total
+                
+                // 1. Determine Status
+                const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                let status = data.status ? data.status.toLowerCase() : "pending";
+                
+                // 2. Check Expiration
+                if (status === "pending" && (now - requestTime > EXPIRATION_LIMIT)) {
+                    status = "expired";
+                }
+        
+                // 3. Update Counters based on the FINAL status
+                if (status === "pending" || status === "accepted") pending++;
+                else if (status === "completed") completed++;
+                // Note: 'expired' requests are not counted as pending or completed
+        
+                const displayDate = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toLocaleDateString() : new Date(data.createdAt).toLocaleDateString()) : "Recent";
+                
+                // 4. Build Table Row
+                tableHTML += `
+                    <tr>
+                        <td>${displayDate}</td>
+                        <td>${data.category || '-'}</td>
+                        <td>${data.weight || '0'} Kg</td>
+                        <td><span class="status-badge bg-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                    </tr>
+                `;
+            });
+        
+            // 5. Update UI
+            document.getElementById('total-requests').innerText = total;
+            document.getElementById('pending-requests').innerText = pending;
+            document.getElementById('completed-requests').innerText = completed;
+            document.getElementById('recentRequestsTableBody').innerHTML = tableHTML || "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No requests found.</td></tr>";
+        }
         
             // --- UTILS ---
             window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
