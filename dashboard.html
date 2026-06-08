@@ -199,38 +199,53 @@
             });
         
             // 2. Separate logic for loading dashboard stats
-            async function loadDashboardData(userId) {
-                const q = query(collection(db, "request"), where("userId", "==", userId));
-                const querySnapshot = await getDocs(q);
+         async function loadDashboardData(userId) {
+    const q = query(collection(db, "request"), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+
+    let total = 0, pending = 0, completed = 0;
+    let tableHTML = "";
+    
+    // Set expiration threshold (2 mins for testing, change to 3 days later)
+    const EXPIRATION_LIMIT = 2 * 60 * 1000; 
+    const now = new Date().getTime();
+
+    querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        total++;
         
-                let total = 0, pending = 0, completed = 0;
-                let tableHTML = "";
+        // --- EXPIRATION LOGIC ---
+        const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+        let status = data.status ? data.status.toLowerCase() : "pending";
+        let displayStatus = status;
+        let statusClass = status;
+
+        if (status === "pending" && (now - requestTime > EXPIRATION_LIMIT)) {
+            displayStatus = "Expired";
+            statusClass = "expired"; // Use this class in your CSS
+        }
+        // --- END EXPIRATION LOGIC ---
+
+        if (status === "pending" || status === "accepted") pending++;
+        if (status === "completed") completed++;
+
+        const displayDate = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toLocaleDateString() : new Date(data.createdAt).toLocaleDateString()) : "Recent";
         
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    total++;
-                    
-                    const status = data.status ? data.status.toLowerCase() : "pending";
-                    if (status === "pending" || status === "accepted") pending++;
-                    if (status === "completed") completed++;
-        
-                    const displayDate = data.scheduledDate ? data.scheduledDate.substring(0, 10) : "Recent";
-                    
-                    tableHTML += `
-                        <tr>
-                            <td>${displayDate}</td>
-                            <td>${data.category || '-'}</td>
-                            <td>${data.weight || '0'} Kg</td>
-                            <td><span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
-                        </tr>
-                    `;
-                });
-        
-                document.getElementById('total-requests').innerText = total;
-                document.getElementById('pending-requests').innerText = pending;
-                document.getElementById('completed-requests').innerText = completed;
-                document.getElementById('recentRequestsTableBody').innerHTML = tableHTML || "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No requests found.</td></tr>";
-            }
+        tableHTML += `
+            <tr>
+                <td>${displayDate}</td>
+                <td>${data.category || '-'}</td>
+                <td>${data.weight || '0'} Kg</td>
+                <td><span class="status-badge ${statusClass}">${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}</span></td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('total-requests').innerText = total;
+    document.getElementById('pending-requests').innerText = pending;
+    document.getElementById('completed-requests').innerText = completed;
+    document.getElementById('recentRequestsTableBody').innerHTML = tableHTML || "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No requests found.</td></tr>";
+}
         
             // --- UTILS ---
             window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
