@@ -46,15 +46,6 @@
         <li><a href="user_notification.html" style="display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: #333;"><i class="fas fa-bell" style="width: 20px;"></i> Notification</a></li>
     </ul>
 </aside>
-
-        <main style="flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start;">
-            <div style="background-color: white; width: 100%; max-width: 950px; padding: 40px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                
-                <h2 style="font-family: 'Georgia', serif; font-size: 28px; margin-top: 0; margin-bottom: 25px;">My Request History</h2>
-                
-                <div style="background-color: #D9D9D9; padding: 15px 20px; font-family: 'Georgia', serif; font-size: 16px; margin-bottom: 20px;">
-                    Record of Submitted Items
-                </div>
     
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
@@ -181,6 +172,38 @@
 
         window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
     window.logoutUser = (e) => { e.preventDefault(); signOut(auth).then(() => window.location.href = "login_page.html"); 
+    
+            // --- FIXED DROPDOWN & LOGOUT FUNCTIONS ---
+        window.toggleProfileMenu = function() {
+            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+        };
+
+        window.onclick = function(event) {
+            // Check if clicking outside the entire user profile area
+            if (!event.target.closest('.user-profile-top')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show-dropdown')) {
+                        dropdowns[i].classList.remove('show-dropdown');
+                    }
+                }
+            }
+        };
+
+        window.logoutUser = function(event) {
+            event.preventDefault(); // Stops the browser from fast-jumping!
+            
+            const confirmLogout = confirm("Are you sure you want to log out?");
+            
+            if (confirmLogout) {
+                signOut(auth).then(() => {
+                    // Sign-out successful, NOW we send them to the login page
+                    window.location.href = "login_page.html"; 
+                }).catch((error) => {
+                    alert("Error logging out: " + error.message);
+                });
+            }    
+        };
     </script>
 </body>
 </html>
