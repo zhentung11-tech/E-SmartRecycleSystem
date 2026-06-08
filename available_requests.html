@@ -170,6 +170,28 @@
             }
         };
 
+        window.acceptRequest = async function(requestId) {
+    const reqRef = doc(db, "request", requestId);
+    const reqSnap = await getDoc(reqRef);
+    const data = reqSnap.data();
+    
+    // Re-verify expiration
+    const TWO_MIN_IN_MS = 2 * 60 * 1000;
+    const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+
+    if (new Date().getTime() - requestTime > THREE_DAYS_IN_MS) {
+        alert("This request has expired and can no longer be accepted.");
+        // Optional: Update status to expired in database
+        await updateDoc(reqRef, { status: "expired" });
+        window.location.reload(); // Refresh the list
+        return;
+    }
+
+    // If not expired, proceed with accepting
+    await updateDoc(reqRef, { status: "accepted", collectorId: auth.currentUser.uid });
+    alert("Request accepted!");
+};
+
         // --- UI MENUS & LOGOUT ---
         window.toggleMenu = function() {
             document.getElementById("dropdownMenu").classList.toggle("show");
