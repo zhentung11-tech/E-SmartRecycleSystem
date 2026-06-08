@@ -80,208 +80,90 @@
         </main>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+        authDomain: "e-smartrecyclesystem.firebaseapp.com",
+        projectId: "e-smartrecyclesystem",
+        storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+        messagingSenderId: "212695525607",
+        appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    // 1. FETCH USER NAME FOR TOP RIGHT
-                    const userRef = doc(db, "users", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
-                    }
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = "login_page.html"; return; }
 
-                    // 2. CREATE COLLECTOR DICTIONARY
-                    const allUsersSnap = await getDocs(collection(db, "users"));
-                    const collectorDictionary = {};
-                    allUsersSnap.forEach(doc => {
-                        collectorDictionary[doc.id] = doc.data().fullName || "Unknown";
-                    });
+        try {
+            // 1. Fetch User
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (userSnap.exists()) document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
 
-                    // 3. FETCH ONLY THIS USER'S REQUESTS
-                    const q = query(collection(db, "request"), where("userId", "==", user.uid));
-                    const querySnapshot = await getDocs(q);
+            // 2. Fetch Collectors
+            const allUsersSnap = await getDocs(collection(db, "users"));
+            const collectorDictionary = {};
+            allUsersSnap.forEach(doc => collectorDictionary[doc.id] = doc.data().fullName || "Unknown");
 
-                    let recordsArray = [];
+            // 3. Fetch Requests
+            const q = query(collection(db, "request"), where("userId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            let recordsArray = [];
 
-                    // 4. LOOP THROUGH REQUESTS
-                    querySnapshot.forEach((docSnap) => {
-                    const reqData = docSnap.data();
-                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+            // --- THE LOOP ---
+            querySnapshot.forEach((docSnap) => {
+                const reqData = docSnap.data();
+                const requestId = "#" + docSnap.id.substring(0, 6).toUpperCase();
+                
+                // Expiration Logic (2 mins for testing)
+                const TWO_MINUTES_AGO = new Date().getTime() - (2 * 60 * 1000);
+                const requestTime = reqData.createdAt?.toDate ? reqData.createdAt.toDate().getTime() : new Date(reqData.createdAt).getTime();
+                
+                let status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                let displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
+                let badgeColor = "#f59e0b"; // Default yellow
 
-                    // --- EXPIRATION LOGIC START ---
-                    const TWO_MINUTES_AGO = new Date().getTime() - (1 * 60 * 1000); // 2 mins for testing
-                    const requestTime = reqData.createdAt?.toDate ? reqData.createdAt.toDate().getTime() : new Date(reqData.createdAt).getTime();
-                    
-                    let displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
-                    let badgeStyles = "padding: 6px 15px; border-radius: 4px; font-size: 13px; font-weight: bold; color: white; display: inline-block; min-width: 80px; text-align: center;";
-                    
-                    // Check if expired
-                    if (status === "pending" && requestTime < TWO_MINUTES_AGO) {
-                        displayStatus = "Expired";
-                        badgeStyles += "background-color: #ef4444;"; // Red for expired
-                    } else if (status === "pending") {
-                        badgeStyles += "background-color: #f59e0b;"; // Yellow for pending
-                    } else if (status === "accepted") {
-                        badgeStyles += "background-color: #10b981;"; // Green for accepted
-                    } else if (status === "completed") {
-                        badgeStyles += "background-color: #047857;"; // Dark green for completed
-                    }
-                    // --- EXPIRATION LOGIC END ---
-                    
-                    // Then use 'displayStatus' and 'badgeStyles' in your recordsArray.push:
-                    recordsArray.push({
-                        timestamp: sortValue,
-                        html: `
-                            <tr>
-                                <td style="color: #555;">${requestId}</td>
-                                <td>${displayDate}</td>
-                                <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
-                                <td>${reqData.weight || '0'} Kg</td>
-                                <td>${assignedCollector}</td>
-                                <td><span style="${badgeStyles}">${displayStatus}</span></td>
-                            </tr>
-                        `
-                    });
-                        
-                        const requestId = "#" + docSnap.id.substring(0, 6).toUpperCase();
+                if (status === "pending" && requestTime < TWO_MINUTES_AGO) {
+                    displayStatus = "Expired";
+                    badgeColor = "#ef4444"; // Red
+                } else if (status === "accepted") badgeColor = "#10b981";
+                else if (status === "completed") badgeColor = "#047857";
 
-                        let sortValue = 0;
-                        let displayDate = "N/A";
-                        let rawDate = reqData.createdAt;
+                let assignedCollector = reqData.collectorId ? `<strong>${collectorDictionary[reqData.collectorId] || "Assigned"}</strong>` : "<span style='color: #888;'>Waiting...</span>";
 
-                        if (rawDate) {
-                            if (rawDate.toDate) { 
-                                sortValue = rawDate.toDate().getTime(); 
-                                displayDate = rawDate.toDate().toLocaleDateString(); 
-                            } else { 
-                                sortValue = new Date(rawDate).getTime();
-                                displayDate = String(rawDate).substring(0, 10);
-                            }
-                        }
+                recordsArray.push({
+                    timestamp: requestTime,
+                    html: `<tr>
+                        <td style="color: #555;">${requestId}</td>
+                        <td>${new Date(requestTime).toLocaleDateString()}</td>
+                        <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
+                        <td>${reqData.weight || '0'} Kg</td>
+                        <td>${assignedCollector}</td>
+                        <td><span style="padding: 6px 15px; border-radius: 4px; font-weight: bold; color: white; background-color: ${badgeColor};">${displayStatus}</span></td>
+                    </tr>`
+                });
+            });
 
-                        let assignedCollector = "<span style='color: #888;'>Waiting...</span>";
-                        if (reqData.collectorId && collectorDictionary[reqData.collectorId]) {
-                            assignedCollector = `<strong>${collectorDictionary[reqData.collectorId]}</strong>`;
-                        }
+            // 4. Sort and Display
+            recordsArray.sort((a, b) => b.timestamp - a.timestamp);
+            document.getElementById('historyTableBody').innerHTML = recordsArray.length > 0 
+                ? recordsArray.map(r => r.html).join('') 
+                : "<tr><td colspan='6' style='text-align: center; padding: 30px;'>No history found.</td></tr>";
 
-                        let badgeStyles = "padding: 6px 15px; border-radius: 4px; font-size: 13px; font-weight: bold; color: white; display: inline-block; min-width: 80px; text-align: center;";
-                        let displayStatus = "Pending";
-                        
-                        if (status === "pending") {
-                            badgeStyles += "background-color: #f59e0b;"; 
-                        } else if (status === "accepted") {
-                            displayStatus = "Accepted";
-                            badgeStyles += "background-color: #10b981;"; 
-                        } else if (status === "completed") {
-                            displayStatus = "Completed";
-                            badgeStyles += "background-color: #047857;"; 
-                        }
+        } catch (error) {
+            console.error(error);
+            document.getElementById('historyTableBody').innerHTML = "<tr><td colspan='6' style='text-align: center; color: red;'>Error loading history.</td></tr>";
+        }
+    });
 
-                        recordsArray.push({
-                            timestamp: sortValue,
-                            html: `
-                                <tr>
-                                    <td style="color: #555;">${requestId}</td>
-                                    <td>${displayDate}</td>
-                                    <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
-                                    <td>${reqData.weight || '0'} Kg</td>
-                                    <td>${assignedCollector}</td>
-                                    <td><span style="${badgeStyles}">${displayStatus}</span></td>
-                                </tr>
-                            `
-                        });
-                    });
-
-                    // 5. SORT AND DISPLAY
-                    recordsArray.sort((a, b) => b.timestamp - a.timestamp);
-
-                    let tableHTML = "";
-                    recordsArray.forEach(record => {
-                        tableHTML += record.html;
-                    });
-
-                    document.getElementById('historyTableBody').innerHTML = tableHTML || "<tr><td colspan='6' style='text-align: center; padding: 30px;'>You have no request history yet.</td></tr>";
-
-                } catch (error) {
-                    console.error("Database Error:", error);
-                    document.getElementById('historyTableBody').innerHTML = `<tr><td colspan='6' style='text-align: center; color: red;'>Error loading history: ${error.message}</td></tr>`;
-                }
-
-            } else {
-                window.location.href = "login_page.html"; // Kick to login
-            }
-        });
-
-        // --- FIXED DROPDOWN & LOGOUT FUNCTIONS ---
-        window.toggleProfileMenu = function() {
-            document.getElementById("profileDropdown").classList.toggle("show-dropdown");
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.profile-dropdown-container')) {
-                const dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show-dropdown')) {
-                        dropdowns[i].classList.remove('show-dropdown');
-                    }
-                }
-            }
-        };
-
-        window.logoutUser = function(event) {
-            event.preventDefault(); 
-            const confirmLogout = confirm("Are you sure you want to log out?");
-            
-            if (confirmLogout) {
-                signOut(auth).then(() => {
-                    window.location.href = "login_page.html"; 
-                }).catch((error) => {
-                    alert("Error logging out: " + error.message);
-                });        
-            }
-        };
-
-        // 1. Calculate time
-const TWO_MINUTES_AGO = new Date().getTime() - (1 * 60 * 1000);
-const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-
-// 2. Determine display status
-let displayStatus = data.status; // e.g., "pending"
-let statusClass = "text-yellow-600"; // Default styling
-
-if (data.status === "pending" && requestTime < THREE_DAYS_AGO) {
-    displayStatus = "Expired";
-    statusClass = "text-red-600 font-bold";
-}
-
-// 3. Render in HTML
-tbody.innerHTML += `
-    <tr>
-        <td>${data.category}</td>
-        <td>${data.weight} kg</td>
-        <td class="${statusClass}">${displayStatus}</td>
-    </tr>
-`;
-        
-    </script>
+    window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+    window.logoutUser = (e) => { e.preventDefault(); signOut(auth).then(() => window.location.href = "login_page.html"); };
+</script>
 </body>
 </html>
