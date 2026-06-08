@@ -178,6 +178,9 @@
             btn.innerText = "All caught up!";
             btn.style.background = "#ccc";
         };
+
+        window.toggleProfileMenu = () => document.getElementById("profileDropdown").classList.toggle("show-dropdown");
+    window.logoutUser = (e) => { e.preventDefault(); signOut(auth).then(() => window.location.href = "login_page.html"); 
     </script>
 </body>
 </html>
