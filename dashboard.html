@@ -191,56 +191,85 @@
                 // If authorized as a normal user, render content
                 document.getElementById('userNameDisplay').innerText = userData.fullName || "User";
                 loadDashboardData(user.uid);
+                }
+                } catch (error) {
+                    console.error("Auth Guard Error:", error);
+                    window.location.href = "login_page.html";
+                }
+            });
+        
+            // 2. Separate logic for loading dashboard stats
+            async function loadDashboardData(userId) {
+                const q = query(collection(db, "request"), where("userId", "==", userId));
+                const querySnapshot = await getDocs(q);
+        
+                let total = 0, pending = 0, completed = 0;
+                let tableHTML = "";
+        
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    total++;
+                    
+                    const status = data.status ? data.status.toLowerCase() : "pending";
+                    if (status === "pending" || status === "accepted") pending++;
+                    if (status === "completed") completed++;
+        
+                    const displayDate = data.scheduledDate ? data.scheduledDate.substring(0, 10) : "Recent";
+                    
+                    tableHTML += `
+                        <tr>
+                            <td>${displayDate}</td>
+                            <td>${data.category || '-'}</td>
+                            <td>${data.weight || '0'} Kg</td>
+                            <td><span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                        </tr>
+                    `;
+                });
+        
+                document.getElementById('total-requests').innerText = total;
+                document.getElementById('pending-requests').innerText = pending;
+                document.getElementById('completed-requests').innerText = completed;
+                document.getElementById('recentRequestsTableBody').innerHTML = tableHTML || "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No requests found.</td></tr>";
             }
-        } catch (error) {
-            console.error("Auth Guard Error:", error);
-            window.location.href = "login_page.html";
-        }
-    });
-
-    // 2. Separate logic for loading dashboard stats
-    async function loadDashboardData(userId) {
-        const q = query(collection(db, "request"), where("userId", "==", userId));
-        const querySnapshot = await getDocs(q);
-
-        let total = 0, pending = 0, completed = 0;
-        let tableHTML = "";
-
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            total++;
+        
+            // --- UTILS ---
+            window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
+            window.logoutUser = async (event) => {
+                event.preventDefault();
+                if (confirm("Are you sure you want to log out?")) {
+                    await signOut(auth);
+                    window.location.href = "login_page.html";
+                }
+            };
+        
+        
+            // --- Inside your script where you fetch requests for the dashboard ---
+        
+        const TWO_MINUTES_AGO = new Date().getTime() - (2 * 60 * 1000); // Adjust to (3 * 24 * 60 * 60 * 1000) later
+        
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
             
-            const status = data.status ? data.status.toLowerCase() : "pending";
-            if (status === "pending" || status === "accepted") pending++;
-            if (status === "completed") completed++;
-
-            const displayDate = data.scheduledDate ? data.scheduledDate.substring(0, 10) : "Recent";
-            
-            tableHTML += `
-                <tr>
-                    <td>${displayDate}</td>
-                    <td>${data.category || '-'}</td>
-                    <td>${data.weight || '0'} Kg</td>
-                    <td><span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
-                </tr>
+            // Determine status for display
+            let displayStatus = data.status || "pending";
+            let statusClass = "status-pending"; // Your CSS class for styling
+        
+            // EXPIRATION LOGIC: If it's pending and older than the limit, mark as expired
+            if (displayStatus.toLowerCase() === "pending" && (new Date().getTime() - requestTime > TWO_MINUTES_AGO)) {
+                displayStatus = "Expired";
+                statusClass = "status-expired"; // Make sure to add this in your CSS
+            }
+        
+            // Now use 'displayStatus' and 'statusClass' to render your dashboard items
+            // Example:
+            dashboardContainer.innerHTML += `
+                <div class="request-card">
+                    <p>Item: ${data.category}</p>
+                    <p>Status: <span class="${statusClass}">${displayStatus}</span></p>
+                </div>
             `;
         });
-
-        document.getElementById('total-requests').innerText = total;
-        document.getElementById('pending-requests').innerText = pending;
-        document.getElementById('completed-requests').innerText = completed;
-        document.getElementById('recentRequestsTableBody').innerHTML = tableHTML || "<tr><td colspan='4' style='text-align: center; padding: 20px;'>No requests found.</td></tr>";
-    }
-
-    // --- UTILS ---
-    window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
-    window.logoutUser = async (event) => {
-        event.preventDefault();
-        if (confirm("Are you sure you want to log out?")) {
-            await signOut(auth);
-            window.location.href = "login_page.html";
-        }
-    };
 </script>
 </body>
 </html>
