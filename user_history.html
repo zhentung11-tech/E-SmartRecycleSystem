@@ -124,8 +124,43 @@
 
                     // 4. LOOP THROUGH REQUESTS
                     querySnapshot.forEach((docSnap) => {
-                        const reqData = docSnap.data();
-                        const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+                    const reqData = docSnap.data();
+                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
+
+                    // --- EXPIRATION LOGIC START ---
+                    const TWO_MINUTES_AGO = new Date().getTime() - (1 * 60 * 1000); // 2 mins for testing
+                    const requestTime = reqData.createdAt?.toDate ? reqData.createdAt.toDate().getTime() : new Date(reqData.createdAt).getTime();
+                    
+                    let displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
+                    let badgeStyles = "padding: 6px 15px; border-radius: 4px; font-size: 13px; font-weight: bold; color: white; display: inline-block; min-width: 80px; text-align: center;";
+                    
+                    // Check if expired
+                    if (status === "pending" && requestTime < TWO_MINUTES_AGO) {
+                        displayStatus = "Expired";
+                        badgeStyles += "background-color: #ef4444;"; // Red for expired
+                    } else if (status === "pending") {
+                        badgeStyles += "background-color: #f59e0b;"; // Yellow for pending
+                    } else if (status === "accepted") {
+                        badgeStyles += "background-color: #10b981;"; // Green for accepted
+                    } else if (status === "completed") {
+                        badgeStyles += "background-color: #047857;"; // Dark green for completed
+                    }
+                    // --- EXPIRATION LOGIC END ---
+                    
+                    // Then use 'displayStatus' and 'badgeStyles' in your recordsArray.push:
+                    recordsArray.push({
+                        timestamp: sortValue,
+                        html: `
+                            <tr>
+                                <td style="color: #555;">${requestId}</td>
+                                <td>${displayDate}</td>
+                                <td style="text-transform: capitalize;">${reqData.category || '-'}</td>
+                                <td>${reqData.weight || '0'} Kg</td>
+                                <td>${assignedCollector}</td>
+                                <td><span style="${badgeStyles}">${displayStatus}</span></td>
+                            </tr>
+                        `
+                    });
                         
                         const requestId = "#" + docSnap.id.substring(0, 6).toUpperCase();
 
