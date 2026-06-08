@@ -128,186 +128,81 @@
         </main>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+ <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Your exact Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
-            authDomain: "e-smartrecyclesystem.firebaseapp.com",
-            projectId: "e-smartrecyclesystem",
-            storageBucket: "e-smartrecyclesystem.firebasestorage.app",
-            messagingSenderId: "212695525607",
-            appId: "1:212695525607:web:61d0df7011aa8baf265a42"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyC5yA_CKK4xZ8bsx-Qutca7lym6i5oJdpo",
+        authDomain: "e-smartrecyclesystem.firebaseapp.com",
+        projectId: "e-smartrecyclesystem",
+        storageBucket: "e-smartrecyclesystem.firebasestorage.app",
+        messagingSenderId: "212695525607",
+        appId: "1:212695525607:web:61d0df7011aa8baf265a42"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // 1. FETCH USER NAME FOR THE TOP RIGHT
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = "login_page.html"; return; }
+        
+        // 1. Fetch User
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
 
-                checkExpiredRequests(user.uid);
-                }
+        // 2. Fetch ALL requests for user at once
+        const q = query(collection(db, "request"), where("userId", "==", user.uid));
+        const snapshot = await getDocs(q);
+        
+        const notificationContainer = document.getElementById('notificationContainer');
+        const notifList = document.getElementById('notifList');
+        
+        const now = new Date().getTime();
+        const THREE_DAYS = 3 * 24 * 60 * 60 * 1000; 
+        
+        // Reset HTML
+        notificationContainer.innerHTML = "";
+        notifList.innerHTML = `
+            <div class="user-notif-item" style="padding: 20px; background-color: #f9f9f9; border-left: 4px solid #ccc; border-radius: 4px; margin-bottom:10px;">
+                <h3>Welcome to E-Smart Recycle</h3>
+                <p>Thank you for joining us! Start submitting items today.</p>
+            </div>`;
 
-                // 2. FETCH REQUESTS TO BUILD NOTIFICATIONS
-                const q = query(collection(db, "request"), where("userId", "==", user.uid));
-                const querySnapshot = await getDocs(q);
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const status = data.status ? data.status.toLowerCase() : "pending";
+            const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
 
-                let notifHTML = "";
-
-                // 3. ALWAYS ADD THE WELCOME NOTIFICATION AT THE BOTTOM
-                notifHTML += `
-                    <div class="user-notif-item" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #f9f9f9; border-left: 4px solid #ccc; border-radius: 4px;">
-                        <div style="display: flex; align-items: center; gap: 20px;">
-                            <div style="font-size: 24px; color: #555; width: 40px; text-align: center;"><i class="fas fa-star"></i></div>
-                            <div>
-                                <div style="display: flex; gap: 15px; align-items: baseline; margin-bottom: 5px;">
-                                    <h3 style="margin: 0; font-size: 16px; font-family: Arial, sans-serif;">Welcome to E-Smart Recycle</h3>
-                                    <span style="font-size: 12px; color: #888; font-weight: bold;">System</span>
-                                </div>
-                                <p style="margin: 0; font-size: 14px; color: #333; font-family: Arial, sans-serif;">Thank you for joining us! Start submitting your recyclable items today to keep the environment clean.</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // 4. LOOP THROUGH REQUESTS AND ADD A NOTIFICATION FOR EACH ONE
-                querySnapshot.forEach((docSnap) => {
-                    const reqData = docSnap.data();
-                    const status = reqData.status ? reqData.status.toLowerCase() : "pending";
-                    
-                    let iconColor = "#ffcc00";
-                    let icon = "fa-clock";
-                    let title = "Pickup Request Submitted";
-                    let message = `Your request for ${reqData.weight} Kg of ${reqData.category} has been received and is waiting for a collector.`;
-
-                    if (status === "accepted" || status === "completed") {
-                        iconColor = "#00B050";
-                        icon = "fa-check-circle";
-                        title = "Pickup Request Accepted!";
-                        message = `Your request for ${reqData.weight} Kg of ${reqData.category} has been accepted by a collector! They will arrive soon.`;
-                    }
-
-                    // Prepend the new notification so it shows up ABOVE the welcome message
-                    notifHTML = `
-                        <div class="user-notif-item unread" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #eef7f2; border-left: 4px solid #0d7a46; border-radius: 4px;">
-                            <div style="display: flex; align-items: center; gap: 20px;">
-                                <div style="font-size: 24px; color: ${iconColor}; width: 40px; text-align: center;"><i class="fas ${icon}"></i></div>
-                                <div>
-                                    <div style="display: flex; gap: 15px; align-items: baseline; margin-bottom: 5px;">
-                                        <h3 style="margin: 0; font-size: 16px; font-family: Arial, sans-serif;">${title}</h3>
-                                        <span style="font-size: 12px; color: #888; font-weight: bold;">${reqData.createdAt ? reqData.createdAt.substring(0, 10) : 'Recent'}</span>
-                                    </div>
-                                    <p style="margin: 0; font-size: 14px; color: #333; font-family: Arial, sans-serif;">${message}</p>
-                                </div>
-                            </div>
-                        </div>
-                    ` + notifHTML; 
-                });
-
-                // 5. INJECT ALL NOTIFICATIONS INTO THE PAGE
-                document.getElementById('notifList').innerHTML = notifHTML;
-
-            } else {
-                window.location.href = "login_page.html"; // Kick to login
+            // A. Logic for EXPIRED
+            if (status === "pending" && (now - reqTime > THREE_DAYS)) {
+                notificationContainer.innerHTML += `
+                    <div class="alert-box" style="background:#fee2e2; border-left: 5px solid #ef4444; padding: 15px; margin-bottom: 10px; border-radius:4px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right:10px;"></i>
+                        <strong>Request Expired:</strong> Your ${data.category} request was not collected.
+                        <a href="selectpickup.html" style="color: #b91c1c; font-weight:bold; float:right; text-decoration: underline;">Re-request</a>
+                    </div>`;
+            } 
+            // B. Logic for ACCEPTED/COMPLETED
+            else if (status === "accepted" || status === "completed") {
+                notifList.innerHTML += `
+                    <div class="user-notif-item unread" style="padding: 20px; background-color: #eef7f2; border-left: 4px solid #0d7a46; border-radius: 4px; margin-bottom: 10px;">
+                        <h3>Pickup ${status.charAt(0).toUpperCase() + status.slice(1)}!</h3>
+                        <p>Your ${data.weight} Kg of ${data.category} has been ${status}.</p>
+                    </div>`;
             }
         });
-
-        // --- MARK AS READ FUNCTION ---
-        window.markAllAsRead = function() {
-            const unreadItems = document.querySelectorAll('.user-notif-item.unread');
-            
-            if (unreadItems.length === 0) {
-                alert("All notifications are already read!");
-                return;
-            }
-
-            unreadItems.forEach(item => {
-                item.style.backgroundColor = "#f9f9f9";
-                item.style.borderLeftColor = "#ccc";
-                item.classList.remove('unread');
-            });
-
-            const btn = document.getElementById('markReadBtn');
-            btn.innerHTML = "<i class='fas fa-check'></i> All caught up!";
-            btn.style.color = "#888";
-            btn.style.cursor = "default";
-        }
-
-        // --- THE PERFECT DROPDOWN AND LOGOUT FUNCTIONS ---
-
-        // 1. Toggles the "show" class to open/close the box
-        window.toggleDropdown = function() {
-            document.getElementById("profileDropdown").classList.toggle("show");
-        }
-
-        // 2. Closes the dropdown if the user clicks anywhere else on the screen
-        window.onclick = function(event) {
-            if (!event.target.closest('.profile-dropdown-container')) {
-                const dropdowns = document.getElementsByClassName("dropdown-menu");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
-                    }
-                }
-            }
-        }
-
-        // 3. Secure Firebase Logout
-        window.logoutUser = function(event) {
-            event.preventDefault(); // STOPS the browser from instantly jumping to the login page!
-            
-            const confirmLogout = confirm("Are you sure you want to log out?");
-            
-            if (confirmLogout) {
-                signOut(auth).then(() => {
-                    // Session killed successfully, NOW we redirect safely
-                    window.location.href = "login_page.html"; 
-                }).catch((error) => {
-                    alert("Error logging out: " + error.message);
-                });
-            }
-        };
-
-        // --- Add this to your <script> block ---
-
-async function checkExpiredRequests(userId) {
-    const container = document.getElementById('notificationContainer');
-    const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
-    const now = new Date().getTime();
-
-    // Query requests for this specific user
-    const q = query(collection(db, "request"), where("userId", "==", userId), where("status", "==", "pending"));
-    const querySnapshot = await getDocs(q);
-
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const requestTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
-
-        // Check if expired
-        if (now - requestTime > THREE_DAYS_IN_MS) {
-            const alertHtml = `
-                <div class="alert-box" style="background:#fee2e2; border-left: 5px solid #ef4444; padding: 15px; margin-bottom: 10px;">
-                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
-                    <strong>Request Expired:</strong> Your request for <strong>${data.category}</strong> 
-                    placed on ${new Date(requestTime).toLocaleDateString()} was not collected.
-                    <br>
-                    <a href="user_request.html" style="color: #b91c1c; text-decoration: underline;">Click here to request again.</a>
-                </div>
-            `;
-            container.innerHTML += alertHtml;
-        }
     });
-}
-    </script>
+
+    // --- UI Helpers ---
+    window.markAllAsRead = () => {
+        document.querySelectorAll('.unread').forEach(el => el.style.backgroundColor = "#f9f9f9");
+        alert("All marked as read!");
+    };
+    window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
+    window.logoutUser = (e) => { e.preventDefault(); signOut(auth).then(() => window.location.href = "login_page.html"); };
+</script>
 </body>
 </html>
