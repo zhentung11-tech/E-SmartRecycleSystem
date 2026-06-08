@@ -153,7 +153,7 @@
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists()) document.getElementById('userNameDisplay').innerText = userSnap.data().fullName;
 
-        // 2. Fetch ALL requests for user at once
+        // 2. Fetch Requests
         const q = query(collection(db, "request"), where("userId", "==", user.uid));
         const snapshot = await getDocs(q);
         
@@ -161,7 +161,8 @@
         const notifList = document.getElementById('notifList');
         
         const now = new Date().getTime();
-        const TWO_MIN = 2 * 60 * 1000; 
+        // Set this to 2*60*1000 for testing, or 3*24*60*60*1000 for production
+        const EXPIRY_LIMIT = 2 * 60 * 1000; 
         
         // Reset HTML
         notificationContainer.innerHTML = "";
@@ -177,7 +178,7 @@
             const reqTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
 
             // A. Logic for EXPIRED
-            if (status === "pending" && (now - reqTime > THREE_DAYS)) {
+            if (status === "pending" && (now - reqTime > EXPIRY_LIMIT)) {
                 notificationContainer.innerHTML += `
                     <div class="alert-box" style="background:#fee2e2; border-left: 5px solid #ef4444; padding: 15px; margin-bottom: 10px; border-radius:4px;">
                         <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right:10px;"></i>
@@ -186,23 +187,7 @@
                     </div>`;
             } 
             // B. Logic for ACCEPTED/COMPLETED
-            else if (status === "accepted" || status === "completed") {
-                notifList.innerHTML += `
-                    <div class="user-notif-item unread" style="padding: 20px; background-color: #eef7f2; border-left: 4px solid #0d7a46; border-radius: 4px; margin-bottom: 10px;">
-                        <h3>Pickup ${status.charAt(0).toUpperCase() + status.slice(1)}!</h3>
-                        <p>Your ${data.weight} Kg of ${data.category} has been ${status}.</p>
-                    </div>`;
-            }
-        });
-    });
-
-    // --- UI Helpers ---
-    window.markAllAsRead = () => {
-        document.querySelectorAll('.unread').forEach(el => el.style.backgroundColor = "#f9f9f9");
-        alert("All marked as read!");
-    };
-    window.toggleDropdown = () => document.getElementById("profileDropdown").classList.toggle("show");
-    window.logoutUser = (e) => { e.preventDefault(); signOut(auth).then(() => window.location.href = "login_page.html"); };
+            else if (status === "accepted" ||
 </script>
 </body>
 </html>
