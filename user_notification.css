@@ -302,3 +302,42 @@ body {
 .dropdown-menu a[onclick="logout()"]:hover {
     color: #C00000; 
 }
+    /* Card container base */
+    .notif-card {
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        font-family: Arial, sans-serif;
+    }
+
+    /* Expired Alert specific */
+    .alert-card {
+        background: #fff5f5;
+        border-left: 5px solid #ef4444;
+    }
+
+    /* General Notification specific */
+    .general-card {
+        background: #f9f9f9;
+        border-left: 5px solid #ccc;
+    }
+    
+    .status-card {
+        background: #eef7f2;
+        border-left: 5px solid #0d7a46;
+    }
+
+    .btn-reorder {
+        background: #ef4444;
+        color: white;
+        padding: 8px 15px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
